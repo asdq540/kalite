@@ -1,78 +1,79 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF‑8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Veri Listesi (J‑N sütun aralığı)</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
-  <style>
-    body { padding: 20px; }
-    .table-container { overflow‑x: auto; }
-    #searchInput { margin‑bottom: 15px; }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Veri Listesi (J-N sütunları)</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<style>
+body { padding: 20px; }
+.table-container { overflow-x: auto; }
+#searchInput { margin-bottom: 15px; }
+</style>
 </head>
 <body>
-  <div class="container">
-    <h1 class="mb‑4">Veri Listesi (J‑N sütunları)</h1>
-    <input type="text" id="searchInput" class="form-control" placeholder="Tabloda ara...">
-    <div class="table-container">
-      <table class="table table-striped table-hover" id="dataTable">
-        <thead class="table-dark"></thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </div>
+<div class="container">
+<h1 class="mb-4">Veri Listesi (J-N sütunları)</h1>
+<input type="text" id="searchInput" class="form-control" placeholder="Tabloda ara...">
+<div class="table-container">
+<table class="table table-striped table-hover" id="dataTable">
+<thead class="table-dark"></thead>
+<tbody></tbody>
+</table>
+</div>
+</div>
 
-  <!-- PapaParse kütüphanesi -->
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script>
-    const sheetUrl = 'YAYINLANMIŞ_CSV_LINKİNİ_BURAYA_YAPIŞTIR';
-    const table = document.getElementById('dataTable');
-    const searchInput = document.getElementById('searchInput');
+<!-- PapaParse kütüphanesi -->
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script>
+const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQBWFSVSD6NvBNqC8me1le_unCCLOKIOIS2DfZFXUTji0MHC7SaWNIy4a0Laob9xOiAJyPnp7LuZ1R-/pub?output=csv';
 
-    fetch(sheetUrl)
-      .then(response => response.text())
-      .then(csvText => {
-        const data = Papa.parse(csvText, { header: false }).data;
-        const startCol = 9;  // J sütunu (0‑index)
-        const endCol = 13;   // N sütunu (0‑index)
-        const thead = table.querySelector('thead');
-        const tbody = table.querySelector('tbody');
+const table = document.getElementById('dataTable');
+const searchInput = document.getElementById('searchInput');
 
-        // Başlık satırı
-        const headerRow = document.createElement('tr');
-        data[0].slice(startCol, endCol + 1).forEach(text => {
-          const th = document.createElement('th');
-          th.textContent = text;
-          headerRow.appendChild(th);
-        });
-        thead.appendChild(headerRow);
+fetch(sheetUrl)
+.then(response => response.text())
+.then(csvText => {
+    const data = Papa.parse(csvText, { header: false }).data;
 
-        // Veri satırları
-        data.slice(1).forEach(row => {
-          const tr = document.createElement('tr');
-          row.slice(startCol, endCol + 1).forEach(cell => {
+    const startCol = 9; // J sütunu (0-index)
+    const endCol = 13;  // N sütunu (0-index)
+    const thead = table.querySelector('thead');
+    const tbody = table.querySelector('tbody');
+
+    // Başlık satırı
+    const headerRow = document.createElement('tr');
+    data[0].slice(startCol, endCol + 1).forEach(text => {
+        const th = document.createElement('th');
+        th.textContent = text;
+        headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+
+    // İçerik satırları
+    data.slice(1).forEach(row => {
+        const tr = document.createElement('tr');
+        row.slice(startCol, endCol + 1).forEach(cell => {
             const td = document.createElement('td');
             td.textContent = cell;
             tr.appendChild(td);
-          });
-          tbody.appendChild(tr);
         });
+        tbody.appendChild(tr);
+    });
 
-        // Arama / filtreleme
-        searchInput.addEventListener('keyup', () => {
-          const filter = searchInput.value.toLowerCase();
-          tbody.querySelectorAll('tr').forEach(tr => {
+    // Arama / filtreleme
+    searchInput.addEventListener('keyup', () => {
+        const filter = searchInput.value.toLowerCase();
+        tbody.querySelectorAll('tr').forEach(tr => {
             tr.style.display = tr.textContent.toLowerCase().includes(filter) ? '' : 'none';
-          });
         });
-      })
-      .catch(err => {
-        console.error('Veri çekme hatası:', err);
-        table.innerHTML = '<tr><td colspan="100%">Veri yüklenirken bir hata oluştu.</td></tr>';
-      });
-  </script>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    });
+})
+.catch(err => {
+    console.error('Veri çekme hatası:', err);
+    table.innerHTML = '<tr><td colspan="100%">Veri yüklenirken bir hata oluştu.</td></tr>';
+});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
