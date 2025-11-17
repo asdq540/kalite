@@ -40,7 +40,7 @@ body {
   <div id="errorMsg" class="text-danger text-center mt-3"></div>
 </div>
 
-<!-- Ana Sayfa (Tablo) -->
+<!-- Ana Sayfa -->
 <div id="mainPage" class="hidden container">
   <h1 class="mb-4">Veri Listesi</h1>
   <input type="text" id="searchInput" class="form-control" placeholder="Tabloda ara...">
@@ -55,54 +55,47 @@ body {
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script>
-const sheetUrl =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBWFSVSD6NvBNqC8me1le_unCCLOKIOIS2DfZFXUTji0MHC7SaWNIy4a0Laob9xOiAJyPnp7LuZ1R-/pub?output=csv";
+const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBWFSVSD6NvBNqC8me1le_unCCLOKIOIS2DfZFXUTji0MHC7SaWNIy4a0Laob9xOiAJyPnp7LuZ1R-/pub?output=csv";
 
-// --- 🔐 Güvenli Login (Backend ile) ---
-async function login() {
-  const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value.trim();
-  const errorMsg = document.getElementById('errorMsg');
+// 🔗 Backend adresi
+const BACKEND_URL = "https://kaliteform.onrender.com";
 
-  if (!username || !password) {
-    errorMsg.textContent = "Lütfen tüm alanları doldurun.";
-    return;
-  }
+function login() {
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const errorMsg = document.getElementById("errorMsg");
 
-  try {
-    const res = await fetch("https://vardiya-backend.onrender.com/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password })
+  fetch(BACKEND_URL + "/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        document.getElementById("loginPage").classList.add("hidden");
+        document.getElementById("mainPage").classList.remove("hidden");
+        loadTable();
+      } else {
+        errorMsg.textContent = "Kullanıcı adı veya şifre hatalı!";
+      }
+    })
+    .catch(() => {
+      errorMsg.textContent = "Sunucuya ulaşılamadı!";
     });
-
-    const data = await res.json();
-
-    if (data.success) {
-      document.getElementById('loginPage').classList.add('hidden');
-      document.getElementById('mainPage').classList.remove('hidden');
-      loadTable();
-    } else {
-      errorMsg.textContent = "Kullanıcı adı veya şifre hatalı!";
-    }
-  } catch (err) {
-    errorMsg.textContent = "Sunucuya ulaşılamadı!";
-  }
 }
 
-// Logout
 function logout() {
-  document.getElementById('mainPage').classList.add('hidden');
-  document.getElementById('loginPage').classList.remove('hidden');
-  document.getElementById('username').value = '';
-  document.getElementById('password').value = '';
-  document.getElementById('errorMsg').textContent = '';
+  document.getElementById("mainPage").classList.add("hidden");
+  document.getElementById("loginPage").classList.remove("hidden");
+  document.getElementById("username").value = "";
+  document.getElementById("password").value = "";
+  document.getElementById("errorMsg").textContent = "";
 }
 
-// --- 📄 Google Sheet Tablosu ---
 function loadTable() {
-  const table = document.getElementById('dataTable');
-  const searchInput = document.getElementById('searchInput');
+  const table = document.getElementById("dataTable");
+  const searchInput = document.getElementById("searchInput");
 
   fetch(sheetUrl)
     .then(response => response.text())
@@ -110,27 +103,28 @@ function loadTable() {
       const data = Papa.parse(csvText, { header: false }).data;
 
       const startCol = 9; // J sütunu
-      const endCol = 13; // N sütunu
-      const thead = table.querySelector('thead');
-      const tbody = table.querySelector('tbody');
+      const endCol = 13;  // N sütunu
 
-      thead.innerHTML = '';
-      tbody.innerHTML = '';
+      const thead = table.querySelector("thead");
+      const tbody = table.querySelector("tbody");
 
-      // Başlıklar
-      const headerRow = document.createElement('tr');
+      thead.innerHTML = "";
+      tbody.innerHTML = "";
+
+      // Başlık
+      const headerRow = document.createElement("tr");
       data[0].slice(startCol, endCol + 1).forEach(text => {
-        const th = document.createElement('th');
+        const th = document.createElement("th");
         th.textContent = text;
         headerRow.appendChild(th);
       });
       thead.appendChild(headerRow);
 
-      // Satırlar
+      // İçerik
       data.slice(1).forEach(row => {
-        const tr = document.createElement('tr');
+        const tr = document.createElement("tr");
         row.slice(startCol, endCol + 1).forEach(cell => {
-          const td = document.createElement('td');
+          const td = document.createElement("td");
           td.textContent = cell;
           tr.appendChild(td);
         });
@@ -138,16 +132,16 @@ function loadTable() {
       });
 
       // Arama
-      searchInput.addEventListener('keyup', () => {
+      searchInput.addEventListener("keyup", () => {
         const filter = searchInput.value.toLowerCase();
-        tbody.querySelectorAll('tr').forEach(tr => {
-          tr.style.display = tr.textContent.toLowerCase().includes(filter) ? '' : 'none';
+        tbody.querySelectorAll("tr").forEach(tr => {
+          tr.style.display = tr.textContent.toLowerCase().includes(filter) ? "" : "none";
         });
       });
     })
     .catch(err => {
-      console.error('Veri çekme hatası:', err);
-      table.innerHTML = '<tr><td colspan="100%">Veri yüklenirken hata oluştu.</td></tr>';
+      console.error("Veri çekme hatası:", err);
+      table.innerHTML = "<tr><td colspan='100%'>Veri yüklenirken hata oluştu.</td></tr>";
     });
 }
 </script>
