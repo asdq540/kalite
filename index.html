@@ -8,8 +8,6 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
 
 <style>
-
-/* Kurumsal Renk Paleti */
 :root {
   --primary: #0d6efd;
   --primary-dark: #0b5ed7;
@@ -18,7 +16,6 @@
   --table-header: #093e72;
 }
 
-/* Sayfa Arka Planı */
 body {
   background: var(--background);
   padding: 20px;
@@ -35,20 +32,11 @@ body {
   box-shadow: 0 6px 30px rgba(0,0,0,0.12);
   border: 1px solid #dee2e6;
 }
-
-.login-container h3 {
-  font-weight: 600;
-  color: #093e72;
-}
+.login-container h3 { font-weight: 600; color: #093e72; }
 
 /* Ana Panel */
-#mainPage h1 {
-  color: #093e72;
-  font-weight: 700;
-  margin-bottom: 25px;
-}
+#mainPage h1 { color: #093e72; font-weight: 700; margin-bottom: 25px; }
 
-/* Arama Alanı */
 #searchInput {
   margin-bottom: 20px;
   border-radius: 10px;
@@ -56,7 +44,6 @@ body {
   border: 1px solid #bfc4c9;
 }
 
-/* Tablo Tasarımı */
 .table-container {
   overflow-x: auto;
   background: white;
@@ -65,37 +52,13 @@ body {
   box-shadow: 0 2px 15px rgba(0,0,0,0.08);
 }
 
-/* Tablo Head */
-.table thead {
-  background: var(--table-header) !important;
-  color: white;
-}
+.table thead { background: var(--table-header) !important; color: white; }
+.table th { padding: 12px !important; font-size: 15px; }
+.table tbody tr { transition: background 0.15s, transform 0.1s; }
+.table tbody tr:hover { background: #e9f3ff !important; transform: scale(1.01); }
 
-.table th {
-  padding: 12px !important;
-  font-size: 15px;
-}
-
-/* Tablo Satırları */
-.table tbody tr {
-  transition: background 0.15s, transform 0.1s;
-}
-
-.table tbody tr:hover {
-  background: #e9f3ff !important;
-  transform: scale(1.01);
-}
-
-/* Çıkış butonu */
-.btn-outline-danger {
-  margin-top: 20px;
-  font-weight: 600;
-  border-radius: 10px;
-}
-
-/* Gizlenmiş Durum */
+.btn-outline-danger { margin-top: 20px; font-weight: 600; border-radius: 10px; }
 .hidden { display: none; }
-
 </style>
 </head>
 <body>
@@ -136,6 +99,7 @@ body {
 const BACKEND_URL = "https://kaliteform.onrender.com";
 const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBWFSVSD6NvBNqC8me1le_unCCLOKIOIS2DfZFXUTji0MHC7SaWNIy4a0Laob9xOiAJyPnp7LuZ1R-/pub?output=csv";
 
+// Giriş İşlemi
 function login() {
   const username = document.getElementById("username").value.trim();
   const password = document.getElementById("password").value.trim();
@@ -146,22 +110,25 @@ function login() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password })
   })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        document.getElementById("loginPage").classList.add("hidden");
-        document.getElementById("mainPage").classList.remove("hidden");
-        loadTable();
-      } else {
-        errorMsg.textContent = "Kullanıcı adı veya şifre hatalı!";
-      }
-    })
-    .catch(() => {
-      errorMsg.textContent = "Sunucuya ulaşılamadı!";
-    });
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      localStorage.setItem("loggedIn", "true");  // Oturum kaydet
+      document.getElementById("loginPage").classList.add("hidden");
+      document.getElementById("mainPage").classList.remove("hidden");
+      loadTable();
+    } else {
+      errorMsg.textContent = "Kullanıcı adı veya şifre hatalı!";
+    }
+  })
+  .catch(() => {
+    errorMsg.textContent = "Sunucuya ulaşılamadı!";
+  });
 }
 
+// Çıkış Yap
 function logout() {
+  localStorage.removeItem("loggedIn");  // Oturumu temizle
   document.getElementById("mainPage").classList.add("hidden");
   document.getElementById("loginPage").classList.remove("hidden");
   document.getElementById("username").value = "";
@@ -169,6 +136,7 @@ function logout() {
   document.getElementById("errorMsg").textContent = "";
 }
 
+// Tabloyu Yükle
 function loadTable() {
   const table = document.getElementById("dataTable");
   const searchInput = document.getElementById("searchInput");
@@ -183,7 +151,6 @@ function loadTable() {
 
       const thead = table.querySelector("thead");
       const tbody = table.querySelector("tbody");
-
       thead.innerHTML = "";
       tbody.innerHTML = "";
 
@@ -205,14 +172,24 @@ function loadTable() {
         tbody.appendChild(tr);
       });
 
+      // Arama
       searchInput.addEventListener("keyup", () => {
         const filter = searchInput.value.toLowerCase();
         tbody.querySelectorAll("tr").forEach(tr => {
           tr.style.display = tr.textContent.toLowerCase().includes(filter) ? "" : "none";
         });
       });
-    })
+    });
 }
+
+// Sayfa Yüklendiğinde Oturum Kontrolü
+window.onload = function() {
+  if (localStorage.getItem("loggedIn") === "true") {
+    document.getElementById("loginPage").classList.add("hidden");
+    document.getElementById("mainPage").classList.remove("hidden");
+    loadTable();
+  }
+};
 </script>
 
 </body>
