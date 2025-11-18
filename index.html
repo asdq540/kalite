@@ -25,11 +25,13 @@ body {
 }
 .login-container h3 { font-weight: 600; color: #093e72; }
 #mainPage h1 { color: #093e72; font-weight: 700; margin-bottom: 25px; }
-#searchInput { margin-bottom: 20px; border-radius: 10px; padding: 10px 15px; border: 1px solid #bfc4c9; }
 .table-container { overflow-x: auto; background: white; padding: 10px; border-radius: 12px; box-shadow: 0 2px 15px rgba(0,0,0,0.08); margin-bottom: 40px;}
 .table thead { background: #093e72 !important; color: white; }
 .table th, .table td { padding: 10px !important; font-size: 14px; text-align: center; }
-.table tbody tr:hover { background: #e9f3ff !important; }
+.table tbody tr:hover { background: #e0f0ff !important; }
+.dataTables_wrapper .dataTables_paginate .paginate_button { background-color: #0d6efd; color: white !important; border-radius: 6px; margin: 2px; }
+.dataTables_wrapper .dataTables_paginate .paginate_button.current { background-color: #093e72 !important; }
+.dataTables_wrapper .dataTables_filter input { border-radius: 8px; border: 1px solid #bfc4c9; padding: 5px 10px; }
 .hidden { display: none; }
 </style>
 </head>
@@ -146,9 +148,27 @@ function loadTables(){
     if($.fn.DataTable.isDataTable('#dataTable')) dataTable.DataTable().destroy();
     if($.fn.DataTable.isDataTable('#photoTable')) photoTable.DataTable().destroy();
 
-    // Initialize DataTables
-    dataTable.DataTable({ pageLength:20, order: [] });
-    photoTable.DataTable({ pageLength:20, order: [] });
+    // Initialize DataTables with Turkish
+    const turkish = {
+      "sEmptyTable":     "Tabloda veri yok",
+      "sInfo":           "_TOTAL_ kayıttan _START_ - _END_ arası gösteriliyor",
+      "sInfoEmpty":      "0 kayıttan 0 - 0 arası gösteriliyor",
+      "sInfoFiltered":   "(_MAX_ kayıt içerisinden filtrelendi)",
+      "sLengthMenu":     "Sayfada _MENU_ kayıt göster",
+      "sLoadingRecords": "Yükleniyor...",
+      "sProcessing":     "İşleniyor...",
+      "sSearch":         "Ara:",
+      "sZeroRecords":    "Eşleşen kayıt bulunamadı",
+      "oPaginate": {
+        "sFirst":    "İlk",
+        "sLast":     "Son",
+        "sNext":     "Sonraki",
+        "sPrevious": "Önceki"
+      }
+    };
+
+    dataTable.DataTable({ pageLength:20, order: [], language: turkish });
+    photoTable.DataTable({ pageLength:20, order: [], language: turkish });
   });
 }
 
