@@ -19,7 +19,6 @@ body{
   font-family: "Segoe UI", sans-serif;
   padding:20px;
 }
-/* Login */
 .login-container{
   max-width:420px;
   margin:90px auto;
@@ -30,12 +29,8 @@ body{
   border:1px solid #e6e9ec;
 }
 .login-container h3{ color:var(--thead); font-weight:600; }
-
-/* Main */
 #mainPage{ display:none; }
 h1.section-title{ color:var(--thead); font-weight:700; margin-bottom:16px; }
-
-/* Table containers */
 .table-card{
   background:var(--card);
   padding:12px;
@@ -47,15 +42,9 @@ h1.section-title{ color:var(--thead); font-weight:700; margin-bottom:16px; }
 .table th, .table td{ padding:10px !important; font-size:14px; text-align:center; border:1px solid #e8edf2; }
 .table tbody tr:nth-child(odd){ background:var(--soft1); }
 .table tbody tr:nth-child(even){ background:var(--soft2); }
-
-/* search */
 .search-input{ margin-bottom:12px; border-radius:8px; padding:10px; border:1px solid #cfd6db; }
-
-/* pagination */
 .pagination { justify-content:center; margin-top:12px; flex-wrap: wrap; }
 .page-link{ cursor:pointer; }
-
-/* thumbnail */
 img.thumb{
   width:68px;
   height:56px;
@@ -66,8 +55,6 @@ img.thumb{
   transition:transform .12s;
 }
 img.thumb:hover{ transform:scale(1.06); }
-
-/* modal image container and zoom/drag handling */
 .modal-img-wrap{
   width:100%;
   height:80vh;
@@ -86,36 +73,16 @@ img.thumb:hover{ transform:scale(1.06); }
   cursor:grab;
   user-select:none;
 }
-/* small helper for modal instructions */
 .modal-footer .small-note { margin-right:auto; color:#666; font-size:13px; }
-
-/* fade transition for table switch */
-.fadeWrapper{
-  transition: opacity 0.3s ease;
-}
+.fadeWrapper{ transition: opacity 0.3s ease; }
 .fadeIn{ opacity:1; }
 .fadeOut{ opacity:0; }
-
-/* --- Mobile Responsive --- */
 @media (max-width: 576px) {
-  .table th, .table td {
-    font-size: 12px;
-    padding: 6px !important;
-    white-space: nowrap;
-  }
-  .pagination {
-    flex-wrap: wrap;
-  }
-  .pagination .page-item {
-    margin-bottom: 4px;
-  }
-  .pagination .page-link {
-    padding: 4px 8px;
-    font-size: 12px;
-  }
-  .table-responsive {
-    overflow-x: auto;
-  }
+  .table th, .table td { font-size: 12px; padding: 6px !important; white-space: nowrap; }
+  .pagination { flex-wrap: wrap; }
+  .pagination .page-item { margin-bottom: 4px; }
+  .pagination .page-link { padding: 4px 8px; font-size: 12px; }
+  .table-responsive { overflow-x: auto; }
 }
 </style>
 </head>
@@ -142,15 +109,14 @@ img.thumb:hover{ transform:scale(1.06); }
 <div id="mainPage" class="container">
   <h1 class="section-title">Kalite Veri Listesi</h1>
 
-  <!-- TABLO BUTONLARI + WRAPPER -->
   <div class="table-card">
     <div class="d-flex mb-3 justify-content-center gap-2">
       <button id="btnData" class="btn btn-primary">Veri Tablosu</button>
       <button id="btnPhoto" class="btn btn-outline-primary">Fotoğraf Tablosu</button>
     </div>
 
-    <!-- Tarih filtreleme -->
-    <div class="d-flex mb-3 gap-2 flex-wrap align-items-center">
+    <!-- FOTOĞRAF TABLOSU TARİH FİLTRESİ -->
+    <div class="d-flex mb-3 gap-2 flex-wrap align-items-center" id="photoDateFilterWrapper">
       <label>Tarih Filtre:</label>
       <input type="date" id="dateFilter" class="form-control" style="max-width:200px;">
     </div>
@@ -162,10 +128,7 @@ img.thumb:hover{ transform:scale(1.06); }
         <button class="btn btn-outline-danger ms-3" onclick="logout()">Çıkış Yap</button>
       </div>
       <div class="table-responsive">
-        <table id="dataTable" class="table table-hover align-middle">
-          <thead></thead>
-          <tbody></tbody>
-        </table>
+        <table id="dataTable" class="table table-hover align-middle"><thead></thead><tbody></tbody></table>
       </div>
       <nav><ul id="pagination1" class="pagination"></ul></nav>
     </div>
@@ -177,10 +140,7 @@ img.thumb:hover{ transform:scale(1.06); }
         <div class="ms-3 text-muted small">F sütunu fotoğraflar</div>
       </div>
       <div class="table-responsive">
-        <table id="photoTable" class="table table-hover align-middle">
-          <thead></thead>
-          <tbody></tbody>
-        </table>
+        <table id="photoTable" class="table table-hover align-middle"><thead></thead><tbody></tbody></table>
       </div>
       <nav><ul id="pagination2" class="pagination"></ul></nav>
     </div>
@@ -192,9 +152,7 @@ img.thumb:hover{ transform:scale(1.06); }
   <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-body p-0">
-        <div class="modal-img-wrap" id="modalWrap">
-          <img id="modalImage" src="" alt="Büyütülmüş fotoğraf">
-        </div>
+        <div class="modal-img-wrap" id="modalWrap"><img id="modalImage" src="" alt="Büyütülmüş fotoğraf"></div>
       </div>
       <div class="modal-footer">
         <div class="small-note">Fare tekeri ile zoom, sürükleyerek taşıyın</div>
@@ -207,258 +165,107 @@ img.thumb:hover{ transform:scale(1.06); }
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-/* ---------- CONFIG ---------- */
-const BACKEND_URL = "https://kaliteform.onrender.com";
-const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBWFSVSD6NvBNqC8me1le_unCCLOKIOIS2DfZFXUTji0MHC7SaWNIy4a0Laob9xOiAJyPnp7LuZ1R-/pub?output=csv";
-const PAGE_SIZE = 10;
+const BACKEND_URL="https://kaliteform.onrender.com";
+const sheetUrl="https://docs.google.com/spreadsheets/d/e/2PACX-1vQBWFSVSD6NvBNqC8me1le_unCCLOKIOIS2DfZFXUTji0MHC7SaWNIy4a0Laob9xOiAJyPnp7LuZ1R-/pub?output=csv";
+const PAGE_SIZE=10;
 
-/* ---------- AUTH ---------- */
+/* --- AUTH --- */
 function login(){
-  const u = document.getElementById('username').value.trim();
-  const p = document.getElementById('password').value.trim();
-  const err = document.getElementById('errorMsg');
-  err.textContent='';
-  fetch(BACKEND_URL + '/login', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({username:u,password:p})
-  })
-    .then(r=>r.json()).then(res=>{
-      if(res && res.success){
-        localStorage.setItem('loggedIn','true');
-        showMain();
-      } else {
-        err.textContent = 'Kullanıcı adı veya şifre hatalı!';
-      }
-    }).catch(e=>{
-      err.textContent = 'Sunucuya ulaşılamadı!';
-    });
+  const u=document.getElementById('username').value.trim();
+  const p=document.getElementById('password').value.trim();
+  const err=document.getElementById('errorMsg'); err.textContent='';
+  fetch(BACKEND_URL+'/login',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u,password:p})})
+  .then(r=>r.json()).then(res=>{
+    if(res&&res.success){ localStorage.setItem('loggedIn','true'); showMain(); }
+    else err.textContent='Kullanıcı adı veya şifre hatalı!';
+  }).catch(()=>{err.textContent='Sunucuya ulaşılamadı!';});
 }
 
-function logout(){
-  localStorage.removeItem('loggedIn');
-  document.getElementById('loginPage').style.display = 'block';
-  document.getElementById('mainPage').style.display = 'none';
-  document.getElementById('username').value=''; 
-  document.getElementById('password').value='';
-}
+function logout(){localStorage.removeItem('loggedIn'); document.getElementById('loginPage').style.display='block'; document.getElementById('mainPage').style.display='none'; document.getElementById('username').value=''; document.getElementById('password').value='';}
+function showMain(){document.getElementById('loginPage').style.display='none'; document.getElementById('mainPage').style.display='block'; loadCsvAndInit();}
+window.addEventListener('load',()=>{if(localStorage.getItem('loggedIn')==='true'){showMain();}});
 
-function showMain(){
-  document.getElementById('loginPage').style.display = 'none';
-  document.getElementById('mainPage').style.display = 'block';
-  loadCsvAndInit();
-}
-
-window.addEventListener('load', ()=> {
-  if(localStorage.getItem('loggedIn')==='true'){
-    showMain();
-  }
-});
-
-/* ---------- CSV load ---------- */
-let dataRows = [];
-let photoRows = [];
-let headerRow = [];
-
+/* --- CSV LOAD --- */
+let dataRows=[], photoRows=[], headerRow=[];
 function loadCsvAndInit(){
   fetch(sheetUrl).then(res=>res.text()).then(text=>{
-    const parsed = Papa.parse(text,{header:false}).data || [];
-    if(parsed.length === 0){ console.warn('CSV boş veya okunamadı'); return; }
-    headerRow = parsed[0];
-    const body = parsed.slice(1);
-
-    dataRows = body.map(r => r.slice(9,17));
-    photoRows = body.map(r => r.slice(0,7));
-
-    createTable({tableId:'dataTable', headers: headerRow.slice(9,17), rows: dataRows, searchId:'searchInput1', paginationId:'pagination1', pageSize:PAGE_SIZE, isPhoto:false, dateColumnIndex:0});
-    createTable({tableId:'photoTable', headers: headerRow.slice(0,7), rows: photoRows, searchId:'searchInput2', paginationId:'pagination2', pageSize:PAGE_SIZE, isPhoto:true});
-  }).catch(err=>console.error('CSV error', err));
+    const parsed=Papa.parse(text,{header:false}).data||[];
+    if(parsed.length===0){console.warn('CSV boş'); return;}
+    headerRow=parsed[0]; const body=parsed.slice(1);
+    dataRows=body.map(r=>r.slice(9,17));
+    photoRows=body.map(r=>r.slice(0,7));
+    createTable({tableId:'dataTable', headers: headerRow.slice(9,17), rows: dataRows, searchId:'searchInput1', paginationId:'pagination1', pageSize:PAGE_SIZE, isPhoto:false});
+    createTable({tableId:'photoTable', headers: headerRow.slice(0,7), rows: photoRows, searchId:'searchInput2', paginationId:'pagination2', pageSize:PAGE_SIZE, isPhoto:true, dateColumnIndex:0});
+  }).catch(err=>console.error(err));
 }
 
-/* ---------- Generic Table ---------- */
+/* --- GENERIC TABLE --- */
 function createTable({tableId, headers, rows, searchId, paginationId, pageSize=10, isPhoto=false, dateColumnIndex=null}){
-  const table=document.getElementById(tableId);
-  const thead=table.querySelector('thead');
-  const tbody=table.querySelector('tbody');
-  const searchInput=document.getElementById(searchId);
-  const pagination=document.getElementById(paginationId);
+  const table=document.getElementById(tableId), thead=table.querySelector('thead'), tbody=table.querySelector('tbody');
+  const searchInput=document.getElementById(searchId), pagination=document.getElementById(paginationId);
   const dateFilter=document.getElementById('dateFilter');
+  const originalRows=rows.slice(); let filteredRows=rows.slice(); let currentPage=1;
 
-  const originalRows=rows.slice();
-  let filteredRows=rows.slice();
-  let currentPage=1;
-
-  function renderHead(){
-    thead.innerHTML='';
-    const tr=document.createElement('tr');
-    headers.forEach(h=>{const th=document.createElement('th'); th.textContent=h||''; tr.appendChild(th);});
-    thead.appendChild(tr);
-  }
-
+  function renderHead(){thead.innerHTML=''; const tr=document.createElement('tr'); headers.forEach(h=>{const th=document.createElement('th'); th.textContent=h||''; tr.appendChild(th);}); thead.appendChild(tr);}
   function renderPage(){
-    tbody.innerHTML='';
-    const total=Math.max(1, filteredRows.length);
-    const totalPages=Math.max(1, Math.ceil(total/pageSize));
+    tbody.innerHTML=''; const total=Math.max(1, filteredRows.length); const totalPages=Math.max(1, Math.ceil(total/pageSize));
     if(currentPage>totalPages) currentPage=totalPages;
-
-    const start=(currentPage-1)*pageSize;
-    const pageSlice=filteredRows.slice(start,start+pageSize);
-
-    pageSlice.forEach(row=>{
-      const tr=document.createElement('tr');
-      row.forEach((cell, idx)=>{
-        const td=document.createElement('td');
-        if(isPhoto && idx===5 && cell){
-          const img=document.createElement('img');
-          img.className='thumb'; img.loading='lazy'; img.alt='foto'; img.src=cell;
-          img.addEventListener('click',()=>openImageModal(cell));
-          td.appendChild(img);
-        }else td.textContent=cell;
-        tr.appendChild(td);
-      });
-      tbody.appendChild(tr);
-    });
-
+    const start=(currentPage-1)*pageSize; const pageSlice=filteredRows.slice(start,start+pageSize);
+    pageSlice.forEach(row=>{const tr=document.createElement('tr'); row.forEach((cell,idx)=>{const td=document.createElement('td'); if(isPhoto && idx===5 && cell){const img=document.createElement('img'); img.className='thumb'; img.loading='lazy'; img.alt='foto'; img.src=cell; img.addEventListener('click',()=>openImageModal(cell)); td.appendChild(img);}else td.textContent=cell; tr.appendChild(td);}); tbody.appendChild(tr);});
     renderPagination();
   }
 
   function renderPagination(){
-    pagination.innerHTML='';
-    const totalPages=Math.max(1, Math.ceil(filteredRows.length/pageSize));
-
-    const liPrev=document.createElement('li');
-    liPrev.className='page-item '+(currentPage===1?'disabled':'');
-    const btnPrev=document.createElement('button');
-    btnPrev.className='page-link'; btnPrev.textContent='Geri';
-    btnPrev.addEventListener('click',(e)=>{
-      e.preventDefault(); if(currentPage>1) currentPage--; renderPage();
-    });
+    pagination.innerHTML=''; const totalPages=Math.max(1, Math.ceil(filteredRows.length/pageSize));
+    const liPrev=document.createElement('li'); liPrev.className='page-item '+(currentPage===1?'disabled':'');
+    const btnPrev=document.createElement('button'); btnPrev.className='page-link'; btnPrev.textContent='Geri';
+    btnPrev.addEventListener('click',(e)=>{e.preventDefault(); if(currentPage>1) currentPage--; renderPage();});
     liPrev.appendChild(btnPrev); pagination.appendChild(liPrev);
 
-    const liNext=document.createElement('li');
-    liNext.className='page-item '+(currentPage===totalPages?'disabled':'');
-    const btnNext=document.createElement('button');
-    btnNext.className='page-link'; btnNext.textContent='İleri';
-    btnNext.addEventListener('click',(e)=>{
-      e.preventDefault(); if(currentPage<totalPages) currentPage++; renderPage();
-    });
+    const liNext=document.createElement('li'); liNext.className='page-item '+(currentPage===totalPages?'disabled':'');
+    const btnNext=document.createElement('button'); btnNext.className='page-link'; btnNext.textContent='İleri';
+    btnNext.addEventListener('click',(e)=>{e.preventDefault(); if(currentPage<totalPages) currentPage++; renderPage();});
     liNext.appendChild(btnNext); pagination.appendChild(liNext);
   }
 
   function applyFilters(){
     const searchTerm=(searchInput.value||'').toLowerCase();
     const dateVal=dateFilter?dateFilter.value:null;
-
     filteredRows=originalRows.filter(r=>{
       const matchSearch=r.join(' ').toLowerCase().includes(searchTerm);
       let matchDate=true;
-      if(dateVal && dateColumnIndex!==null){
-        matchDate=r[dateColumnIndex]===dateVal;
-      }
+      if(dateVal && dateColumnIndex!==null){matchDate=r[dateColumnIndex]===dateVal;}
       return matchSearch && matchDate;
     });
-
     currentPage=1; renderPage();
   }
 
-  const newSearch=searchInput.cloneNode(true);
-  searchInput.parentNode.replaceChild(newSearch,searchInput);
+  const newSearch=searchInput.cloneNode(true); searchInput.parentNode.replaceChild(newSearch,searchInput);
   newSearch.addEventListener('input',applyFilters);
-
-  if(dateFilter) dateFilter.addEventListener('change',applyFilters);
-
-  renderHead();
-  applyFilters();
+  if(dateFilter && dateColumnIndex!==null) dateFilter.addEventListener('change',applyFilters);
+  renderHead(); applyFilters();
 }
 
-/* ---------- Table Switch Buttons ---------- */
-const btnData=document.getElementById('btnData');
-const btnPhoto=document.getElementById('btnPhoto');
-const dataWrapper=document.getElementById('dataTableWrapper');
-const photoWrapper=document.getElementById('photoTableWrapper');
+/* --- TABLE SWITCH --- */
+const btnData=document.getElementById('btnData'), btnPhoto=document.getElementById('btnPhoto');
+const dataWrapper=document.getElementById('dataTableWrapper'), photoWrapper=document.getElementById('photoTableWrapper');
+function showDataTable(){btnData.classList.replace('btn-outline-primary','btn-primary'); btnPhoto.classList.replace('btn-primary','btn-outline-primary'); photoWrapper.classList.add('fadeOut'); dataWrapper.style.display='block'; dataWrapper.classList.remove('fadeOut'); dataWrapper.classList.add('fadeIn'); setTimeout(()=>photoWrapper.style.display='none',300);}
+function showPhotoTable(){btnPhoto.classList.replace('btn-outline-primary','btn-primary'); btnData.classList.replace('btn-primary','btn-outline-primary'); dataWrapper.classList.add('fadeOut'); photoWrapper.style.display='block'; photoWrapper.classList.remove('fadeOut'); photoWrapper.classList.add('fadeIn'); setTimeout(()=>dataWrapper.style.display='none',300);}
+btnData.addEventListener('click', showDataTable); btnPhoto.addEventListener('click', showPhotoTable);
 
-function showDataTable(){
-  btnData.classList.replace('btn-outline-primary','btn-primary');
-  btnPhoto.classList.replace('btn-primary','btn-outline-primary');
-  photoWrapper.classList.add('fadeOut');
-  dataWrapper.style.display='block';
-  dataWrapper.classList.remove('fadeOut'); dataWrapper.classList.add('fadeIn');
-  setTimeout(()=>photoWrapper.style.display='none',300);
-}
-
-function showPhotoTable(){
-  btnPhoto.classList.replace('btn-outline-primary','btn-primary');
-  btnData.classList.replace('btn-primary','btn-outline-primary');
-  dataWrapper.classList.add('fadeOut');
-  photoWrapper.style.display='block';
-  photoWrapper.classList.remove('fadeOut'); photoWrapper.classList.add('fadeIn');
-  setTimeout(()=>dataWrapper.style.display='none',300);
-}
-
-btnData.addEventListener('click', showDataTable);
-btnPhoto.addEventListener('click', showPhotoTable);
-
-/* ---------- Modal Progressive Load + Zoom/Drag ---------- */
-const modalEl=document.getElementById('imageModal');
-const modalImage=document.getElementById('modalImage');
-const modalWrap=document.getElementById('modalWrap');
-let bsModal=null;
-
-let scale=1, translateX=0, translateY=0;
-let isDragging=false, dragStartX=0, dragStartY=0, imgStartX=0, imgStartY=0;
-
+/* --- MODAL ZOOM/DRAG --- */
+const modalEl=document.getElementById('imageModal'); const modalImage=document.getElementById('modalImage'); const modalWrap=document.getElementById('modalWrap'); let bsModal=null;
+let scale=1, translateX=0, translateY=0, isDragging=false, dragStartX=0, dragStartY=0, imgStartX=0, imgStartY=0;
 function resetTransform(){scale=1; translateX=0; translateY=0; applyTransform();}
 function applyTransform(){modalImage.style.transform=`translate(${translateX}px,${translateY}px) scale(${scale})`;}
+function openImageModal(src){modalImage.src=src; resetTransform(); if(!bsModal) bsModal=new bootstrap.Modal(modalEl); bsModal.show();}
 
-function openImageModal(src){
-  modalImage.src=src; resetTransform();
-  if(!bsModal) bsModal=new bootstrap.Modal(modalEl);
-  bsModal.show();
-
-  const hi=new Image();
-  hi.onload=()=>{
-    modalImage.style.transition="filter .25s ease"; modalImage.style.filter="blur(2px)";
-    setTimeout(()=>{modalImage.src=src; modalImage.style.filter="blur(0)";},50);
-  };
-  hi.src=src;
-}
-
-modalWrap.addEventListener('wheel',function(e){
-  if(e.target && e.target.tagName==='IMG'){
-    e.preventDefault();
-    const delta=-e.deltaY;
-    const zoomFactor=delta>0?1.08:0.92;
-    const newScale=Math.min(6,Math.max(0.5,scale*zoomFactor));
-    const rect=modalImage.getBoundingClientRect();
-    const mx=e.clientX-rect.left;
-    const my=e.clientY-rect.top;
-    const dx=(mx-rect.width/2); const dy=(my-rect.height/2);
-    translateX=translateX-dx*(newScale/scale-1);
-    translateY=translateY-dy*(newScale/scale-1);
-    scale=newScale; applyTransform();
-  }
-},{passive:false});
-
-modalImage.addEventListener('pointerdown',function(e){
-  if(e.button!==0)return;
-  isDragging=true; modalImage.setPointerCapture(e.pointerId); modalImage.style.cursor='grabbing';
-  dragStartX=e.clientX; dragStartY=e.clientY; imgStartX=translateX; imgStartY=translateY;
-});
-
-modalImage.addEventListener('pointermove',function(e){
-  if(!isDragging) return;
-  const dx=e.clientX-dragStartX; const dy=e.clientY-dragStartY;
-  translateX=imgStartX+dx; translateY=imgStartY+dy; applyTransform();
-});
-
-modalImage.addEventListener('pointerup',function(e){
-  isDragging=false; modalImage.releasePointerCapture(e.pointerId); modalImage.style.cursor='grab';
-});
-
-modalEl.addEventListener('hidden.bs.modal',function(){
-  modalImage.src=''; resetTransform();
-});
-
+/* ZOOM */
+modalWrap.addEventListener('wheel',function(e){if(e.target && e.target.tagName==='IMG'){e.preventDefault(); const delta=-e.deltaY; const zoomFactor=delta>0?1.08:0.92; const newScale=Math.min(6,Math.max(0.5,scale*zoomFactor)); const rect=modalImage.getBoundingClientRect(); const mx=e.clientX-rect.left; const my=e.clientY-rect.top; const dx=(mx-rect.width/2); const dy=(my-rect.height/2); translateX=translateX-dx*(newScale/scale-1); translateY=translateY-dy*(newScale/scale-1); scale=newScale; applyTransform();}},{passive:false});
+modalImage.addEventListener('pointerdown',function(e){if(e.button!==0)return; isDragging=true; modalImage.setPointerCapture(e.pointerId); modalImage.style.cursor='grabbing'; dragStartX=e.clientX; dragStartY=e.clientY; imgStartX=translateX; imgStartY=translateY;});
+modalImage.addEventListener('pointermove',function(e){if(!isDragging)return; const dx=e.clientX-dragStartX; const dy=e.clientY-dragStartY; translateX=imgStartX+dx; translateY=imgStartY+dy; applyTransform();});
+modalImage.addEventListener('pointerup',function(e){isDragging=false; modalImage.releasePointerCapture(e.pointerId); modalImage.style.cursor='grab';});
+modalEl.addEventListener('hidden.bs.modal',function(){modalImage.src=''; resetTransform();});
 modalImage.addEventListener('load',resetTransform);
 </script>
 </body>
