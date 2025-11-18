@@ -6,122 +6,172 @@
 <title>Kalite Kontrol Paneli</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
-<link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet"/>
 
 <style>
-body { background: #f1f3f5; padding: 20px; font-family: "Segoe UI", sans-serif; }
-.card-header { font-weight: 600; font-size: 18px; }
-.table img { max-height: 60px; border-radius: 6px; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
-.table img:hover { transform: scale(1.1); box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+:root {
+  --primary: #0d6efd;
+  --primary-dark: #0b5ed7;
+  --background: #f1f3f5;
+  --card-bg: #ffffff;
+  --table-header: #093e72;
+}
+
+body {
+  background: var(--background);
+  padding: 20px;
+  font-family: "Segoe UI", sans-serif;
+}
+
+#mainPage h1 { color: #093e72; font-weight: 700; margin-bottom: 25px; }
+
+#searchInput {
+  margin-bottom: 20px;
+  border-radius: 10px;
+  padding: 10px 15px;
+  border: 1px solid #bfc4c9;
+}
+
+.table-container {
+  overflow-x: auto;
+  background: white;
+  padding: 10px;
+  border-radius: 12px;
+  box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+}
+
+.table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.table th, .table td {
+  border: 1px solid #dee2e6;
+  padding: 10px;
+  text-align: left;
+}
+
+.table thead { background: var(--table-header) !important; color: white; }
+.table tbody tr { transition: background 0.15s, transform 0.1s; }
+.table tbody tr:hover { background: #e9f3ff !important; transform: scale(1.01); }
+
+.btn-outline-danger { margin-top: 20px; font-weight: 600; border-radius: 10px; }
 </style>
 </head>
 <body>
 
-<div class="container mt-4">
+<!-- Ana Panel -->
+<div id="mainPage" class="container">
+  <h1>Kalite Veri Listesi</h1>
 
   <!-- Veri Tablosu -->
-  <div class="card mb-5 shadow-sm">
-    <div class="card-header bg-primary text-white">
-      Kalite Veri Tablosu
-    </div>
-    <div class="card-body">
-      <input type="text" id="searchData" class="form-control mb-3" placeholder="Veri tablosunda ara...">
-      <table id="dataTable" class="table table-bordered table-striped" style="width:100%">
-        <thead></thead>
-        <tbody></tbody>
-      </table>
-    </div>
+  <h3>Veri Tablosu</h3>
+  <input type="text" id="searchInputData" class="form-control" placeholder="Veri tablosunda ara...">
+  <div class="table-container">
+    <table class="table table-striped table-hover" id="dataTable">
+      <thead></thead>
+      <tbody></tbody>
+    </table>
   </div>
 
   <!-- Fotoğraf Tablosu -->
-  <div class="card mb-5 shadow-sm">
-    <div class="card-header bg-success text-white">
-      Fotoğraf Tablosu
-    </div>
-    <div class="card-body">
-      <input type="text" id="searchFoto" class="form-control mb-3" placeholder="Fotoğraf tablosunda ara...">
-      <table id="fotoTable" class="table table-bordered table-striped" style="width:100%">
-        <thead></thead>
-        <tbody></tbody>
-      </table>
-    </div>
+  <h3 class="mt-5">Fotoğraf Tablosu</h3>
+  <input type="text" id="searchInputPhoto" class="form-control" placeholder="Fotoğraf tablosunda ara...">
+  <div class="table-container">
+    <table class="table table-striped table-hover" id="photoTable">
+      <thead></thead>
+      <tbody></tbody>
+    </table>
   </div>
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-
 <script>
 const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBWFSVSD6NvBNqC8me1le_unCCLOKIOIS2DfZFXUTji0MHC7SaWNIy4a0Laob9xOiAJyPnp7LuZ1R-/pub?output=csv";
 
+// Veri ve Fotoğraf tablolarını yükleme
 function loadTables() {
   fetch(sheetUrl)
-    .then(response => response.text())
+    .then(res => res.text())
     .then(csvText => {
       const data = Papa.parse(csvText, { header: false }).data;
 
-      // --- Veri Tablosu (J-Q sütunları) ---
-      const dataHeaders = data[0].slice(9, 17); // J-Q
-      const dataRows = data.slice(1).map(row => row.slice(9, 17));
+      const dataTable = document.getElementById("dataTable");
+      const photoTable = document.getElementById("photoTable");
+      const searchInputData = document.getElementById("searchInputData");
+      const searchInputPhoto = document.getElementById("searchInputPhoto");
 
-      const dataTable = $('#dataTable').DataTable({
-        destroy: true,
-        data: dataRows,
-        columns: dataHeaders.map(h => ({ title: h })),
-        pageLength: 20,
-        ordering: false,
-        language: {
-          search: "Ara:",
-          paginate: { first: "İlk", last: "Son", next: ">", previous: "<" },
-          info: "_TOTAL_ kayıttan _START_ - _END_ gösteriliyor"
-        },
-        dom: 'lrtip' // Datatables arama kutusunu kaldırıyoruz çünkü kendi input kullanacağız
+      // Veri Tablosu: J-Q (9-16)
+      const startColData = 9, endColData = 16;
+      const theadData = dataTable.querySelector("thead");
+      const tbodyData = dataTable.querySelector("tbody");
+      theadData.innerHTML = "";
+      tbodyData.innerHTML = "";
+
+      const headerRowData = document.createElement("tr");
+      data[0].slice(startColData, endColData+1).forEach(text => {
+        const th = document.createElement("th");
+        th.textContent = text;
+        headerRowData.appendChild(th);
+      });
+      theadData.appendChild(headerRowData);
+
+      data.slice(1).forEach(row => {
+        const tr = document.createElement("tr");
+        row.slice(startColData, endColData+1).forEach(cell => {
+          const td = document.createElement("td");
+          td.textContent = cell;
+          tr.appendChild(td);
+        });
+        tbodyData.appendChild(tr);
       });
 
-      // Arama inputu bağlama
-      $('#searchData').on('keyup', function() {
-        dataTable.search(this.value).draw();
+      searchInputData.addEventListener("keyup", () => {
+        const filter = searchInputData.value.toLowerCase();
+        tbodyData.querySelectorAll("tr").forEach(tr => {
+          tr.style.display = tr.textContent.toLowerCase().includes(filter) ? "" : "none";
+        });
       });
 
-      // --- Fotoğraf Tablosu (A-G sütunları) ---
-      const fotoHeaders = data[0].slice(0, 7); // A-G
-      const fotoRows = data.slice(1).map(row => {
-        const rowCopy = row.slice(0, 7);
-        if (rowCopy[5]) { // F sütunu
-          rowCopy[5] = `<a href="${rowCopy[5]}" target="_blank"><img src="${rowCopy[5]}" alt="Fotoğraf"></a>`;
-        }
-        return rowCopy;
+      // Fotoğraf Tablosu: A-G (0-6), F sütunu resim
+      const startColPhoto = 0, endColPhoto = 6;
+      const theadPhoto = photoTable.querySelector("thead");
+      const tbodyPhoto = photoTable.querySelector("tbody");
+      theadPhoto.innerHTML = "";
+      tbodyPhoto.innerHTML = "";
+
+      const headerRowPhoto = document.createElement("tr");
+      data[0].slice(startColPhoto, endColPhoto+1).forEach(text => {
+        const th = document.createElement("th");
+        th.textContent = text;
+        headerRowPhoto.appendChild(th);
+      });
+      theadPhoto.appendChild(headerRowPhoto);
+
+      data.slice(1).forEach(row => {
+        const tr = document.createElement("tr");
+        row.slice(startColPhoto, endColPhoto+1).forEach((cell, idx) => {
+          const td = document.createElement("td");
+          if(idx === 5 && cell){ // F sütunu resim
+            td.innerHTML = `<a href="${cell}" target="_blank"><img src="${cell}" alt="Fotoğraf" style="max-height:80px;"></a>`;
+          } else {
+            td.textContent = cell;
+          }
+          tr.appendChild(td);
+        });
+        tbodyPhoto.appendChild(tr);
       });
 
-      const fotoTable = $('#fotoTable').DataTable({
-        destroy: true,
-        data: fotoRows,
-        columns: fotoHeaders.map(h => ({ title: h })),
-        pageLength: 20,
-        ordering: false,
-        language: {
-          search: "Ara:",
-          paginate: { first: "İlk", last: "Son", next: ">", previous: "<" },
-          info: "_TOTAL_ kayıttan _START_ - _END_ gösteriliyor"
-        },
-        dom: 'lrtip'
-      });
-
-      $('#searchFoto').on('keyup', function() {
-        fotoTable.search(this.value).draw();
+      searchInputPhoto.addEventListener("keyup", () => {
+        const filter = searchInputPhoto.value.toLowerCase();
+        tbodyPhoto.querySelectorAll("tr").forEach(tr => {
+          tr.style.display = tr.textContent.toLowerCase().includes(filter) ? "" : "none";
+        });
       });
 
     });
 }
 
-// Sayfa yüklenince tabloları yükle
-$(document).ready(function() {
-  loadTables();
-});
+window.onload = loadTables;
 </script>
-
 </body>
 </html>
