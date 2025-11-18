@@ -200,7 +200,7 @@ document.getElementById('btnPhoto').onclick=function(){document.getElementById('
 let modal=new bootstrap.Modal(document.getElementById('imageModal'));
 function openImage(src){document.getElementById('modalImage').src=src; modal.show();}
 
-// Dashboard ve Tarih+Açıklama Bazlı Grafik
+// Dashboard ve Sorumlu Personel Bazlı Grafik
 function updateDashboardStats(){
     // Kartlar
     const totalProcess = dataRows.length;
@@ -212,13 +212,12 @@ function updateDashboardStats(){
     document.getElementById('errorRate').textContent = errorRate;
     document.getElementById('todayProcess').textContent = todayProcess;
 
-    // Tarih ve Açıklama bazlı sayım
+    // M ve N sütunları bazlı sayım
     const countsMap = {};
     dataRows.forEach(r=>{
-        const date = r[0]?.trim() || "Bilinmeyen Tarih";
-        const desc = r[2]?.trim() || "Bilinmeyen Açıklama";
-        const key = date + " - " + desc;
-        countsMap[key] = (countsMap[key] || 0) + 1;
+        const person = r[3]?.trim() || "Bilinmeyen"; // M sütunu
+        const count = parseInt(r[4]) || 0; // N sütunu
+        countsMap[person] = (countsMap[person] || 0) + count;
     });
     const labels = Object.keys(countsMap);
     const data = Object.values(countsMap);
@@ -227,7 +226,7 @@ function updateDashboardStats(){
     const ctx = document.getElementById('errorChart').getContext('2d');
     errorChart = new Chart(ctx, {
         type:'bar',
-        data:{labels:labels,datasets:[{label:'Açıklama Sıklığı',data:data,backgroundColor:'#dc3545'}]},
+        data:{labels:labels,datasets:[{label:'İşlem Sayısı',data:data,backgroundColor:'#0d6efd'}]},
         options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}, x:{ticks:{autoSkip:false}}}}
     });
 }
