@@ -34,8 +34,6 @@ img.thumb:hover{transform:scale(1.05);}
 .pagination .page-link{border-radius:8px;}
 .modal-img-wrap{width:100%;height:80vh;display:flex;align-items:center;justify-content:center;background:#000;overflow:hidden;}
 .modal-img-wrap img{max-width:100%;max-height:100%;cursor:grab;}
-.card-stats{display:flex;gap:15px;margin-bottom:20px;flex-wrap:wrap;}
-.card-stats .card{flex:1;min-width:150px;}
 </style>
 </head>
 <body>
@@ -60,34 +58,6 @@ img.thumb:hover{transform:scale(1.05);}
 <!-- MAIN -->
 <div id="mainPage" class="container">
   <h1 class="section-title">Kalite Kontrol Dashboard</h1>
-
-  <!-- Dashboard Kartları -->
-  <div class="card-stats">
-    <div class="card text-center">
-      <div class="card-body">
-        <h5 class="card-title">Toplam İşlem</h5>
-        <p class="card-text" id="totalProcess">0</p>
-      </div>
-    </div>
-    <div class="card text-center">
-      <div class="card-body">
-        <h5 class="card-title">Toplam Hata</h5>
-        <p class="card-text" id="totalError">0</p>
-      </div>
-    </div>
-    <div class="card text-center">
-      <div class="card-body">
-        <h5 class="card-title">Hata Oranı (%)</h5>
-        <p class="card-text" id="errorRate">0</p>
-      </div>
-    </div>
-    <div class="card text-center">
-      <div class="card-body">
-        <h5 class="card-title">Bugün İşlem</h5>
-        <p class="card-text" id="todayProcess">0</p>
-      </div>
-    </div>
-  </div>
 
   <!-- Butonlar: Veri Tablosu / Fotoğraf Tablosu / Grafik -->
   <div class="d-flex mb-3 justify-content-center gap-2">
@@ -178,7 +148,6 @@ function loadCsvAndInit(){
     photoRows=body.map(r=>r.slice(0,7));
     createTable('dataTable',headerRow.slice(9,17),dataRows,'searchInput1','pagination1',false);
     createTable('photoTable',headerRow.slice(0,7),photoRows,'searchInput2','pagination2',true);
-    updateDashboardStats();
   });
 }
 
@@ -227,31 +196,6 @@ btnChart.addEventListener('click',()=>{
     btnChart.classList.add('btn-primary'); btnChart.classList.remove('btn-outline-primary');
     btnData.classList.add('btn-outline-primary'); btnData.classList.remove('btn-primary');
     btnPhoto.classList.add('btn-outline-primary'); btnPhoto.classList.remove('btn-primary');
-    updateDashboardStats();
-});
-
-// Modal
-let modal=new bootstrap.Modal(document.getElementById('imageModal'));
-function openImage(src){document.getElementById('modalImage').src=src; modal.show();}
-
-// Dashboard ve Grafik
-function updateDashboardStats(){
-    const totalProcess = dataRows.length;
-    const totalError = dataRows.filter(r=>r[2]?.toUpperCase().includes('HATA')).length;
-    const errorRate = totalProcess ? Math.round(totalError/totalProcess*100) : 0;
-
-    // Bugünkü işlem (dd.mm.yyyy formatı)
-    const today = new Date();
-    const dd = String(today.getDate()).padStart(2,'0');
-    const mm = String(today.getMonth()+1).padStart(2,'0');
-    const yyyy = today.getFullYear();
-    const todayStr = `${dd}.${mm}.${yyyy}`;
-    const todayProcess = dataRows.filter(r => r[0] === todayStr).length;
-
-    document.getElementById('totalProcess').textContent = totalProcess;
-    document.getElementById('totalError').textContent = totalError;
-    document.getElementById('errorRate').textContent = errorRate;
-    document.getElementById('todayProcess').textContent = todayProcess;
 
     // Grafik: M sütunu (sorumlu personel) ve N sütunu (sayısı)
     const countsMap = {};
@@ -268,9 +212,13 @@ function updateDashboardStats(){
     errorChart = new Chart(ctx, {
         type:'bar',
         data:{labels:labels,datasets:[{label:'İşlem Sayısı',data:data,backgroundColor:'#0d6efd'}]},
-        options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true},x:{ticks:{autoSkip:false}}}}
+        options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}},x:{ticks:{autoSkip:false}}}
     });
-}
+});
+
+// Modal
+let modal=new bootstrap.Modal(document.getElementById('imageModal'));
+function openImage(src){document.getElementById('modalImage').src=src; modal.show();}
 </script>
 </body>
 </html>
