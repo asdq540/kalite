@@ -88,6 +88,13 @@ img.thumb:hover{ transform:scale(1.06); }
 }
 /* small helper for modal instructions */
 .modal-footer .small-note { margin-right:auto; color:#666; font-size:13px; }
+
+/* fade transition for table switch */
+.fadeWrapper{
+  transition: opacity 0.3s ease;
+}
+.fadeIn{ opacity:1; }
+.fadeOut{ opacity:0; }
 </style>
 </head>
 <body>
@@ -113,34 +120,42 @@ img.thumb:hover{ transform:scale(1.06); }
 <div id="mainPage" class="container">
   <h1 class="section-title">Kalite Veri Listesi</h1>
 
-  <!-- DATA TABLE -->
+  <!-- TABLO BUTONLARI + WRAPPER -->
   <div class="table-card">
-    <div class="d-flex align-items-center mb-2">
-      <input id="searchInput1" class="search-input flex-grow-1" placeholder="Veri tablosunda ara...">
-      <button class="btn btn-outline-danger ms-3" onclick="logout()">Çıkış Yap</button>
+    <div class="d-flex mb-3 justify-content-center gap-2">
+      <button id="btnData" class="btn btn-primary">Veri Tablosu</button>
+      <button id="btnPhoto" class="btn btn-outline-primary">Fotoğraf Tablosu</button>
     </div>
-    <div class="table-responsive">
-      <table id="dataTable" class="table table-hover align-middle">
-        <thead></thead>
-        <tbody></tbody>
-      </table>
-    </div>
-    <nav><ul id="pagination1" class="pagination"></ul></nav>
-  </div>
 
-  <!-- PHOTO TABLE -->
-  <div class="table-card">
-    <div class="d-flex align-items-center mb-2">
-      <input id="searchInput2" class="search-input flex-grow-1" placeholder="Fotoğraf tablosunda ara...">
-      <div class="ms-3 text-muted small">F sütunu fotoğraflar</div>
+    <!-- VERİ TABLOSU -->
+    <div id="dataTableWrapper" class="fadeWrapper fadeIn">
+      <div class="d-flex align-items-center mb-2">
+        <input id="searchInput1" class="search-input flex-grow-1" placeholder="Veri tablosunda ara...">
+        <button class="btn btn-outline-danger ms-3" onclick="logout()">Çıkış Yap</button>
+      </div>
+      <div class="table-responsive">
+        <table id="dataTable" class="table table-hover align-middle">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <nav><ul id="pagination1" class="pagination"></ul></nav>
     </div>
-    <div class="table-responsive">
-      <table id="photoTable" class="table table-hover align-middle">
-        <thead></thead>
-        <tbody></tbody>
-      </table>
+
+    <!-- FOTOĞRAF TABLOSU -->
+    <div id="photoTableWrapper" class="fadeWrapper" style="display:none;">
+      <div class="d-flex align-items-center mb-2">
+        <input id="searchInput2" class="search-input flex-grow-1" placeholder="Fotoğraf tablosunda ara...">
+        <div class="ms-3 text-muted small">F sütunu fotoğraflar</div>
+      </div>
+      <div class="table-responsive">
+        <table id="photoTable" class="table table-hover align-middle">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <nav><ul id="pagination2" class="pagination"></ul></nav>
     </div>
-    <nav><ul id="pagination2" class="pagination"></ul></nav>
   </div>
 </div>
 
@@ -171,7 +186,7 @@ const BACKEND_URL = "https://kaliteform.onrender.com";
 const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBWFSVSD6NvBNqC8me1le_unCCLOKIOIS2DfZFXUTji0MHC7SaWNIy4a0Laob9xOiAJyPnp7LuZ1R-/pub?output=csv";
 const PAGE_SIZE = 10;
 
-/* ---------- AUTH & UI ---------- */
+/* ---------- AUTH ---------- */
 function login(){
   const u = document.getElementById('username').value.trim();
   const p = document.getElementById('password').value.trim();
@@ -215,7 +230,7 @@ window.addEventListener('load', ()=> {
   }
 });
 
-/* ---------- CSV load & table setup ---------- */
+/* ---------- CSV load ---------- */
 let dataRows = [];
 let photoRows = [];
 let headerRow = [];
@@ -230,30 +245,13 @@ function loadCsvAndInit(){
     dataRows = body.map(r => r.slice(9,17));
     photoRows = body.map(r => r.slice(0,7));
 
-    createTable({
-      tableId:'dataTable',
-      headers: headerRow.slice(9,17),
-      rows: dataRows,
-      searchId: 'searchInput1',
-      paginationId: 'pagination1',
-      pageSize: PAGE_SIZE,
-      isPhoto:false
-    });
-
-    createTable({
-      tableId:'photoTable',
-      headers: headerRow.slice(0,7),
-      rows: photoRows,
-      searchId: 'searchInput2',
-      paginationId: 'pagination2',
-      pageSize: PAGE_SIZE,
-      isPhoto:true
-    });
+    createTable({tableId:'dataTable', headers: headerRow.slice(9,17), rows: dataRows, searchId:'searchInput1', paginationId:'pagination1', pageSize:PAGE_SIZE, isPhoto:false});
+    createTable({tableId:'photoTable', headers: headerRow.slice(0,7), rows: photoRows, searchId:'searchInput2', paginationId:'pagination2', pageSize:PAGE_SIZE, isPhoto:true});
   }).catch(err=>console.error('CSV error', err));
 }
 
 /* ---------- Generic Table ---------- */
-function createTable({tableId, headers, rows, searchId, paginationId, pageSize=10, isPhoto=false}) {
+function createTable({tableId, headers, rows, searchId, paginationId, pageSize=10, isPhoto=false}){
   const table = document.getElementById(tableId);
   const thead = table.querySelector('thead');
   const tbody = table.querySelector('tbody');
@@ -265,40 +263,31 @@ function createTable({tableId, headers, rows, searchId, paginationId, pageSize=1
   let currentPage = 1;
 
   function renderHead(){
-    thead.innerHTML = '';
-    const tr = document.createElement('tr');
-    headers.forEach(h=>{
-      const th = document.createElement('th');
-      th.textContent = h || '';
-      tr.appendChild(th);
-    });
+    thead.innerHTML='';
+    const tr=document.createElement('tr');
+    headers.forEach(h=>{const th=document.createElement('th'); th.textContent=h||''; tr.appendChild(th);});
     thead.appendChild(tr);
   }
 
   function renderPage(){
-    tbody.innerHTML = '';
+    tbody.innerHTML='';
     const total = filteredRows.length;
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
-    if(currentPage > totalPages) currentPage = totalPages;
+    if(currentPage>totalPages) currentPage = totalPages;
 
-    const start = (currentPage - 1) * pageSize;
-    const pageSlice = filteredRows.slice(start, start + pageSize);
+    const start=(currentPage-1)*pageSize;
+    const pageSlice = filteredRows.slice(start, start+pageSize);
 
-    pageSlice.forEach(row => {
-      const tr = document.createElement('tr');
-      row.forEach((cell, idx) => {
-        const td = document.createElement('td');
-        if(isPhoto && idx === 5 && cell){
-          const img = document.createElement('img');
-          img.className = 'thumb';
-          img.loading = 'lazy';
-          img.alt = 'foto';
-          img.src = cell;
-          img.addEventListener('click', ()=> openImageModal(cell));
+    pageSlice.forEach(row=>{
+      const tr=document.createElement('tr');
+      row.forEach((cell, idx)=>{
+        const td=document.createElement('td');
+        if(isPhoto && idx===5 && cell){
+          const img=document.createElement('img');
+          img.className='thumb'; img.loading='lazy'; img.alt='foto'; img.src=cell;
+          img.addEventListener('click',()=>openImageModal(cell));
           td.appendChild(img);
-        } else {
-          td.textContent = cell;
-        }
+        }else td.textContent=cell;
         tr.appendChild(td);
       });
       tbody.appendChild(tr);
@@ -307,135 +296,124 @@ function createTable({tableId, headers, rows, searchId, paginationId, pageSize=1
   }
 
   function renderPagination(){
-    pagination.innerHTML = '';
-    const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+    pagination.innerHTML='';
+    const totalPages=Math.max(1, Math.ceil(filteredRows.length/pageSize));
     for(let i=1;i<=totalPages;i++){
-      const li = document.createElement('li');
-      li.className = 'page-item ' + (i===currentPage ? 'active' : '');
-      const btn = document.createElement('button');
-      btn.className = 'page-link';
-      btn.textContent = i;
-      btn.addEventListener('click', (e)=>{
-        e.preventDefault();
-        currentPage = i;
-        renderPage();
-        table.scrollIntoView({behavior:'smooth', block:'center'});
-      });
-      li.appendChild(btn);
-      pagination.appendChild(li);
+      const li=document.createElement('li');
+      li.className='page-item '+(i===currentPage?'active':'');
+      const btn=document.createElement('button'); btn.className='page-link'; btn.textContent=i;
+      btn.addEventListener('click',(e)=>{e.preventDefault(); currentPage=i; renderPage(); table.scrollIntoView({behavior:'smooth', block:'center'});});
+      li.appendChild(btn); pagination.appendChild(li);
     }
   }
 
   function applySearch(term){
     if(!term) filteredRows = originalRows.slice();
-    else {
-      const t = term.toLowerCase();
-      filteredRows = originalRows.filter(r => r.join(' ').toLowerCase().includes(t));
+    else{
+      const t=term.toLowerCase();
+      filteredRows = originalRows.filter(r=>r.join(' ').toLowerCase().includes(t));
     }
-    currentPage = 1;
-    renderPage();
+    currentPage=1; renderPage();
   }
 
-  const newSearch = searchInput.cloneNode(true);
+  const newSearch=searchInput.cloneNode(true);
   searchInput.parentNode.replaceChild(newSearch, searchInput);
-  newSearch.addEventListener('input', function(){ applySearch(this.value); });
+  newSearch.addEventListener('input',function(){applySearch(this.value);});
 
   renderHead();
-  applySearch(newSearch.value || '');
+  applySearch(newSearch.value||'');
 }
 
-/* ---------- Modal: progressive load + zoom/drag ---------- */
-const modalEl = document.getElementById('imageModal');
-const modalImage = document.getElementById('modalImage');
-const modalWrap = document.getElementById('modalWrap');
-let bsModal = null;
+/* ---------- Table Switch Buttons ---------- */
+const btnData = document.getElementById('btnData');
+const btnPhoto = document.getElementById('btnPhoto');
+const dataWrapper = document.getElementById('dataTableWrapper');
+const photoWrapper = document.getElementById('photoTableWrapper');
 
-let scale = 1, translateX = 0, translateY = 0;
-let isDragging = false, dragStartX = 0, dragStartY = 0, imgStartX = 0, imgStartY = 0;
+function showDataTable(){
+  btnData.classList.replace('btn-outline-primary','btn-primary');
+  btnPhoto.classList.replace('btn-primary','btn-outline-primary');
 
-function resetTransform(){
-  scale = 1; translateX = 0; translateY = 0;
-  applyTransform();
+  photoWrapper.classList.add('fadeOut');
+  dataWrapper.style.display='block';
+  dataWrapper.classList.remove('fadeOut');
+  dataWrapper.classList.add('fadeIn');
+  setTimeout(()=>photoWrapper.style.display='none',300);
 }
 
-function applyTransform(){
-  modalImage.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+function showPhotoTable(){
+  btnPhoto.classList.replace('btn-outline-primary','btn-primary');
+  btnData.classList.replace('btn-primary','btn-outline-primary');
+
+  dataWrapper.classList.add('fadeOut');
+  photoWrapper.style.display='block';
+  photoWrapper.classList.remove('fadeOut');
+  photoWrapper.classList.add('fadeIn');
+  setTimeout(()=>dataWrapper.style.display='none',300);
 }
 
-// Progressive Load Modal
+btnData.addEventListener('click', showDataTable);
+btnPhoto.addEventListener('click', showPhotoTable);
+
+/* ---------- Modal Progressive Load + Zoom/Drag ---------- */
+const modalEl=document.getElementById('imageModal');
+const modalImage=document.getElementById('modalImage');
+const modalWrap=document.getElementById('modalWrap');
+let bsModal=null;
+
+let scale=1, translateX=0, translateY=0;
+let isDragging=false, dragStartX=0, dragStartY=0, imgStartX=0, imgStartY=0;
+
+function resetTransform(){scale=1; translateX=0; translateY=0; applyTransform();}
+function applyTransform(){modalImage.style.transform=`translate(${translateX}px,${translateY}px) scale(${scale})`;}
+
 function openImageModal(src){
-  modalImage.src = src;
-  resetTransform();
-
-  if(!bsModal) bsModal = new bootstrap.Modal(modalEl);
+  modalImage.src=src; resetTransform();
+  if(!bsModal) bsModal=new bootstrap.Modal(modalEl);
   bsModal.show();
 
-  const hi = new Image();
-  hi.onload = () => {
-    modalImage.style.transition = "filter .25s ease";
-    modalImage.style.filter = "blur(2px)";
-    setTimeout(() => {
-      modalImage.src = src;
-      modalImage.style.filter = "blur(0)";
-    }, 50);
+  const hi=new Image();
+  hi.onload=()=>{
+    modalImage.style.transition="filter .25s ease"; modalImage.style.filter="blur(2px)";
+    setTimeout(()=>{modalImage.src=src; modalImage.style.filter="blur(0)";},50);
   };
-  hi.src = src;
+  hi.src=src;
 }
 
-// Mouse Wheel Zoom
-modalWrap.addEventListener('wheel', function(e){
-  if(e.target && e.target.tagName === 'IMG'){
+modalWrap.addEventListener('wheel',function(e){
+  if(e.target && e.target.tagName==='IMG'){
     e.preventDefault();
-    const delta = -e.deltaY;
-    const zoomFactor = delta > 0 ? 1.08 : 0.92;
-    const newScale = Math.min(6, Math.max(0.5, scale * zoomFactor));
-
-    const rect = modalImage.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
-    const dx = (mx - rect.width/2);
-    const dy = (my - rect.height/2);
-
-    translateX = translateX - dx*(newScale/scale - 1);
-    translateY = translateY - dy*(newScale/scale - 1);
-    scale = newScale;
-    applyTransform();
+    const delta=-e.deltaY;
+    const zoomFactor=delta>0?1.08:0.92;
+    const newScale=Math.min(6,Math.max(0.5,scale*zoomFactor));
+    const rect=modalImage.getBoundingClientRect();
+    const mx=e.clientX-rect.left;
+    const my=e.clientY-rect.top;
+    const dx=(mx-rect.width/2); const dy=(my-rect.height/2);
+    translateX=translateX-dx*(newScale/scale-1);
+    translateY=translateY-dy*(newScale/scale-1);
+    scale=newScale; applyTransform();
   }
 },{passive:false});
 
-// Drag
-modalImage.addEventListener('pointerdown', function(e){
-  if(e.button!==0) return;
-  isDragging = true;
-  modalImage.setPointerCapture(e.pointerId);
-  modalImage.style.cursor = 'grabbing';
-  dragStartX = e.clientX; dragStartY = e.clientY;
-  imgStartX = translateX; imgStartY = translateY;
+modalImage.addEventListener('pointerdown',function(e){
+  if(e.button!==0)return;
+  isDragging=true; modalImage.setPointerCapture(e.pointerId); modalImage.style.cursor='grabbing';
+  dragStartX=e.clientX; dragStartY=e.clientY; imgStartX=translateX; imgStartY=translateY;
 });
 
-modalImage.addEventListener('pointermove', function(e){
-  if(!isDragging) return;
-  const dx = e.clientX - dragStartX;
-  const dy = e.clientY - dragStartY;
-  translateX = imgStartX + dx;
-  translateY = imgStartY + dy;
-  applyTransform();
+modalImage.addEventListener('pointermove',function(e){
+  if(!isDragging)return;
+  const dx=e.clientX-dragStartX; const dy=e.clientY-dragStartY;
+  translateX=imgStartX+dx; translateY=imgStartY+dy; applyTransform();
 });
 
-modalImage.addEventListener('pointerup', function(e){
-  isDragging = false;
-  modalImage.releasePointerCapture(e.pointerId);
-  modalImage.style.cursor = 'grab';
+modalImage.addEventListener('pointerup',function(e){
+  isDragging=false; modalImage.releasePointerCapture(e.pointerId); modalImage.style.cursor='grab';
 });
 
-modalEl.addEventListener('hidden.bs.modal', function(){
-  modalImage.src = '';
-  resetTransform();
-});
-
-modalImage.addEventListener('load', function(){
-  resetTransform();
-});
+modalEl.addEventListener('hidden.bs.modal',function(){modalImage.src=''; resetTransform();});
+modalImage.addEventListener('load',function(){resetTransform();});
 </script>
 </body>
 </html>
