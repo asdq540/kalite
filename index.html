@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Kalite Kontrol Paneli - Kurumsal Tasarım</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kalite Kontrol Dashboard</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
 <style>
 :root{
@@ -16,99 +16,31 @@
   --border:#dbe2ea;
   --shadow:0 6px 22px rgba(0,0,0,0.08);
 }
-body{
-  background:var(--bg);
-  font-family:"Segoe UI",sans-serif;
-  padding:20px;
-}
-.login-container{
-  max-width:420px;
-  margin:90px auto;
-  padding:30px;
-  background:var(--card);
-  border-radius:14px;
-  box-shadow:var(--shadow);
-  border:1px solid var(--border);
-}
-#mainPage{ display:none; }
-.section-title{ color:var(--thead); font-weight:700; }
-.table-card{
-  background:var(--card);
-  padding:20px;
-  border-radius:14px;
-  box-shadow:var(--shadow);
-  border:1px solid var(--border);
-  margin-bottom:30px;
-}
-.table{
-  border-collapse:separate !important;
-  border-spacing:0 10px !important;
-}
-.table thead th{
-  background:var(--thead) !important;
-  color:white !important;
-  padding:14px !important;
-  font-weight:600;
-  border:none !important;
-  text-align:center;
-}
-.table tbody tr{
-  background:var(--row1);
-  border-radius:12px;
-}
-.table tbody tr:nth-child(even){ background:var(--row2); }
-.table tbody td{
-  padding:14px !important;
-  vertical-align:middle;
-  border-top:1px solid var(--border);
-  border-bottom:1px solid var(--border);
-  text-align:center;
-}
-.table tbody tr td:first-child{
-  border-left:1px solid var(--border);
-  border-top-left-radius:12px;
-  border-bottom-left-radius:12px;
-}
-.table tbody tr td:last-child{
-  border-right:1px solid var(--border);
-  border-top-right-radius:12px;
-  border-bottom-right-radius:12px;
-}
-img.thumb{
-  width:90px;
-  height:74px;
-  object-fit:cover;
-  border-radius:10px;
-  background:#e9ecef;
-  border:1px solid #c5ced6;
-  cursor:pointer;
-  transition:0.15s;
-}
-img.thumb:hover{ transform:scale(1.05); }
-.search-input{
-  border-radius:10px;
-  padding:10px;
-  border:1px solid #bcc6d0;
-  flex-grow:1;
-}
-.pagination .page-link{ border-radius:8px; }
-.modal-img-wrap{
-  width:100%;
-  height:80vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:#000;
-  overflow:hidden;
-}
-.modal-img-wrap img{
-  max-width:100%;
-  max-height:100%;
-  cursor:grab;
-}
+body{background:var(--bg);font-family:"Segoe UI",sans-serif;padding:20px;}
+.login-container{max-width:420px;margin:90px auto;padding:30px;background:var(--card);border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--border);}
+#mainPage{display:none;}
+.section-title{color:var(--thead);font-weight:700;}
+.table-card{background:var(--card);padding:20px;border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:30px;}
+.table{border-collapse:separate !important;border-spacing:0 10px !important;}
+.table thead th{background:var(--thead) !important;color:white !important;padding:14px !important;font-weight:600;border:none !important;text-align:center;}
+.table tbody tr{background:var(--row1);border-radius:12px;}
+.table tbody tr:nth-child(even){background:var(--row2);}
+.table tbody td{padding:14px !important;vertical-align:middle;border-top:1px solid var(--border);border-bottom:1px solid var(--border);text-align:center;}
+.table tbody tr td:first-child{border-left:1px solid var(--border);border-top-left-radius:12px;border-bottom-left-radius:12px;}
+.table tbody tr td:last-child{border-right:1px solid var(--border);border-top-right-radius:12px;border-bottom-right-radius:12px;}
+img.thumb{width:90px;height:74px;object-fit:cover;border-radius:10px;background:#e9ecef;border:1px solid #c5ced6;cursor:pointer;transition:0.15s;}
+img.thumb:hover{transform:scale(1.05);}
+.search-input{border-radius:10px;padding:10px;border:1px solid #bcc6d0;flex-grow:1;}
+.pagination .page-link{border-radius:8px;}
+.modal-img-wrap{width:100%;height:80vh;display:flex;align-items:center;justify-content:center;background:#000;overflow:hidden;}
+.modal-img-wrap img{max-width:100%;max-height:100%;cursor:grab;}
+.card-stats{display:flex;gap:15px;margin-bottom:20px;flex-wrap:wrap;}
+.card-stats .card{flex:1;min-width:150px;}
 </style>
 </head>
 <body>
+
+<!-- LOGIN -->
 <div id="loginPage" class="login-container">
   <h3 class="text-center mb-3" style="color:var(--thead); font-weight:600;">Kalite Kontrol Giriş</h3>
   <div class="mb-3">
@@ -124,13 +56,51 @@ img.thumb:hover{ transform:scale(1.05); }
   </div>
   <div id="errorMsg" class="text-danger text-center mt-3"></div>
 </div>
+
+<!-- MAIN -->
 <div id="mainPage" class="container">
-  <h1 class="section-title">Kalite Veri Listesi</h1>
+  <h1 class="section-title">Kalite Kontrol Dashboard</h1>
+
+  <!-- Dashboard Kartları -->
+  <div class="card-stats">
+    <div class="card text-center">
+      <div class="card-body">
+        <h5 class="card-title">Toplam İşlem</h5>
+        <p class="card-text" id="totalProcess">0</p>
+      </div>
+    </div>
+    <div class="card text-center">
+      <div class="card-body">
+        <h5 class="card-title">Toplam Hata</h5>
+        <p class="card-text" id="totalError">0</p>
+      </div>
+    </div>
+    <div class="card text-center">
+      <div class="card-body">
+        <h5 class="card-title">Hata Oranı (%)</h5>
+        <p class="card-text" id="errorRate">0</p>
+      </div>
+    </div>
+    <div class="card text-center">
+      <div class="card-body">
+        <h5 class="card-title">Bugün İşlem</h5>
+        <p class="card-text" id="todayProcess">0</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grafik -->
+  <div class="table-card mb-4">
+    <canvas id="errorChart" height="150"></canvas>
+  </div>
+
+  <!-- Veri Tablosu -->
   <div class="table-card">
     <div class="d-flex mb-3 justify-content-center gap-2">
       <button id="btnData" class="btn btn-primary">Veri Tablosu</button>
       <button id="btnPhoto" class="btn btn-outline-primary">Fotoğraf Tablosu</button>
     </div>
+
     <div id="dataTableWrapper">
       <div class="d-flex align-items-center mb-3">
         <input type="text" id="searchInput1" class="search-input" placeholder="Ara...">
@@ -141,6 +111,7 @@ img.thumb:hover{ transform:scale(1.05); }
       </div>
       <nav><ul id="pagination1" class="pagination justify-content-center mt-2"></ul></nav>
     </div>
+
     <div id="photoTableWrapper" style="display:none;">
       <div class="d-flex align-items-center mb-3">
         <input type="text" id="searchInput2" class="search-input" placeholder="Ara...">
@@ -152,6 +123,8 @@ img.thumb:hover{ transform:scale(1.05); }
     </div>
   </div>
 </div>
+
+<!-- MODAL -->
 <div class="modal fade" id="imageModal" tabindex="-1">
   <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content">
@@ -164,8 +137,10 @@ img.thumb:hover{ transform:scale(1.05); }
     </div>
   </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 const BACKEND_URL="https://kaliteform.onrender.com";
 const sheetUrl="https://docs.google.com/spreadsheets/d/e/2PACX-1vQBWFSVSD6NvBNqC8me1le_unCCLOKIOIS2DfZFXUTji0MHC7SaWNIy4a0Laob9xOiAJyPnp7LuZ1R-/pub?output=csv";
@@ -175,12 +150,9 @@ function login(){
   const u=document.getElementById('username').value.trim();
   const p=document.getElementById('password').value.trim();
   const err=document.getElementById('errorMsg'); err.textContent='';
-  if(!u||!p){ err.textContent='Kullanıcı adı ve şifre boş olamaz!'; return; }
-  fetch(BACKEND_URL+"/login",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({username:u,password:p})
-  }).then(r=>r.json()).then(res=>{
+  if(!u||!p){err.textContent='Kullanıcı adı ve şifre boş olamaz!'; return;}
+  fetch(BACKEND_URL+"/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:u,password:p})})
+  .then(r=>r.json()).then(res=>{
     if(res && res.success){ localStorage.setItem('loggedIn','true'); showMain(); }
     else err.textContent=res.message||'Kullanıcı adı veya şifre hatalı!';
   }).catch(()=>{err.textContent='Sunucuya ulaşılamadı!';});
@@ -191,6 +163,8 @@ function showMain(){document.getElementById('loginPage').style.display='none'; d
 if(localStorage.getItem('loggedIn')==='true') showMain();
 
 let dataRows=[],photoRows=[],headerRow=[];
+let errorChart;
+
 function loadCsvAndInit(){
   fetch(sheetUrl).then(r=>r.text()).then(text=>{
     const parsed=Papa.parse(text,{header:false}).data;
@@ -200,23 +174,58 @@ function loadCsvAndInit(){
     photoRows=body.map(r=>r.slice(0,7));
     createTable('dataTable',headerRow.slice(9,17),dataRows,'searchInput1','pagination1',false);
     createTable('photoTable',headerRow.slice(0,7),photoRows,'searchInput2','pagination2',true);
+    updateDashboardStats();
   });
 }
 
 function createTable(tableId,headers,rows,searchId,paginationId,isPhoto){
-  const table=document.getElementById(tableId), thead=table.querySelector('thead'), tbody=table.querySelector('tbody');
-  const search=document.getElementById(searchId), pagination=document.getElementById(paginationId);
+  const table=document.getElementById(tableId),thead=table.querySelector('thead'),tbody=table.querySelector('tbody');
+  const search=document.getElementById(searchId),pagination=document.getElementById(paginationId);
   let filtered=[...rows], page=1;
   function renderHead(){thead.innerHTML=''; const tr=document.createElement('tr'); headers.forEach(h=>{const th=document.createElement('th'); th.textContent=h; tr.appendChild(th);}); thead.appendChild(tr);}
-  function render(){tbody.innerHTML=''; const totalPages=Math.ceil(filtered.length/PAGE_SIZE); if(page>totalPages) page=totalPages; const start=(page-1)*PAGE_SIZE; const slice=filtered.slice(start,start+PAGE_SIZE); slice.forEach(row=>{const tr=document.createElement('tr'); row.forEach((c,i)=>{ const td=document.createElement('td'); if(isPhoto && i===5 && c){ const img=document.createElement('img'); img.src=c; img.className='thumb'; img.onclick=()=>openImage(c); td.appendChild(img);} else td.textContent=c; tr.appendChild(td); }); tbody.appendChild(tr);}); renderPagination();}
+  function render(){tbody.innerHTML=''; const totalPages=Math.ceil(filtered.length/PAGE_SIZE); if(page>totalPages) page=totalPages; const start=(page-1)*PAGE_SIZE; const slice=filtered.slice(start,start+PAGE_SIZE);
+    slice.forEach(row=>{const tr=document.createElement('tr'); row.forEach((c,i)=>{const td=document.createElement('td'); if(isPhoto && i===5 && c){ const img=document.createElement('img'); img.src=c; img.className='thumb'; img.onclick=()=>openImage(c); td.appendChild(img);} else td.textContent=c; tr.appendChild(td);}); tbody.appendChild(tr);}); renderPagination();}
   function renderPagination(){pagination.innerHTML=''; const totalPages=Math.ceil(filtered.length/PAGE_SIZE); const prev=document.createElement('li'); prev.className='page-item '+(page===1?'disabled':''); prev.innerHTML=`<button class='page-link'>Geri</button>`; prev.onclick=()=>{if(page>1){page--;render();}}; const next=document.createElement('li'); next.className='page-item '+(page===totalPages?'disabled':''); next.innerHTML=`<button class='page-link'>İleri</button>`; next.onclick=()=>{if(page<totalPages){page++;render();}}; pagination.appendChild(prev); pagination.appendChild(next);}
   search.oninput=function(){ const t=this.value.toLowerCase(); filtered=rows.filter(r=>r.join(' ').toLowerCase().includes(t)); page=1; render();}
   renderHead(); render();
 }
+
 document.getElementById('btnData').onclick=function(){document.getElementById('dataTableWrapper').style.display='block'; document.getElementById('photoTableWrapper').style.display='none'; this.classList.add('btn-primary'); this.classList.remove('btn-outline-primary'); btnPhoto.classList.remove('btn-primary'); btnPhoto.classList.add('btn-outline-primary');};
 document.getElementById('btnPhoto').onclick=function(){document.getElementById('dataTableWrapper').style.display='none'; document.getElementById('photoTableWrapper').style.display='block'; this.classList.add('btn-primary'); this.classList.remove('btn-outline-primary'); btnData.classList.remove('btn-primary'); btnData.classList.add('btn-outline-primary');};
+
 let modal=new bootstrap.Modal(document.getElementById('imageModal'));
 function openImage(src){document.getElementById('modalImage').src=src; modal.show();}
+
+// Dashboard ve Grafik
+function updateDashboardStats(){
+  const totalProcess = dataRows.length;
+  const totalError = dataRows.filter(r=>r.includes('HATA')).length;
+  const errorRate = totalProcess ? Math.round(totalError/totalProcess*100) : 0;
+  const todayProcess = dataRows.filter(r=>r[0]===new Date().toLocaleDateString()).length;
+
+  document.getElementById('totalProcess').textContent = totalProcess;
+  document.getElementById('totalError').textContent = totalError;
+  document.getElementById('errorRate').textContent = errorRate;
+  document.getElementById('todayProcess').textContent = todayProcess;
+
+  // Grafik
+  const last7Days = [];
+  const counts = [];
+  for(let i=6;i>=0;i--){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const day=d.toLocaleDateString();
+    last7Days.push(day);
+    counts.push(dataRows.filter(r=>r[0]===day && r.includes('HATA')).length);
+  }
+
+  if(errorChart) errorChart.destroy();
+  const ctx=document.getElementById('errorChart').getContext('2d');
+  errorChart=new Chart(ctx,{
+    type:'bar',
+    data:{labels:last7Days,datasets:[{label:'Günlük Hata',data:counts,backgroundColor:'#dc3545'}]},
+    options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
+  });
+}
 </script>
 </body>
 </html>
