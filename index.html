@@ -22,7 +22,7 @@ body { background: var(--background); font-family: "Segoe UI", sans-serif; paddi
 #mainPage h1 { color: #093e72; font-weight: 700; margin-bottom: 25px; }
 #searchInput, #searchData, #searchPhoto { margin-bottom: 20px; border-radius: 10px; padding: 10px 15px; border: 1px solid #bfc4c9; }
 
-.table-container { overflow-x: auto; background: white; padding: 10px; border-radius: 12px; box-shadow: 0 2px 15px rgba(0,0,0,0.08); margin-bottom:20px; }
+.table-container { overflow-x: auto; background: white; padding: 10px; border-radius: 12px; box-shadow: 0 2px 15px rgba(0,0,0,0.08); margin-bottom:10px; }
 .table { border-collapse: collapse; width:100%; }
 .table th, .table td { border: 1px solid #dee2e6 !important; padding: 8px !important; text-align:center; }
 .table thead { background: var(--table-header) !important; color: white; }
@@ -30,6 +30,8 @@ body { background: var(--background); font-family: "Segoe UI", sans-serif; paddi
 
 .tab-button { margin-right: 10px; }
 .hidden { display: none; }
+
+.pagination-btn { margin:2px; }
 </style>
 </head>
 <body>
@@ -66,7 +68,7 @@ body { background: var(--background); font-family: "Segoe UI", sans-serif; paddi
         <tbody></tbody>
       </table>
     </div>
-    <div id="dataPagination" class="mb-3"></div>
+    <div id="dataPagination"></div>
   </div>
 
   <div id="photoTab" class="tab-content hidden">
@@ -77,7 +79,7 @@ body { background: var(--background); font-family: "Segoe UI", sans-serif; paddi
         <tbody></tbody>
       </table>
     </div>
-    <div id="photoPagination" class="mb-3"></div>
+    <div id="photoPagination"></div>
   </div>
 </div>
 
@@ -86,34 +88,33 @@ body { background: var(--background); font-family: "Segoe UI", sans-serif; paddi
 const BACKEND_URL = "https://kaliteform.onrender.com";
 const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBWFSVSD6NvBNqC8me1le_unCCLOKIOIS2DfZFXUTji0MHC7SaWNIy4a0Laob9xOiAJyPnp7LuZ1R-/pub?output=csv";
 
-let dataRows = [], photoRows = [];
-let dataPage = 1, photoPage = 1;
-const pageSize = 20;
+let dataRows=[], photoRows=[];
+let dataPage=1, photoPage=1;
+const pageSize=20;
 
-// Login
-function login() {
+function login(){
   const username = document.getElementById("username").value.trim();
   const password = document.getElementById("password").value.trim();
   const errorMsg = document.getElementById("errorMsg");
 
-  fetch(BACKEND_URL + "/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password })
+  fetch(BACKEND_URL+"/login",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({username,password})
   })
-  .then(res => res.json())
-  .then(data => {
+  .then(res=>res.json())
+  .then(data=>{
     if(data.success){
       localStorage.setItem("loggedIn","true");
       document.getElementById("loginPage").classList.add("hidden");
       document.getElementById("mainPage").classList.remove("hidden");
       loadCSV();
-    } else { errorMsg.textContent = "Kullanıcı adı veya şifre hatalı!"; }
-  })
-  .catch(()=>{ errorMsg.textContent="Sunucuya ulaşılamadı!"; });
+    }else{
+      errorMsg.textContent="Kullanıcı adı veya şifre hatalı!";
+    }
+  }).catch(()=>{ errorMsg.textContent="Sunucuya ulaşılamadı!"; });
 }
 
-// Logout
 function logout(){
   localStorage.removeItem("loggedIn");
   document.getElementById("mainPage").classList.add("hidden");
@@ -123,20 +124,18 @@ function logout(){
   document.getElementById("errorMsg").textContent="";
 }
 
-// Tab göster
 function showTab(tabId){
   document.querySelectorAll(".tab-content").forEach(tab=>tab.classList.add("hidden"));
   document.getElementById(tabId).classList.remove("hidden");
 }
 
-// CSV Yükle
 function loadCSV(){
   fetch(sheetUrl)
     .then(r=>r.text())
     .then(csvText=>{
       const data = Papa.parse(csvText,{header:false}).data;
-
       const header = data[0];
+
       dataRows = data.slice(1).map(r=>r.slice(9,17));
       photoRows = data.slice(1).map(r=>r.slice(0,7));
 
@@ -146,80 +145,79 @@ function loadCSV(){
     });
 }
 
-// Veri Tablosu render
 function renderData(header){
-  const table = document.getElementById("dataTable");
-  const thead = table.querySelector("thead");
-  const tbody = table.querySelector("tbody");
+  const table=document.getElementById("dataTable");
+  const thead=table.querySelector("thead");
+  const tbody=table.querySelector("tbody");
   tbody.innerHTML=""; thead.innerHTML="";
 
-  const trHead = document.createElement("tr");
-  header.forEach(text=>{ const th=document.createElement("th"); th.textContent=text; trHead.appendChild(th); });
+  const trHead=document.createElement("tr");
+  header.forEach(t=>{ const th=document.createElement("th"); th.textContent=t; trHead.appendChild(th); });
   thead.appendChild(trHead);
 
-  const start = (dataPage-1)*pageSize;
-  const end = start+pageSize;
+  const start=(dataPage-1)*pageSize;
+  const end=start+pageSize;
   dataRows.slice(start,end).forEach(row=>{
-    const tr = document.createElement("tr");
+    const tr=document.createElement("tr");
     row.forEach(cell=>{ const td=document.createElement("td"); td.textContent=cell; tr.appendChild(td); });
     tbody.appendChild(tr);
   });
   setupPagination('data');
 }
 
-// Fotoğraf Tablosu render
 function renderPhotos(header){
-  const table = document.getElementById("photoTable");
-  const thead = table.querySelector("thead");
-  const tbody = table.querySelector("tbody");
+  const table=document.getElementById("photoTable");
+  const thead=table.querySelector("thead");
+  const tbody=table.querySelector("tbody");
   tbody.innerHTML=""; thead.innerHTML="";
 
-  const trHead = document.createElement("tr");
-  header.forEach(text=>{ const th=document.createElement("th"); th.textContent=text; trHead.appendChild(th); });
+  const trHead=document.createElement("tr");
+  header.forEach(t=>{ const th=document.createElement("th"); th.textContent=t; trHead.appendChild(th); });
   thead.appendChild(trHead);
 
-  const start = (photoPage-1)*pageSize;
-  const end = start+pageSize;
+  const start=(photoPage-1)*pageSize;
+  const end=start+pageSize;
   photoRows.slice(start,end).forEach(row=>{
-    const tr = document.createElement("tr");
+    const tr=document.createElement("tr");
     row.forEach(cell=>{ const td=document.createElement("td"); td.textContent=cell; tr.appendChild(td); });
     tbody.appendChild(tr);
   });
   setupPagination('photo');
 }
 
-// Sayfalama
 function setupPagination(tab){
-  const pageDiv = tab==='data'? document.getElementById("dataPagination") : document.getElementById("photoPagination");
-  pageDiv.innerHTML="";
+  const container = tab==='data'? document.getElementById("dataPagination") : document.getElementById("photoPagination");
+  container.innerHTML="";
   const rows = tab==='data'? dataRows : photoRows;
   const totalPages = Math.ceil(rows.length/pageSize);
+
   for(let i=1;i<=totalPages;i++){
-    const btn = document.createElement("button");
+    const btn=document.createElement("button");
     btn.textContent=i;
-    btn.className="btn btn-sm "+(i=== (tab==='data'? dataPage:photoPage)?"btn-primary":"btn-outline-primary")+" me-1";
-    btn.onclick=()=>{ if(tab==='data'){ dataPage=i; renderData(); } else { photoPage=i; renderPhotos(); }};
-    pageDiv.appendChild(btn);
+    btn.className="btn btn-sm pagination-btn "+(i===(tab==='data'?dataPage:photoPage)?"btn-primary":"btn-outline-primary");
+    btn.onclick=()=>{ 
+      if(tab==='data'){ dataPage=i; renderData(); } 
+      else { photoPage=i; renderPhotos(); }
+    };
+    container.appendChild(btn);
   }
 }
 
-// Arama
 function setupSearch(){
   document.getElementById("searchData").addEventListener("keyup",()=>{
-    const filter = document.getElementById("searchData").value.toLowerCase();
+    const filter=document.getElementById("searchData").value.toLowerCase();
     document.querySelectorAll("#dataTable tbody tr").forEach(tr=>{
-      tr.style.display= tr.textContent.toLowerCase().includes(filter)? "":"none";
+      tr.style.display=tr.textContent.toLowerCase().includes(filter)?"":"none";
     });
   });
   document.getElementById("searchPhoto").addEventListener("keyup",()=>{
-    const filter = document.getElementById("searchPhoto").value.toLowerCase();
+    const filter=document.getElementById("searchPhoto").value.toLowerCase();
     document.querySelectorAll("#photoTable tbody tr").forEach(tr=>{
-      tr.style.display= tr.textContent.toLowerCase().includes(filter)? "":"none";
+      tr.style.display=tr.textContent.toLowerCase().includes(filter)?"":"none";
     });
   });
 }
 
-// Sayfa yüklenince kontrol
 window.onload=function(){
   if(localStorage.getItem("loggedIn")==="true"){
     document.getElementById("loginPage").classList.add("hidden");
