@@ -152,68 +152,109 @@ function loadCsvAndInit(){
 }
 
 function createTable(tableId,headers,rows,searchId,paginationId,isPhoto){
-  const table=document.getElementById(tableId),thead=table.querySelector('thead'),tbody=table.querySelector('tbody');
-  const search=document.getElementById(searchId),pagination=document.getElementById(paginationId);
-  let filtered=[...rows], page=1;
-  function renderHead(){thead.innerHTML=''; const tr=document.createElement('tr'); headers.forEach(h=>{const th=document.createElement('th'); th.textContent=h; tr.appendChild(th);}); thead.appendChild(tr);}
-  function render(){tbody.innerHTML=''; const totalPages=Math.ceil(filtered.length/PAGE_SIZE); if(page>totalPages) page=totalPages; const start=(page-1)*PAGE_SIZE; const slice=filtered.slice(start,start+PAGE_SIZE);
-    slice.forEach(row=>{const tr=document.createElement('tr'); row.forEach((c,i)=>{const td=document.createElement('td'); if(isPhoto && i===5 && c){ const img=document.createElement('img'); img.src=c; img.className='thumb'; img.onclick=()=>openImage(c); td.appendChild(img);} else td.textContent=c; tr.appendChild(td);}); tbody.appendChild(tr);}); renderPagination();}
-  function renderPagination(){pagination.innerHTML=''; const totalPages=Math.ceil(filtered.length/PAGE_SIZE); const prev=document.createElement('li'); prev.className='page-item '+(page===1?'disabled':''); prev.innerHTML=`<button class='page-link'>Geri</button>`; prev.onclick=()=>{if(page>1){page--;render();}}; const next=document.createElement('li'); next.className='page-item '+(page===totalPages?'disabled':''); next.innerHTML=`<button class='page-link'>İleri</button>`; next.onclick=()=>{if(page<totalPages){page++;render();}}; pagination.appendChild(prev); pagination.appendChild(next);}
-  search.oninput=function(){ const t=this.value.toLowerCase(); filtered=rows.filter(r=>r.join(" ").toLowerCase().includes(t)); page=1; render();}
-  renderHead(); render();
+  const table = document.getElementById(tableId),thead=table.querySelector('thead'),tbody=table.querySelector('tbody'),
+        search = document.getElementById(searchId),pagination=document.getElementById(paginationId);
+  let filtered=[...rows], page=1, sortColumn=null, sortAsc=true;
+
+  function renderHead(){
+    thead.innerHTML = '';
+    const tr = document.createElement('tr');
+    headers.forEach((h, idx) => {
+      const th = document.createElement('th');
+      th.textContent = h;
+      // Fotoğraf tablosunda tarih sütunu (idx=0) tıklanabilir
+      if(isPhoto && idx===0){
+        th.style.cursor='pointer';
+        th.title='Tıklayarak sırala';
+        th.onclick=()=>{
+          if(sortColumn===idx) sortAsc=!sortAsc; else {sortColumn=idx; sortAsc=true;}
+          filtered.sort((a,b)=>{
+            const da=a[idx]?.split('.')||[0,0,0];
+            const db=b[idx]?.split('.')||[0,0,0];
+            const dateA=new Date(+da[2],+da[1]-1,+da[0]);
+            const dateB=new Date(+db[2],+db[1]-1,+db[0]);
+            return sortAsc ? dateA-dateB : dateB-dateA;
+          });
+          page=1; renderPage();
+        }
+      }
+      tr.appendChild(th);
+    });
+    thead.appendChild(tr);
+  }
+
+  function renderPage(){
+    tbody.innerHTML='';
+    const totalPages=Math.ceil(filtered.length/PAGE_SIZE);
+    if(page>totalPages) page=totalPages;
+    const start=(page-1)*PAGE_SIZE;
+    const slice=filtered.slice(start,start+PAGE_SIZE);
+
+    slice.forEach(row=>{
+      const tr=document.createElement('tr');
+      row.forEach((c,i)=>{
+        const td=document.createElement('td');
+        if(isPhoto && i===5 && c){
+          const img=document.createElement('img'); img.src=c; img.className='thumb'; img.onclick=()=>openImage(c); td.appendChild(img);
+        }else td.textContent=c;
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    renderPagination();
+  }
+
+  function renderPagination(){
+    pagination.innerHTML='';
+    const totalPages=Math.ceil(filtered.length/PAGE_SIZE);
+    const prev=document.createElement('li'); prev.className="page-item "+(page===1?'disabled':''); prev.innerHTML=`<button class='page-link'>Geri</button>`; prev.onclick=()=>{if(page>1){page--; renderPage();}};
+    const next=document.createElement('li'); next.className="page-item "+(page===totalPages?'disabled':''); next.innerHTML=`<button class='page-link'>İleri</button>`; next.onclick=()=>{if(page<totalPages){page++; renderPage();}};
+    pagination.appendChild(prev); pagination.appendChild(next);
+  }
+
+  search.oninput=function(){ const t=this.value.toLowerCase(); filtered=rows.filter(r=>r.join(' ').toLowerCase().includes(t)); page=1; renderPage();}
+  renderHead(); renderPage();
 }
 
-// Tablo ve grafik geçişi
-const btnData = document.getElementById('btnData');
-const btnPhoto = document.getElementById('btnPhoto');
-const btnChart = document.getElementById('btnChart');
-const dataWrapper = document.getElementById('dataTableWrapper');
-const photoWrapper = document.getElementById('photoTableWrapper');
-const chartWrapper = document.getElementById('chartWrapper');
+// Tablo ve grafik geçişleri
+const btnData=document.getElementById('btnData'), btnPhoto=document.getElementById('btnPhoto'), btnChart=document.getElementById('btnChart');
+const dataWrapper=document.getElementById('dataTableWrapper'), photoWrapper=document.getElementById('photoTableWrapper'), chartWrapper=document.getElementById('chartWrapper');
 
 btnData.addEventListener('click',()=>{
-    dataWrapper.style.display='block';
-    photoWrapper.style.display='none';
-    chartWrapper.style.display='none';
-    btnData.classList.add('btn-primary'); btnData.classList.remove('btn-outline-primary');
-    btnPhoto.classList.add('btn-outline-primary'); btnPhoto.classList.remove('btn-primary');
-    btnChart.classList.add('btn-outline-primary'); btnChart.classList.remove('btn-primary');
+  dataWrapper.style.display='block'; photoWrapper.style.display='none'; chartWrapper.style.display='none';
+  btnData.classList.add('btn-primary'); btnData.classList.remove('btn-outline-primary');
+  btnPhoto.classList.add('btn-outline-primary'); btnPhoto.classList.remove('btn-primary');
+  btnChart.classList.add('btn-outline-primary'); btnChart.classList.remove('btn-primary');
 });
-
 btnPhoto.addEventListener('click',()=>{
-    dataWrapper.style.display='none';
-    photoWrapper.style.display='block';
-    chartWrapper.style.display='none';
-    btnPhoto.classList.add('btn-primary'); btnPhoto.classList.remove('btn-outline-primary');
-    btnData.classList.add('btn-outline-primary'); btnData.classList.remove('btn-primary');
-    btnChart.classList.add('btn-outline-primary'); btnChart.classList.remove('btn-primary');
+  dataWrapper.style.display='none'; photoWrapper.style.display='block'; chartWrapper.style.display='none';
+  btnPhoto.classList.add('btn-primary'); btnPhoto.classList.remove('btn-outline-primary');
+  btnData.classList.add('btn-outline-primary'); btnData.classList.remove('btn-primary');
+  btnChart.classList.add('btn-outline-primary'); btnChart.classList.remove('btn-primary');
 });
-
 btnChart.addEventListener('click',()=>{
-    dataWrapper.style.display='none';
-    photoWrapper.style.display='none';
-    chartWrapper.style.display='block';
-    btnChart.classList.add('btn-primary'); btnChart.classList.remove('btn-outline-primary');
-    btnData.classList.add('btn-outline-primary'); btnData.classList.remove('btn-primary');
-    btnPhoto.classList.add('btn-outline-primary'); btnPhoto.classList.remove('btn-primary');
+  dataWrapper.style.display='none'; photoWrapper.style.display='none'; chartWrapper.style.display='block';
+  btnChart.classList.add('btn-primary'); btnChart.classList.remove('btn-outline-primary');
+  btnData.classList.add('btn-outline-primary'); btnData.classList.remove('btn-primary');
+  btnPhoto.classList.add('btn-outline-primary'); btnPhoto.classList.remove('btn-primary');
 
-    // Grafik: M sütunu (sorumlu personel) ve N sütunu (sayısı)
-    const countsMap = {};
-    dataRows.forEach(r=>{
-        const person = r[3]?.trim() || "Bilinmeyen";
-        const count = parseInt(r[4]) || 0;
-        countsMap[person] = (countsMap[person] || 0) + count;
-    });
-    const labels = Object.keys(countsMap);
-    const data = Object.values(countsMap);
+  // Grafik: M sütunu (sorumlu personel) ve N sütunu (sayısı)
+  const countsMap = {};
+  dataRows.forEach(r=>{
+    const person = r[3]?.trim() || "Bilinmeyen";
+    const count = parseInt(r[4]) || 0;
+    countsMap[person] = (countsMap[person] || 0) + count;
+  });
+  const labels = Object.keys(countsMap);
+  const data = Object.values(countsMap);
 
-    if(errorChart) errorChart.destroy();
-    const ctx = document.getElementById('errorChart').getContext('2d');
-    errorChart = new Chart(ctx, {
-        type:'bar',
-        data:{labels:labels,datasets:[{label:'İşlem Sayısı',data:data,backgroundColor:'#0d6efd'}]},
-        options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}},x:{ticks:{autoSkip:false}}}
-    });
+  if(errorChart) errorChart.destroy();
+  const ctx = document.getElementById('errorChart').getContext('2d');
+  errorChart = new Chart(ctx, {
+    type:'bar',
+    data:{labels:labels,datasets:[{label:'İşlem Sayısı',data:data,backgroundColor:'#0d6efd'}]},
+    options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}},x:{ticks:{autoSkip:false}}}
+  });
 });
 
 // Modal
