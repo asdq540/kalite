@@ -146,7 +146,8 @@ const BACKEND_URL="https://kaliteform.onrender.com";
 const sheetUrl="https://docs.google.com/spreadsheets/d/e/2PACX-1vQBWFSVSD6NvBNqC8me1le_unCCLOKIOIS2DfZFXUTji0MHC7SaWNIy4a0Laob9xOiAJyPnp7LuZ1R-/pub?output=csv";
 const PAGE_SIZE=10;
 
-function login(){
+// LOGIN
+document.getElementById('loginBtn').addEventListener('click',()=>{
   const u=document.getElementById('username').value.trim();
   const p=document.getElementById('password').value.trim();
   const err=document.getElementById('errorMsg'); err.textContent='';
@@ -156,8 +157,8 @@ function login(){
     if(res && res.success){ localStorage.setItem('loggedIn','true'); showMain(); }
     else err.textContent=res.message||'Kullanıcı adı veya şifre hatalı!';
   }).catch(()=>{err.textContent='Sunucuya ulaşılamadı!';});
-}
-document.getElementById('loginBtn').addEventListener('click',login);
+});
+
 function logout(){localStorage.removeItem('loggedIn'); location.reload();}
 function showMain(){document.getElementById('loginPage').style.display='none'; document.getElementById('mainPage').style.display='block'; loadCsvAndInit();}
 if(localStorage.getItem('loggedIn')==='true') showMain();
@@ -165,6 +166,7 @@ if(localStorage.getItem('loggedIn')==='true') showMain();
 let dataRows=[],photoRows=[],headerRow=[];
 let errorChart;
 
+// CSV ve tablolar
 function loadCsvAndInit(){
   fetch(sheetUrl).then(r=>r.text()).then(text=>{
     const parsed=Papa.parse(text,{header:false}).data;
@@ -186,45 +188,46 @@ function createTable(tableId,headers,rows,searchId,paginationId,isPhoto){
   function render(){tbody.innerHTML=''; const totalPages=Math.ceil(filtered.length/PAGE_SIZE); if(page>totalPages) page=totalPages; const start=(page-1)*PAGE_SIZE; const slice=filtered.slice(start,start+PAGE_SIZE);
     slice.forEach(row=>{const tr=document.createElement('tr'); row.forEach((c,i)=>{const td=document.createElement('td'); if(isPhoto && i===5 && c){ const img=document.createElement('img'); img.src=c; img.className='thumb'; img.onclick=()=>openImage(c); td.appendChild(img);} else td.textContent=c; tr.appendChild(td);}); tbody.appendChild(tr);}); renderPagination();}
   function renderPagination(){pagination.innerHTML=''; const totalPages=Math.ceil(filtered.length/PAGE_SIZE); const prev=document.createElement('li'); prev.className='page-item '+(page===1?'disabled':''); prev.innerHTML=`<button class='page-link'>Geri</button>`; prev.onclick=()=>{if(page>1){page--;render();}}; const next=document.createElement('li'); next.className='page-item '+(page===totalPages?'disabled':''); next.innerHTML=`<button class='page-link'>İleri</button>`; next.onclick=()=>{if(page<totalPages){page++;render();}}; pagination.appendChild(prev); pagination.appendChild(next);}
-  search.oninput=function(){ const t=this.value.toLowerCase(); filtered=rows.filter(r=>r.join(' ').toLowerCase().includes(t)); page=1; render();}
+  search.oninput=function(){ const t=this.value.toLowerCase(); filtered=rows.filter(r=>r.join(" ").toLowerCase().includes(t)); page=1; render();}
   renderHead(); render();
 }
 
+// Tablo geçişi
 document.getElementById('btnData').onclick=function(){document.getElementById('dataTableWrapper').style.display='block'; document.getElementById('photoTableWrapper').style.display='none'; this.classList.add('btn-primary'); this.classList.remove('btn-outline-primary'); btnPhoto.classList.remove('btn-primary'); btnPhoto.classList.add('btn-outline-primary');};
 document.getElementById('btnPhoto').onclick=function(){document.getElementById('dataTableWrapper').style.display='none'; document.getElementById('photoTableWrapper').style.display='block'; this.classList.add('btn-primary'); this.classList.remove('btn-outline-primary'); btnData.classList.remove('btn-primary'); btnData.classList.add('btn-outline-primary');};
 
+// Modal
 let modal=new bootstrap.Modal(document.getElementById('imageModal'));
 function openImage(src){document.getElementById('modalImage').src=src; modal.show();}
 
-// Dashboard ve Grafik
+// Dashboard ve Grafik (Açıklama bazlı)
 function updateDashboardStats(){
-  const totalProcess = dataRows.length;
-  const totalError = dataRows.filter(r=>r.includes('HATA')).length;
-  const errorRate = totalProcess ? Math.round(totalError/totalProcess*100) : 0;
-  const todayProcess = dataRows.filter(r=>r[0]===new Date().toLocaleDateString()).length;
+    // Kartlar
+    const totalProcess = dataRows.length;
+    const totalError = dataRows.filter(r=>r[2]?.toUpperCase().includes('HATA')).length;
+    const errorRate = totalProcess ? Math.round(totalError/totalProcess*100) : 0;
+    const todayProcess = dataRows.filter(r=>r[0]===new Date().toLocaleDateString()).length;
+    document.getElementById('totalProcess').textContent = totalProcess;
+    document.getElementById('totalError').textContent = totalError;
+    document.getElementById('errorRate').textContent = errorRate;
+    document.getElementById('todayProcess').textContent = todayProcess;
 
-  document.getElementById('totalProcess').textContent = totalProcess;
-  document.getElementById('totalError').textContent = totalError;
-  document.getElementById('errorRate').textContent = errorRate;
-  document.getElementById('todayProcess').textContent = todayProcess;
+    // Açıklama sayımı
+    const countsMap = {};
+    dataRows.forEach(r=>{
+        const key = r[2]?.trim() || "Bilinmeyen";
+        countsMap[key] = (countsMap[key] || 0) + 1;
+    });
+    const labels = Object.keys(countsMap);
+    const data = Object.values(countsMap);
 
-  // Grafik
-  const last7Days = [];
-  const counts = [];
-  for(let i=6;i>=0;i--){
-    const d=new Date(); d.setDate(d.getDate()-i);
-    const day=d.toLocaleDateString();
-    last7Days.push(day);
-    counts.push(dataRows.filter(r=>r[0]===day && r.includes('HATA')).length);
-  }
-
-  if(errorChart) errorChart.destroy();
-  const ctx=document.getElementById('errorChart').getContext('2d');
-  errorChart=new Chart(ctx,{
-    type:'bar',
-    data:{labels:last7Days,datasets:[{label:'Günlük Hata',data:counts,backgroundColor:'#dc3545'}]},
-    options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
-  });
+    if(errorChart) errorChart.destroy();
+    const ctx = document.getElementById('errorChart').getContext('2d');
+    errorChart = new Chart(ctx, {
+        type:'bar',
+        data:{labels:labels,datasets:[{label:'Açıklama Sıklığı',data:data,backgroundColor:'#dc3545'}]},
+        options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
+    });
 }
 </script>
 </body>
