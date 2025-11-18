@@ -6,7 +6,6 @@
 <title>Kalite Kontrol Paneli</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
 <style>
-/* Orijinal CSS Kodu */
 :root{
   --primary:#0d6efd;
   --bg:#f1f3f5;
@@ -89,6 +88,7 @@ img.thumb:hover{ transform:scale(1.06); }
 </head>
 <body>
 
+<!-- LOGIN -->
 <div id="loginPage" class="login-container">
   <h3 class="text-center mb-3">Kalite Kontrol Giriş</h3>
   <div class="mb-3">
@@ -105,6 +105,7 @@ img.thumb:hover{ transform:scale(1.06); }
   <div id="errorMsg" class="text-danger text-center mt-3"></div>
 </div>
 
+<!-- MAIN -->
 <div id="mainPage" class="container">
   <h1 class="section-title">Kalite Veri Listesi</h1>
 
@@ -114,9 +115,10 @@ img.thumb:hover{ transform:scale(1.06); }
       <button id="btnPhoto" class="btn btn-outline-primary">Fotoğraf Tablosu</button>
     </div>
 
-        <div id="dataTableWrapper" class="fadeWrapper fadeIn">
+    <!-- VERİ TABLOSU -->
+    <div id="dataTableWrapper" class="fadeWrapper fadeIn">
       <div class="d-flex align-items-center mb-2">
-                <input id="searchInput1" type="date" class="search-input form-control flex-grow-1" placeholder="Veri tablosunda ara..."> 
+        <input id="searchInput1" class="search-input flex-grow-1" placeholder="Veri tablosunda ara...">
         <button class="btn btn-outline-danger ms-3" onclick="logout()">Çıkış Yap</button>
       </div>
       <div class="table-responsive">
@@ -125,9 +127,10 @@ img.thumb:hover{ transform:scale(1.06); }
       <nav><ul id="pagination1" class="pagination"></ul></nav>
     </div>
 
-        <div id="photoTableWrapper" class="fadeWrapper" style="display:none;">
+    <!-- FOTOĞRAF TABLOSU -->
+    <div id="photoTableWrapper" class="fadeWrapper" style="display:none;">
       <div class="d-flex align-items-center mb-2">
-                <input id="searchInput2" type="date" class="search-input form-control flex-grow-1" placeholder="Fotoğraf tablosunda ara...">
+        <input id="searchInput2" class="search-input flex-grow-1" placeholder="Fotoğraf tablosunda ara...">
         <div class="ms-3 text-muted small">F sütunu fotoğraflar</div>
       </div>
       <div class="table-responsive">
@@ -138,6 +141,7 @@ img.thumb:hover{ transform:scale(1.06); }
   </div>
 </div>
 
+<!-- Modal -->
 <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content">
@@ -184,28 +188,6 @@ function loadCsvAndInit(){
     headerRow=parsed[0]; const body=parsed.slice(1);
     dataRows=body.map(r=>r.slice(9,17));
     photoRows=body.map(r=>r.slice(0,7));
-
-    // YENİ EKLENEN KISIM: OTOMATİK TARİH ATAMA VE FİLTRELEME
-    function getCurrentDateISO() {
-      const now = new Date();
-      // YYYY-MM-DD formatında tarih oluşturulur.
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    }
-
-    const todayISO = getCurrentDateISO();
-    const searchInput1 = document.getElementById('searchInput1');
-    const searchInput2 = document.getElementById('searchInput2');
-    
-    // Değer ataması
-    searchInput1.value = todayISO;
-    searchInput2.value = todayISO;
-    
-    // Otomatik filtrelemeyi tetikle
-    searchInput1.dispatchEvent(new Event('input'));
-
     createTable({tableId:'dataTable', headers: headerRow.slice(9,17), rows: dataRows, searchId:'searchInput1', paginationId:'pagination1', pageSize:PAGE_SIZE, isPhoto:false});
     createTable({tableId:'photoTable', headers: headerRow.slice(0,7), rows: photoRows, searchId:'searchInput2', paginationId:'pagination2', pageSize:PAGE_SIZE, isPhoto:true});
   }).catch(err=>console.error(err));
