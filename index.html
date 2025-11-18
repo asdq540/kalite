@@ -148,7 +148,7 @@ img.thumb:hover{ transform:scale(1.06); }
         <div class="small-note">Fare tekeri ile zoom, sürükleyerek taşıyın</div>
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
       </div>
-      </div>
+    </div>
   </div>
 </div>
 
@@ -185,10 +185,10 @@ function loadCsvAndInit(){
     dataRows=body.map(r=>r.slice(9,17));
     photoRows=body.map(r=>r.slice(0,7));
 
-    // GÜNCEL KISIM: OTOMATİK TARİH ATAMA VE FİLTRELEME
+    // YENİ EKLENEN KISIM: OTOMATİK TARİH ATAMA VE FİLTRELEME
     function getCurrentDateISO() {
       const now = new Date();
-      // Tarih seçicinin beklediği YYYY-MM-DD formatında tarih oluşturulur.
+      // YYYY-MM-DD formatında tarih oluşturulur.
       const year = now.getFullYear();
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const day = String(now.getDate()).padStart(2, '0');
