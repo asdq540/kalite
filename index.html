@@ -32,8 +32,6 @@ body{
 }
 #mainPage{ display:none; }
 .section-title{ color:var(--thead); font-weight:700; }
-
-/* --- KURUMSAL TABLO TASARIMI --- */
 .table-card{
   background:var(--card);
   padding:20px;
@@ -76,8 +74,6 @@ body{
   border-top-right-radius:12px;
   border-bottom-right-radius:12px;
 }
-
-/* Fotoğraf Boyutları */
 img.thumb{
   width:90px;
   height:74px;
@@ -89,16 +85,12 @@ img.thumb{
   transition:0.15s;
 }
 img.thumb:hover{ transform:scale(1.05); }
-
 .search-input{
   border-radius:10px;
   padding:10px;
   border:1px solid #bcc6d0;
 }
-
 .pagination .page-link{ border-radius:8px; }
-
-/* Modal */
 .modal-img-wrap{
   width:100%;
   height:80vh;
@@ -113,12 +105,9 @@ img.thumb:hover{ transform:scale(1.05); }
   max-height:100%;
   cursor:grab;
 }
-
 </style>
 </head>
 <body>
-
-<!-- LOGIN -->
 <div id="loginPage" class="login-container">
   <h3 class="text-center mb-3" style="color:var(--thead); font-weight:600;">Kalite Kontrol Giriş</h3>
   <div class="mb-3">
@@ -134,21 +123,17 @@ img.thumb:hover{ transform:scale(1.05); }
   </div>
   <div id="errorMsg" class="text-danger text-center mt-3"></div>
 </div>
-
-<!-- MAIN -->
 <div id="mainPage" class="container">
   <h1 class="section-title">Kalite Veri Listesi</h1>
-
   <div class="table-card">
     <div class="d-flex mb-3 justify-content-center gap-2">
       <button id="btnData" class="btn btn-primary">Veri Tablosu</button>
       <button id="btnPhoto" class="btn btn-outline-primary">Fotoğraf Tablosu</button>
     </div>
-
-    <!-- VERİ TABLOSU -->
     <div id="dataTableWrapper">
       <div class="d-flex align-items-center mb-3">
-        <input type="text" id="searchInput1" class="search-input flex-grow-1" onchange="this.setAttribute('value', this.value)" >
+        <input type="text" id="searchInput1" class="search-input flex-grow-1">
+        <button id="dateBtn1" class="btn btn-outline-secondary ms-2">📅</button>
         <button class="btn btn-outline-danger ms-3" onclick="logout()">Çıkış Yap</button>
       </div>
       <div class="table-responsive">
@@ -156,11 +141,10 @@ img.thumb:hover{ transform:scale(1.05); }
       </div>
       <nav><ul id="pagination1" class="pagination justify-content-center mt-2"></ul></nav>
     </div>
-
-    <!-- FOTOĞRAF TABLOSU -->
     <div id="photoTableWrapper" style="display:none;">
       <div class="d-flex align-items-center mb-3">
-        <input type="text" id="searchInput2" class="search-input flex-grow-1" onchange="this.setAttribute('value', this.value)" >
+        <input type="text" id="searchInput2" class="search-input flex-grow-1">
+        <button id="dateBtn2" class="btn btn-outline-secondary ms-2">📅</button>
       </div>
       <div class="table-responsive">
         <table id="photoTable" class="table align-middle"><thead></thead><tbody></tbody></table>
@@ -169,8 +153,6 @@ img.thumb:hover{ transform:scale(1.05); }
     </div>
   </div>
 </div>
-
-<!-- MODAL -->
 <div class="modal fade" id="imageModal" tabindex="-1">
   <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content">
@@ -183,182 +165,28 @@ img.thumb:hover{ transform:scale(1.05); }
     </div>
   </div>
 </div>
-
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-
 const BACKEND_URL="https://kaliteform.onrender.com";
 const sheetUrl="https://docs.google.com/spreadsheets/d/e/2PACX-1vQBWFSVSD6NvBNqC8me1le_unCCLOKIOIS2DfZFXUTji0MHC7SaWNIy4a0Laob9xOiAJyPnp7LuZ1R-/pub?output=csv";
 const PAGE_SIZE=10;
-
-function login(){
-  const u=document.getElementById('username').value.trim();
-  const p=document.getElementById('password').value.trim();
-  const err=document.getElementById('errorMsg'); err.textContent="";
-
-  fetch(BACKEND_URL+"/login",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({username:u,password:p})
-  }).then(r=>r.json()).then(res=>{
-    if(res.success){ localStorage.setItem("loggedIn",true); showMain(); }
-    else err.textContent="Kullanıcı adı veya şifre hatalı!";
-  }).catch(()=> err.textContent="Sunucuya ulaşılamadı!");
-}
-
-function logout(){ localStorage.removeItem("loggedIn"); location.reload(); }
-
-function showMain(){
-  document.getElementById('loginPage').style.display='none';
-  document.getElementById('mainPage').style.display='block';
-  loadCsvAndInit();
-}
-
+function login(){const u=document.getElementById('username').value.trim();const p=document.getElementById('password').value.trim();const err=document.getElementById('errorMsg');err.textContent="";fetch(BACKEND_URL+"/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:u,password:p})}).then(r=>r.json()).then(res=>{if(res.success){localStorage.setItem("loggedIn",true);showMain();}else err.textContent="Kullanıcı adı veya şifre hatalı!";}).catch(()=>err.textContent="Sunucuya ulaşılamadı!");}
+function logout(){localStorage.removeItem("loggedIn");location.reload();}
+function showMain(){document.getElementById('loginPage').style.display='none';document.getElementById('mainPage').style.display='block';loadCsvAndInit();}
 if(localStorage.getItem('loggedIn')==='true') showMain();
-
-/* --- CSV LOAD --- */
-let dataRows=[], photoRows=[], headerRow=[];
-
-function loadCsvAndInit(){
-  fetch(sheetUrl).then(r=>r.text()).then(text=>{
-    const parsed=Papa.parse(text,{header:false}).data;
-    headerRow=parsed[0];
-    const body=parsed.slice(1);
-
-    dataRows=body.map(r=>r.slice(9,17));
-    photoRows=body.map(r=>r.slice(0,7));
-
-    createTable("dataTable", headerRow.slice(9,17), dataRows, "searchInput1", "pagination1", false);
-    createTable("photoTable", headerRow.slice(0,7), photoRows, "searchInput2", "pagination2", true);
-  });
-}
-
-/* --- TABLE RENDER --- */
-function createTable(tableId, headers, rows, searchId, paginationId, isPhoto){
-  const table=document.getElementById(tableId);
-  const thead=table.querySelector('thead');
-  const tbody=table.querySelector('tbody');
-  const search=document.getElementById(searchId);
-  const pagination=document.getElementById(paginationId);
-
-  let filtered=[...rows];
-  let page=1;
-
-  function renderHead(){
-    thead.innerHTML="";
-    const tr=document.createElement('tr');
-    headers.forEach(h=>{
-      const th=document.createElement('th');
-      th.textContent=h;
-      tr.appendChild(th);
-    });
-    thead.appendChild(tr);
-  }
-
-  function render(){
-    tbody.innerHTML="";
-    const totalPages=Math.ceil(filtered.length/PAGE_SIZE);
-    if(page>totalPages) page=totalPages;
-
-    const start=(page-1)*PAGE_SIZE;
-    const slice=filtered.slice(start,start+PAGE_SIZE);
-
-    slice.forEach(row=>{
-      const tr=document.createElement('tr');
-      row.forEach((c,i)=>{
-        const td=document.createElement('td');
-        if(isPhoto && i===5 && c){
-          const img=document.createElement('img');
-          img.src=c;
-          img.className='thumb';
-          img.onclick=()=>openImage(c);
-          td.appendChild(img);
-        }else td.textContent=c;
-        tr.appendChild(td);
-      });
-      tbody.appendChild(tr);
-    });
-
-    renderPagination();
-  }
-
-  function renderPagination(){
-    pagination.innerHTML="";
-    const totalPages=Math.ceil(filtered.length/PAGE_SIZE);
-
-    const prev=document.createElement('li');
-    prev.className="page-item "+(page===1?'disabled':'');
-    prev.innerHTML=`<button class='page-link'>Geri</button>`;
-    prev.onclick=()=>{ if(page>1){page--; render();} };
-
-    const next=document.createElement('li');
-    next.className="page-item "+(page===totalPages?'disabled':'');
-    next.innerHTML=`<button class='page-link'>İleri</button>`;
-    next.onclick=()=>{ if(page<totalPages){page++; render();} };
-
-    pagination.appendChild(prev);
-    pagination.appendChild(next);
-  }
-
-  search.oninput=function(){
-    const t=this.value.toLowerCase();
-    filtered=rows.filter(r=>r.join(" ").toLowerCase().includes(t));
-    page=1;
-    render();
-  }
-
-  renderHead(); render();
-}
-
-/* TABLO GEÇİŞİ */
-document.getElementById('btnData').onclick=function(){
-  document.getElementById('dataTableWrapper').style.display='block';
-  document.getElementById('photoTableWrapper').style.display='none';
-  this.classList.add('btn-primary');
-  this.classList.remove('btn-outline-primary');
-  btnPhoto.classList.remove('btn-primary');
-  btnPhoto.classList.add('btn-outline-primary');
-};
-
-document.getElementById('btnPhoto').onclick=function(){
-  document.getElementById('dataTableWrapper').style.display='none';
-  document.getElementById('photoTableWrapper').style.display='block';
-  this.classList.add('btn-primary');
-  this.classList.remove('btn-outline-primary');
-  btnData.classList.remove('btn-primary');
-  btnData.classList.add('btn-outline-primary');
-};
-
-/* MODAL */
+let dataRows=[],photoRows=[],headerRow=[];
+function loadCsvAndInit(){fetch(sheetUrl).then(r=>r.text()).then(text=>{const parsed=Papa.parse(text,{header:false}).data;headerRow=parsed[0];const body=parsed.slice(1);dataRows=body.map(r=>r.slice(9,17));photoRows=body.map(r=>r.slice(0,7));createTable("dataTable",headerRow.slice(9,17),dataRows,"searchInput1","pagination1",false);createTable("photoTable",headerRow.slice(0,7),photoRows,"searchInput2","pagination2",true);});}
+function createTable(tableId,headers,rows,searchId,paginationId,isPhoto){const table=document.getElementById(tableId);const thead=table.querySelector('thead');const tbody=table.querySelector('tbody');const search=document.getElementById(searchId);const pagination=document.getElementById(paginationId);let filtered=[...rows];let page=1;function renderHead(){thead.innerHTML="";const tr=document.createElement('tr');headers.forEach(h=>{const th=document.createElement('th');th.textContent=h;tr.appendChild(th);});thead.appendChild(tr);}function render(){tbody.innerHTML="";const totalPages=Math.ceil(filtered.length/PAGE_SIZE);if(page>totalPages) page=totalPages;const start=(page-1)*PAGE_SIZE;const slice=filtered.slice(start,start+PAGE_SIZE);slice.forEach(row=>{const tr=document.createElement('tr');row.forEach((c,i)=>{const td=document.createElement('td');if(isPhoto && i===5 && c){const img=document.createElement('img');img.src=c;img.className='thumb';img.onclick=()=>openImage(c);td.appendChild(img);}else td.textContent=c;tr.appendChild(td);});tbody.appendChild(tr);});renderPagination();}function renderPagination(){pagination.innerHTML="";const totalPages=Math.ceil(filtered.length/PAGE_SIZE);const prev=document.createElement('li');prev.className="page-item "+(page===1?'disabled':'');prev.innerHTML=`<button class='page-link'>Geri</button>`;prev.onclick=()=>{if(page>1){page--;render();}};const next=document.createElement('li');next.className="page-item "+(page===totalPages?'disabled':'');next.innerHTML=`<button class='page-link'>İleri</button>`;next.onclick=()=>{if(page<totalPages){page++;render();}};pagination.appendChild(prev);pagination.appendChild(next);}search.oninput=function(){const t=this.value.toLowerCase();filtered=rows.filter(r=>r.join(" ").toLowerCase().includes(t));page=1;render();}renderHead();render();}
+document.getElementById('btnData').onclick=function(){document.getElementById('dataTableWrapper').style.display='block';document.getElementById('photoTableWrapper').style.display='none';this.classList.add('btn-primary');this.classList.remove('btn-outline-primary');btnPhoto.classList.remove('btn-primary');btnPhoto.classList.add('btn-outline-primary');};
+document.getElementById('btnPhoto').onclick=function(){document.getElementById('dataTableWrapper').style.display='none';document.getElementById('photoTableWrapper').style.display='block';this.classList.add('btn-primary');this.classList.remove('btn-outline-primary');btnData.classList.remove('btn-primary');btnData.classList.add('btn-outline-primary');};
 let modal=new bootstrap.Modal(document.getElementById('imageModal'));
-function openImage(src){
-  document.getElementById('modalImage').src=src;
-  modal.show();
-}
-
+function openImage(src){document.getElementById('modalImage').src=src;modal.show();}
 </script>
 <script>
-// Flexible datepicker for both inputs
-function attachFlexibleDatepicker(id){
-  const input = document.getElementById(id);
-  if(!input) return;
-  input.addEventListener("click", () => {
-      const picker = document.createElement("input");
-      picker.type = "date";
-      picker.style.position = "absolute";
-      picker.style.opacity = "0";
-      document.body.appendChild(picker);
-      picker.addEventListener("change", () => {
-          input.value = picker.value;
-      });
-      picker.focus();
-      picker.click();
-      picker.addEventListener("blur", () => picker.remove());
-  });
-}
-attachFlexibleDatepicker("searchInput1");
-attachFlexibleDatepicker("searchInput2");
+function attachDateButton(btnId,inputId){const btn=document.getElementById(btnId);const input=document.getElementById(inputId);btn.addEventListener("click",()=>{const picker=document.createElement("input");picker.type="date";picker.style.position="absolute";picker.style.opacity="0";document.body.appendChild(picker);picker.addEventListener("change",()=>{input.value=picker.value;input.dispatchEvent(new Event("input"));});picker.focus();picker.click();picker.addEventListener("blur",()=>picker.remove());});}
+attachDateButton("dateBtn1","searchInput1");
+attachDateButton("dateBtn2","searchInput2");
 </script>
 </body>
 </html>
