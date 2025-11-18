@@ -22,7 +22,26 @@ body{background:var(--bg);font-family:"Segoe UI",sans-serif;padding:20px;}
 .section-title{color:var(--thead);font-weight:700;}
 .table-card{background:var(--card);padding:20px;border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:30px;}
 .table{border-collapse:separate !important;border-spacing:0 10px !important;}
-.table thead th{background:var(--thead) !important;color:white !important;padding:14px !important;font-weight:600;border:none !important;text-align:center;}
+.table thead th{
+    background: var(--thead) !important;
+    color: white !important;
+    padding:14px !important;
+    font-weight:600;
+    border:none !important;
+    text-align:center;
+    position: relative;
+    transition: background 0.2s;
+}
+.table thead th:hover{ background: #0056b3; cursor: pointer; }
+.table thead th::after{
+    content:'';
+    display:block;
+    height:3px;
+    width:100%;
+    background:#0d6efd;
+    border-radius:2px;
+    margin-top:6px;
+}
 .table tbody tr{background:var(--row1);border-radius:12px;}
 .table tbody tr:nth-child(even){background:var(--row2);}
 .table tbody td{padding:14px !important;vertical-align:middle;border-top:1px solid var(--border);border-bottom:1px solid var(--border);text-align:center;}
@@ -59,7 +78,6 @@ img.thumb:hover{transform:scale(1.05);}
 <div id="mainPage" class="container">
   <h1 class="section-title">Kalite Kontrol Dashboard</h1>
 
-  <!-- Butonlar: Veri Tablosu / Fotoğraf Tablosu / Grafik -->
   <div class="d-flex mb-3 justify-content-center gap-2">
     <button id="btnData" class="btn btn-primary">Veri Tablosu</button>
     <button id="btnPhoto" class="btn btn-outline-primary">Fotoğraf Tablosu</button>
@@ -93,7 +111,6 @@ img.thumb:hover{transform:scale(1.05);}
   <div id="chartWrapper" class="table-card mb-4" style="display:none;">
     <canvas id="errorChart" height="150"></canvas>
   </div>
-
 </div>
 
 <!-- MODAL -->
@@ -160,25 +177,30 @@ function createTable(tableId,headers,rows,searchId,paginationId,isPhoto){
     thead.innerHTML = '';
     const tr = document.createElement('tr');
     headers.forEach((h, idx) => {
-      const th = document.createElement('th');
-      th.textContent = h;
-      // Fotoğraf tablosunda tarih sütunu (idx=0) tıklanabilir
-      if(isPhoto && idx===0){
-        th.style.cursor='pointer';
-        th.title='Tıklayarak sırala';
-        th.onclick=()=>{
-          if(sortColumn===idx) sortAsc=!sortAsc; else {sortColumn=idx; sortAsc=true;}
-          filtered.sort((a,b)=>{
-            const da=a[idx]?.split('.')||[0,0,0];
-            const db=b[idx]?.split('.')||[0,0,0];
-            const dateA=new Date(+da[2],+da[1]-1,+da[0]);
-            const dateB=new Date(+db[2],+db[1]-1,+db[0]);
-            return sortAsc ? dateA-dateB : dateB-dateA;
-          });
-          page=1; renderPage();
+        const th = document.createElement('th');
+        // Semboller
+        let icon='', tooltip=h;
+        if(h.toLowerCase().includes('tarih')) icon='📅', tooltip='Veri tarihi';
+        else if(h.toLowerCase().includes('açıklama')) icon='📝', tooltip='İşlem açıklaması';
+        else if(h.toLowerCase().includes('fotoğraf')) icon='🖼️', tooltip='İlgili fotoğraf';
+        else if(h.toLowerCase().includes('sorumlu')) icon='👤', tooltip='Sorumlu personel';
+        th.innerHTML = `${icon} ${h}`;
+        th.title = tooltip;
+
+        if(isPhoto && idx===0){
+            th.onclick=()=>{
+                if(sortColumn===idx) sortAsc=!sortAsc; else {sortColumn=idx; sortAsc=true;}
+                filtered.sort((a,b)=>{
+                    const da=a[idx]?.split('.')||[0,0,0];
+                    const db=b[idx]?.split('.')||[0,0,0];
+                    const dateA=new Date(+da[2],+da[1]-1,+da[0]);
+                    const dateB=new Date(+db[2],+db[1]-1,+db[0]);
+                    return sortAsc ? dateA-dateB : dateB-dateA;
+                });
+                page=1; renderPage();
+            };
         }
-      }
-      tr.appendChild(th);
+        tr.appendChild(th);
     });
     thead.appendChild(tr);
   }
@@ -238,7 +260,7 @@ btnChart.addEventListener('click',()=>{
   btnData.classList.add('btn-outline-primary'); btnData.classList.remove('btn-primary');
   btnPhoto.classList.add('btn-outline-primary'); btnPhoto.classList.remove('btn-primary');
 
-  // Grafik: M sütunu (sorumlu personel) ve N sütunu (sayısı)
+  // Grafik: M sütunu (sorumlu) ve N sütunu (sayısı)
   const countsMap = {};
   dataRows.forEach(r=>{
     const person = r[3]?.trim() || "Bilinmeyen";
