@@ -1,272 +1,326 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Kalite Kontrol Paneli</title>
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+
 <style>
-:root {
-  --primary: #0d6efd;
-  --background: #f1f3f5;
-  --card-bg: #ffffff;
-  --table-header: #093e72;
+:root{
+  --primary:#0d6efd;
+  --bg:#f1f3f5;
+  --card:#ffffff;
+  --thead:#093e72;
+  --soft1:#eaf6ff;
+  --soft2:#eef9f0;
 }
-body {
-  background: var(--background);
-  padding: 20px;
+body{
+  background:var(--bg);
   font-family: "Segoe UI", sans-serif;
+  padding:20px;
 }
-/* Login Kutusu */
-.login-container {
-  max-width: 420px;
-  margin: 120px auto;
-  padding: 35px;
-  background: var(--card-bg);
-  border-radius: 14px;
-  box-shadow: 0 6px 30px rgba(0,0,0,0.12);
-  border: 1px solid #dee2e6;
+/* Login */
+.login-container{
+  max-width:420px;
+  margin:90px auto;
+  padding:30px;
+  background:var(--card);
+  border-radius:12px;
+  box-shadow:0 8px 30px rgba(0,0,0,0.08);
+  border:1px solid #e6e9ec;
 }
-.login-container h3 { font-weight: 600; color: #093e72; }
-/* Ana Panel */
-#mainPage h1 { color: #093e72; font-weight: 700; margin-bottom: 25px; }
-#searchInput1, #searchInput2 {
-  margin-bottom: 15px;
-  border-radius: 10px;
-  padding: 10px 15px;
-  border: 1px solid #bfc4c9;
+.login-container h3{ color:var(--thead); font-weight:600; }
+
+/* Main */
+#mainPage{ display:none; }
+h1.section-title{ color:var(--thead); font-weight:700; margin-bottom:16px; }
+
+/* Table containers */
+.table-card{
+  background:var(--card);
+  padding:12px;
+  border-radius:10px;
+  box-shadow:0 4px 18px rgba(0,0,0,0.06);
+  margin-bottom:28px;
 }
-.table-container {
-  overflow-x: auto;
-  background: white;
-  padding: 10px;
-  border-radius: 12px;
-  box-shadow: 0 2px 15px rgba(0,0,0,0.08);
-  margin-bottom: 30px;
+.table thead{ background:var(--thead) !important; color:#fff; }
+.table th, .table td{ padding:10px !important; font-size:14px; text-align:center; border:1px solid #e8edf2; }
+.table tbody tr:nth-child(odd){ background:var(--soft1); }
+.table tbody tr:nth-child(even){ background:var(--soft2); }
+
+/* search */
+.search-input{ margin-bottom:12px; border-radius:8px; padding:10px; border:1px solid #cfd6db; }
+
+/* pagination */
+.pagination { justify-content:center; margin-top:12px; }
+.page-link{ cursor:pointer; }
+
+/* thumbnail */
+img.thumb{
+  width:68px;
+  height:56px;
+  object-fit:cover;
+  border-radius:6px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.12);
+  cursor:pointer;
+  transition:transform .12s;
 }
-.table thead { background: var(--table-header) !important; color: white; }
-.table th, .table td { padding: 12px !important; font-size: 14px; border: 1px solid #dee2e6; text-align:center; }
-.table tbody tr:hover { background: #e9f3ff !important; }
-.btn-outline-danger { margin-top: 20px; font-weight: 600; border-radius: 10px; }
-.hidden { display: none; }
-.pagination { margin-top: 10px; }
-.page-item button { cursor: pointer; }
-/* Modal için resim */
-#imageModal img { width: 100%; }
-img.thumb { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); cursor:pointer; transition: transform .15s; }
-img.thumb:hover { transform: scale(1.08); }
+img.thumb:hover{ transform:scale(1.06); }
+
+/* modal image container and zoom/drag handling */
+.modal-img-wrap{
+  width:100%;
+  height:80vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#000;
+  overflow:hidden;
+  position:relative;
+}
+.modal-img-wrap img{
+  max-width:100%;
+  max-height:100%;
+  object-fit:contain;
+  transform-origin:center center;
+  cursor:grab;
+  user-select:none;
+}
+/* small helper for modal instructions */
+.modal-footer .small-note { margin-right:auto; color:#666; font-size:13px; }
 </style>
 </head>
 <body>
 
-<!-- Login -->
+<!-- LOGIN -->
 <div id="loginPage" class="login-container">
-  <h3 class="text-center mb-4">Kalite Kontrol Giriş</h3>
+  <h3 class="text-center mb-3">Kalite Kontrol Giriş</h3>
   <div class="mb-3">
     <label class="form-label">Kullanıcı Adı</label>
-    <input type="text" id="username" class="form-control" placeholder="Kullanıcı adınızı girin">
+    <input id="username" class="form-control" placeholder="Kullanıcı adınızı girin">
   </div>
   <div class="mb-3">
     <label class="form-label">Şifre</label>
-    <input type="password" id="password" class="form-control" placeholder="Şifrenizi girin">
+    <input id="password" type="password" class="form-control" placeholder="Şifrenizi girin">
   </div>
-  <button class="btn btn-primary w-100" onclick="login()">Giriş Yap</button>
+  <div class="d-grid gap-2">
+    <button onclick="login()" class="btn btn-primary">Giriş Yap</button>
+  </div>
   <div id="errorMsg" class="text-danger text-center mt-3"></div>
 </div>
 
-<!-- Ana Panel -->
-<div id="mainPage" class="container hidden">
-  <h1>Kalite Veri Listesi</h1>
+<!-- MAIN -->
+<div id="mainPage" class="container">
 
-  <!-- Veri Tablosu -->
-  <input type="text" id="searchInput1" class="form-control" placeholder="Veri tablosunda arayın...">
-  <div class="table-container">
-    <table class="table table-striped table-hover" id="dataTable">
-      <thead></thead>
-      <tbody></tbody>
-    </table>
+  <h1 class="section-title">Kalite Veri Listesi</h1>
+
+  <!-- DATA TABLE (J-Q) -->
+  <div class="table-card">
+    <div class="d-flex align-items-center mb-2">
+      <input id="searchInput1" class="search-input flex-grow-1" placeholder="Veri tablosunda ara...">
+      <button class="btn btn-outline-danger ms-3" onclick="logout()">Çıkış Yap</button>
+    </div>
+    <div class="table-responsive">
+      <table id="dataTable" class="table table-hover align-middle">
+        <thead></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <nav><ul id="pagination1" class="pagination"></ul></nav>
   </div>
-  <nav>
-    <ul class="pagination justify-content-center" id="pagination1"></ul>
-  </nav>
 
-  <!-- Fotoğraf Tablosu -->
-  <h2>Fotoğraflar</h2>
-  <input type="text" id="searchInput2" class="form-control" placeholder="Fotoğraf tablosunda arayın...">
-  <div class="table-container">
-    <table class="table table-striped table-hover" id="photoTable">
-      <thead></thead>
-      <tbody></tbody>
-    </table>
+  <!-- PHOTO TABLE (A-G) -->
+  <div class="table-card">
+    <div class="d-flex align-items-center mb-2">
+      <input id="searchInput2" class="search-input flex-grow-1" placeholder="Fotoğraf tablosunda ara...">
+      <div class="ms-3 text-muted small">F sütunu fotoğraflar</div>
+    </div>
+    <div class="table-responsive">
+      <table id="photoTable" class="table table-hover align-middle">
+        <thead></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <nav><ul id="pagination2" class="pagination"></ul></nav>
   </div>
-  <nav>
-    <ul class="pagination justify-content-center" id="pagination2"></ul>
-  </nav>
 
-  <button class="btn btn-outline-danger" onclick="logout()">Çıkış Yap</button>
 </div>
 
 <!-- Modal -->
-<div class="modal fade" id="imageModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
+<div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-body p-0">
-        <img src="" alt="Büyütülmüş resim" id="modalImg">
+        <div class="modal-img-wrap" id="modalWrap">
+          <img id="modalImage" src="" alt="Büyütülmüş fotoğraf">
+        </div>
       </div>
       <div class="modal-footer">
+        <div class="small-note">Fare tekeri ile zoom, sürükleyerek taşıyın</div>
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
       </div>
     </div>
   </div>
 </div>
 
+<!-- libs -->
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+/* ---------- CONFIG ---------- */
 const BACKEND_URL = "https://kaliteform.onrender.com";
 const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBWFSVSD6NvBNqC8me1le_unCCLOKIOIS2DfZFXUTji0MHC7SaWNIy4a0Laob9xOiAJyPnp7LuZ1R-/pub?output=csv";
+const PAGE_SIZE = 10;
 
-// Giriş
+/* ---------- AUTH & UI ---------- */
 function login(){
-  const username = document.getElementById("username").value.trim();
-  const password = document.getElementById("password").value.trim();
-  const errorMsg = document.getElementById("errorMsg");
+  const u = document.getElementById('username').value.trim();
+  const p = document.getElementById('password').value.trim();
+  const err = document.getElementById('errorMsg');
+  err.textContent='';
 
-  fetch(BACKEND_URL + "/login", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({username,password})
-  })
-  .then(res=>res.json())
-  .then(data=>{
-    if(data.success){
-      localStorage.setItem("loggedIn","true");
-      showMainPage();
-    } else {
-      errorMsg.textContent = "Kullanıcı adı veya şifre hatalı!";
-    }
-  })
-  .catch(()=>{ errorMsg.textContent = "Sunucuya ulaşılamadı!"; });
-}
-
-// sayfa yüklemede oturum kontrol
-window.onload = function(){
-  if(localStorage.getItem("loggedIn") === "true"){
-    showMainPage();
-  }
-}
-
-function showMainPage(){
-  document.getElementById("loginPage").style.display = "none";
-  document.getElementById("mainPage").style.display = "block";
-  loadTables();
+  // backend doğrulama isteği (varsa)
+  fetch(BACKEND_URL + '/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u,password:p}) })
+    .then(r=>r.json()).then(res=>{
+      if(res && res.success){
+        localStorage.setItem('loggedIn','true');
+        showMain();
+      } else {
+        err.textContent = 'Kullanıcı adı veya şifre hatalı!';
+      }
+    }).catch(e=>{
+      // fallback: eğer backend yoksa test modu (isteğe bağlı)
+      // err.textContent = 'Sunucuya ulaşılamadı!';
+      // Eğer backend yoksa test için şu satırı açabilirsiniz:
+      // if(u==='admin' && p==='123'){ localStorage.setItem('loggedIn','true'); showMain(); } else err.textContent='Hatalı';
+      err.textContent = 'Sunucuya ulaşılamadı!';
+    });
 }
 
 function logout(){
-  localStorage.removeItem("loggedIn");
-  document.getElementById("loginPage").style.display = "block";
-  document.getElementById("mainPage").style.display = "none";
-  document.getElementById("username").value = "";
-  document.getElementById("password").value = "";
-  document.getElementById("errorMsg").textContent = "";
+  localStorage.removeItem('loggedIn');
+  document.getElementById('loginPage').style.display = 'block';
+  document.getElementById('mainPage').style.display = 'none';
+  // clear search inputs
+  document.getElementById('username').value=''; document.getElementById('password').value='';
 }
 
-// load csv and init tables
-function loadTables(){
-  fetch(sheetUrl).then(r=>r.text()).then(csvText=>{
-    const data = Papa.parse(csvText, { header:false }).data || [];
+function showMain(){
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('mainPage').style.display = 'block';
+  loadCsvAndInit();
+}
 
-    // create data table (J-Q => cols 9..16)
-    const dataCols = [9,10,11,12,13,14,15,16];
-    createTable("dataTable","searchInput1","pagination1", data, dataCols, 10, false);
+/* preserve login on reload */
+window.addEventListener('load', ()=> {
+  if(localStorage.getItem('loggedIn')==='true'){
+    showMain();
+  }
+});
 
-    // create photo table (A-G => cols 0..6) - F is index 5 (photo)
-    const photoCols = [0,1,2,3,4,5,6];
-    createTable("photoTable","searchInput2","pagination2", data, photoCols, 10, true);
+/* ---------- CSV load & table setup ---------- */
+let dataRows = [];   // full CSV rows (without header)
+let photoRows = [];  // copy for photo table
+let headerRow = [];
+
+function loadCsvAndInit(){
+  // fetch CSV
+  fetch(sheetUrl).then(res=>res.text()).then(text=>{
+    const parsed = Papa.parse(text,{header:false}).data || [];
+    if(parsed.length === 0){ console.warn('CSV boş veya okunamadı'); return; }
+    headerRow = parsed[0];
+    const body = parsed.slice(1);
+
+    // prepare rows: select columns explicitly
+    // Data table: J-Q => indexes 9..16 (8 cols)
+    dataRows = body.map(r => {
+      return [0].concat( // add dummy at index 0 so we can keep consistent slicing in code? No - but easier to keep mapping: we'll use provided columns below
+             r[9]||'', r[10]||'', r[11]||'', r[12]||'', r[13]||'', r[14]||'', r[15]||'', r[16]||'');
+    }).map(r => r.slice(1)); // remove dummy
+
+    // Photo table: A-G => 0..6 (7 cols) (F is index 5)
+    photoRows = body.map(r => {
+      return [
+        r[0]||'', r[1]||'', r[2]||'', r[3]||'', r[4]||'', r[5]||'', r[6]||''
+      ];
+    });
+
+    // Create tables
+    createTable({
+      tableId:'dataTable',
+      headers: headerRow.slice(9,17),
+      rows: dataRows,
+      searchId: 'searchInput1',
+      paginationId: 'pagination1',
+      pageSize: PAGE_SIZE,
+      isPhoto:false
+    });
+
+    createTable({
+      tableId:'photoTable',
+      headers: headerRow.slice(0,7),
+      rows: photoRows,
+      searchId: 'searchInput2',
+      paginationId: 'pagination2',
+      pageSize: PAGE_SIZE,
+      isPhoto:true
+    });
+
   }).catch(err=>{
-    console.error("CSV load error:", err);
+    console.error('CSV error', err);
   });
 }
 
-/**
- * createTable:
- * - tableId: id of table element
- * - searchId: id of search input
- * - paginationId: id of pagination UL
- * - data: raw parsed CSV (array of rows)
- * - cols: array of column indexes to pick from CSV
- * - pageSize: items per page
- * - isPhoto: if true, treat column index 5 as photo column (show thumb + modal)
- */
-function createTable(tableId, searchId, paginationId, data, cols, pageSize, isPhoto){
+/* ---------- Generic table creator with stable search + pagination ---------- */
+function createTable({tableId, headers, rows, searchId, paginationId, pageSize=10, isPhoto=false}) {
   const table = document.getElementById(tableId);
+  const thead = table.querySelector('thead');
+  const tbody = table.querySelector('tbody');
   const searchInput = document.getElementById(searchId);
   const pagination = document.getElementById(paginationId);
 
-  // headers (from first CSV row) and rows (from remaining)
-  const headers = data[0] ? cols.map(c => data[0][c] ?? "") : cols.map(()=> "");
-  const rows = data.slice(1).map(r => cols.map(c => r[c] ?? ""));
-
-  let filteredRows = rows.slice(); // starts as full set
+  // keep immutable originalRows; use filteredRows for display
+  const originalRows = rows.slice();
+  let filteredRows = rows.slice();
   let currentPage = 1;
 
-  function renderPagination(){
-    pagination.innerHTML = "";
-    const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
-    for(let i=1;i<=totalPages;i++){
-      const li = document.createElement("li");
-      li.className = "page-item " + (i===currentPage ? "active" : "");
-      const btn = document.createElement("button");
-      btn.className = "page-link";
-      btn.textContent = i;
-      btn.onclick = (e) => {
-        e.preventDefault();
-        currentPage = i;
-        renderPage();
-      };
-      li.appendChild(btn);
-      pagination.appendChild(li);
-    }
+  // render head
+  function renderHead(){
+    thead.innerHTML = '';
+    const tr = document.createElement('tr');
+    headers.forEach(h=>{
+      const th = document.createElement('th');
+      th.textContent = h || '';
+      tr.appendChild(th);
+    });
+    thead.appendChild(tr);
   }
 
+  // render current page
   function renderPage(){
-    const tbody = table.querySelector("tbody");
-    const thead = table.querySelector("thead");
-    tbody.innerHTML = "";
-    thead.innerHTML = "";
-
-    // head
-    const trHead = document.createElement("tr");
-    headers.forEach(h=>{
-      const th = document.createElement("th");
-      th.textContent = h;
-      trHead.appendChild(th);
-    });
-    thead.appendChild(trHead);
-
-    // rows on current page
+    tbody.innerHTML = '';
     const total = filteredRows.length;
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
     if(currentPage > totalPages) currentPage = totalPages;
 
     const start = (currentPage - 1) * pageSize;
-    const pageRows = filteredRows.slice(start, start + pageSize);
+    const pageSlice = filteredRows.slice(start, start + pageSize);
 
-    pageRows.forEach(row => {
-      const tr = document.createElement("tr");
+    pageSlice.forEach(row => {
+      const tr = document.createElement('tr');
       row.forEach((cell, idx) => {
-        const td = document.createElement("td");
-        if(isPhoto && idx === 5 && cell){
-          const img = document.createElement("img");
+        const td = document.createElement('td');
+        if(isPhoto && idx === 5 && cell){ // F sütunu (index 5)
+          const img = document.createElement('img');
+          img.className = 'thumb';
+          img.loading = 'lazy';
+          img.alt = 'foto';
           img.src = cell;
-          img.alt = "foto";
-          img.className = "thumb";
-          img.loading = "lazy";
-          img.onclick = () => {
-            document.getElementById("modalImg").src = cell;
-            new bootstrap.Modal(document.getElementById("imageModal")).show();
-          };
+          // click -> open modal with equal size + zoom/drag
+          img.addEventListener('click', ()=> openImageModal(cell));
           td.appendChild(img);
         } else {
           td.textContent = cell;
@@ -279,26 +333,144 @@ function createTable(tableId, searchId, paginationId, data, cols, pageSize, isPh
     renderPagination();
   }
 
-  // initial render
-  renderPage();
+  function renderPagination(){
+    pagination.innerHTML = '';
+    const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+    for(let i=1;i<=totalPages;i++){
+      const li = document.createElement('li');
+      li.className = 'page-item ' + (i===currentPage ? 'active' : '');
+      const btn = document.createElement('button');
+      btn.className = 'page-link';
+      btn.textContent = i;
+      btn.addEventListener('click', (e)=>{
+        e.preventDefault();
+        currentPage = i;
+        renderPage();
+        // scroll into view for UX
+        table.scrollIntoView({behavior:'smooth', block:'center'});
+      });
+      li.appendChild(btn);
+      pagination.appendChild(li);
+    }
+  }
 
-  // search handler — uses filteredRows and re-renders
-  // remove previous listeners (defensive) by cloning node
-  const newInput = searchInput.cloneNode(true);
-  searchInput.parentNode.replaceChild(newInput, searchInput);
-
-  newInput.addEventListener("input", function(){
-    const term = this.value.trim().toLowerCase();
-    if(!term){
-      filteredRows = rows.slice();
-    } else {
-      filteredRows = rows.filter(r => r.join(" ").toLowerCase().includes(term));
+  // search handler (persistent)
+  function applySearch(term){
+    if(!term) filteredRows = originalRows.slice();
+    else {
+      const t = term.toLowerCase();
+      filteredRows = originalRows.filter(r => r.join(' ').toLowerCase().includes(t));
     }
     currentPage = 1;
     renderPage();
-  });
+  }
+
+  // wire search input (remove previous listeners by replacing)
+  const newSearch = searchInput.cloneNode(true);
+  searchInput.parentNode.replaceChild(newSearch, searchInput);
+  newSearch.addEventListener('input', function(){ applySearch(this.value); });
+
+  // initial render
+  renderHead();
+  applySearch(newSearch.value || '');
 }
 
+/* ---------- Modal: equal sizing + zoom & drag ---------- */
+const modalEl = document.getElementById('imageModal');
+const modalImage = document.getElementById('modalImage');
+const modalWrap = document.getElementById('modalWrap');
+let bsModal = null;
+
+// transform state
+let scale = 1;
+let translateX = 0;
+let translateY = 0;
+let isDragging = false;
+let dragStartX = 0;
+let dragStartY = 0;
+let imgStartX = 0;
+let imgStartY = 0;
+
+function resetTransform(){
+  scale = 1; translateX = 0; translateY = 0;
+  applyTransform();
+}
+
+function applyTransform(){
+  modalImage.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+}
+
+// open modal and set image
+function openImageModal(src){
+  modalImage.src = src;
+  modalImage.style.transition = 'transform .08s';
+  resetTransform();
+  if(!bsModal) bsModal = new bootstrap.Modal(modalEl);
+  bsModal.show();
+}
+
+// mouse wheel zoom
+modalWrap.addEventListener('wheel', function(e){
+  if(e.target && e.target.tagName === 'IMG'){
+    e.preventDefault();
+    const delta = -e.deltaY;
+    const zoomFactor = delta > 0 ? 1.08 : 0.92;
+    // cap scale
+    const newScale = Math.min(6, Math.max(0.5, scale * zoomFactor));
+    // zoom towards mouse position (approx)
+    const rect = modalImage.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    // adjust translate to keep point under cursor (basic)
+    const dx = (mx - rect.width/2);
+    const dy = (my - rect.height/2);
+    translateX = translateX - dx*(newScale/scale - 1);
+    translateY = translateY - dy*(newScale/scale - 1);
+    scale = newScale;
+    applyTransform();
+  }
+}, { passive:false });
+
+// drag start
+modalImage.addEventListener('pointerdown', function(e){
+  if(e.button !== 0) return;
+  isDragging = true;
+  modalImage.setPointerCapture(e.pointerId);
+  modalImage.style.cursor = 'grabbing';
+  dragStartX = e.clientX; dragStartY = e.clientY;
+  imgStartX = translateX; imgStartY = translateY;
+});
+
+// drag move
+modalImage.addEventListener('pointermove', function(e){
+  if(!isDragging) return;
+  const dx = e.clientX - dragStartX;
+  const dy = e.clientY - dragStartY;
+  translateX = imgStartX + dx;
+  translateY = imgStartY + dy;
+  applyTransform();
+});
+
+// drag end
+modalImage.addEventListener('pointerup', function(e){
+  isDragging = false;
+  modalImage.releasePointerCapture(e.pointerId);
+  modalImage.style.cursor = 'grab';
+});
+
+// reset on modal hide
+modalEl.addEventListener('hidden.bs.modal', function(){
+  modalImage.src = '';
+  resetTransform();
+});
+
+// make sure image is centered & sized equally on load
+modalImage.addEventListener('load', function(){
+  // reset transforms and ensure image fits via CSS object-fit:contain
+  resetTransform();
+});
+
+// End of script
 </script>
 </body>
 </html>
