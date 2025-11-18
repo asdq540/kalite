@@ -6,17 +6,16 @@
 <title>Kalite Kontrol Paneli</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
 <style>
-/* KURUMSAL SOFT ESTETİK PALETİ */
+/* TEMEL FONKSİYONEL STİL */
 :root{
-  --primary:#4a86e8;     /* Soft Kurumsal Mavi */
-  --primary-dark:#093e72; /* Başlıklar için koyu */
-  --bg:#f2f2f2;          /* Çok Açık Gri/Bej Zemin */
-  --card:#ffffff;        /* Beyaz Kart Arkaplanı */
-  --thead:#3d72b2;       /* Soft Koyu Mavi Tablo Başlığı */
-  --soft1:#f0f6ff;       /* Tablo Tek Sayı Satır (Çok Açık Mavi) */
-  --soft2:#e9ecef;       /* Tablo Çift Sayı Satır (Çok Açık Gri) */
-  --border:#dee2e6;      /* Genel Kenarlık Rengi */
-  --shadow:rgba(0,0,0,0.08); /* Hafif Gölge */
+  --primary:#0d6efd;     /* Bootstrap Mavi */
+  --primary-dark:#093e72; /* Koyu Başlık */
+  --bg:#f8f9fa;          /* Açık Gri Zemin */
+  --card:#ffffff;        /* Kart/Panel Beyaz */
+  --thead:#093e72;       /* Tablo Başlığı Koyu Mavi */
+  --soft1:#f0f6ff;       /* Tek Satır (Çok Açık Mavi) */
+  --soft2:#e9ecef;       /* Çift Satır (Çok Açık Gri) */
+  --border:#dee2e6;      /* Genel Kenarlık */
 }
 body{
   background:var(--bg);
@@ -29,7 +28,7 @@ body{
   padding:30px;
   background:var(--card);
   border-radius:12px;
-  box-shadow:0 8px 30px var(--shadow);
+  box-shadow:0 8px 30px rgba(0,0,0,0.08);
   border:1px solid var(--border);
 }
 .login-container h3{ color:var(--primary-dark); font-weight:600; }
@@ -40,74 +39,51 @@ h1.section-title{ color:var(--primary-dark); font-weight:700; margin-bottom:16px
 .table-card{
   background:var(--card);
   padding:12px;
-  border-radius:12px; 
-  box-shadow:0 6px 20px var(--shadow); 
+  border-radius:10px;
+  box-shadow:0 4px 18px rgba(0,0,0,0.06);
   margin-bottom:28px;
   border:1px solid var(--border);
 }
 
-/* TABLO STİLİ - Eşit Sütunlar İçin Geliştirildi */
+/* TABLO STİLİ: Eşit Sütunlar ve Görünür Renk */
 .table{ 
-    border-collapse: separate; 
-    border-spacing: 0; 
+    border-collapse: collapse; /* Kenarlıklar için collapse */
     width: 100%;
-    table-layout: fixed; /* Bütün sütunların eşit gözükmesini sağlar */
+    table-layout: fixed; /* Sütun genişliğini eşitler */
 }
 .table thead{ background:var(--thead) !important; color:#fff; }
 .table th, .table td{ 
-    padding:12px !important; 
+    padding:10px !important; 
     font-size:14px; 
     text-align:center; 
     border:1px solid var(--border);
-    word-wrap: break-word; /* Metin taşmasını önler */
+    word-wrap: break-word; 
+    height: 58px; /* Satır yüksekliğini sabitler (Fotoğraf boyutuna göre) */
 }
 .table tbody tr:nth-child(odd){ background:var(--soft1); }
 .table tbody tr:nth-child(even){ background:var(--soft2); }
 .table-responsive { 
-    border-radius: 12px; 
+    border-radius: 10px; 
     overflow-x: auto; 
     border: 1px solid var(--border);
 }
-.table thead tr:first-child th:first-child { border-top-left-radius: 11px; }
-.table thead tr:first-child th:last-child { border-top-right-radius: 11px; }
+.table thead tr:first-child th:first-child { border-top-left-radius: 9px; }
+.table thead tr:first-child th:last-child { border-top-right-radius: 9px; }
 
 /* ARAMA VE GİRİŞ ALANLARI */
 .search-input{ 
     margin-bottom:12px; 
     border-radius:8px; 
-    padding:8px 12px; 
+    padding:10px; 
     border:1px solid var(--border);
-    transition: all 0.3s;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
-    background-color: var(--card); 
-}
-.search-input:focus {
-    border-color: var(--primary); 
-    box-shadow: 0 0 0 0.25rem rgba(74, 134, 232, 0.25); 
 }
 .form-control.search-input {
     height: calc(1.5em + 1rem + 2px); 
 }
 
-/* BUTONLAR - Görünürlük Düzeltmesi Yapıldı */
-.btn-primary {
-    background-color: var(--primary);
-    border-color: var(--primary);
-    color: #fff;
-}
-.btn-primary:hover {
-    background-color: #3b73c4; 
-    border-color: #3b73c4;
-}
-.btn-outline-primary {
-    color: var(--primary-dark); 
-    border-color: var(--primary);
-    background-color: var(--card); 
-}
-.btn-outline-primary:hover {
-    background-color: var(--primary);
-    color: #fff;
-}
+/* BUTONLAR */
+.btn-primary {background-color: var(--primary); border-color: var(--primary);}
+.btn-outline-primary {color: var(--primary); border-color: var(--primary);}
 
 /* FOTOĞRAF BOYUT SABİTLEME */
 img.thumb{
@@ -119,11 +95,12 @@ img.thumb{
   cursor:pointer;
   transition:transform .12s;
     max-width: 100%;
-    display: block; 
+    display: block; /* Boyutları netleştirir */
+    margin: 0 auto; /* Hücre içinde ortalar */
 }
 img.thumb:hover{ transform:scale(1.06); }
 
-/* MODAL GÖRÜNÜM */
+/* MODAL GÖRÜNÜM: Ekrana Sığacak Şekilde Düzeltildi */
 .modal-img-wrap{
   width:100%;
   height:80vh;
@@ -137,7 +114,7 @@ img.thumb:hover{ transform:scale(1.06); }
 .modal-img-wrap img{
   max-width:100%; 
   max-height:100%; 
-  object-fit:contain;
+  object-fit:contain; /* Fotoğrafı ekrana sığdırır */
   transform-origin:center center;
   cursor:grab;
   user-select:none;
@@ -346,8 +323,6 @@ function createTable({tableId, headers, rows, searchId, paginationId, pageSize=1
 
   searchInput.addEventListener('input', ()=>{
     const term=(searchInput.value||'').toLowerCase();
-    // İlk sütun tarih olduğu için, sadece tarih filtresi kullanıldığında ilk sütuna bakılabilir.
-    // Ancak genel arama için tüm satıra bakmak daha güvenlidir.
     filteredRows = originalRows.filter(r=>r.join(' ').toLowerCase().includes(term));
     currentPage=1;
     renderPage();
