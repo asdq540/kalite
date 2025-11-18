@@ -115,12 +115,6 @@ img.thumb:hover{ transform:scale(1.06); }
       <button id="btnPhoto" class="btn btn-outline-primary">Fotoğraf Tablosu</button>
     </div>
 
-    <!-- FOTOĞRAF TABLOSU TARİH FİLTRESİ -->
-    <div class="d-flex mb-3 gap-2 flex-wrap align-items-center" id="photoDateFilterWrapper">
-      <label>Tarih Filtre:</label>
-      <input type="date" id="dateFilter" class="form-control" style="max-width:200px;">
-    </div>
-
     <!-- VERİ TABLOSU -->
     <div id="dataTableWrapper" class="fadeWrapper fadeIn">
       <div class="d-flex align-items-center mb-2">
@@ -195,15 +189,14 @@ function loadCsvAndInit(){
     dataRows=body.map(r=>r.slice(9,17));
     photoRows=body.map(r=>r.slice(0,7));
     createTable({tableId:'dataTable', headers: headerRow.slice(9,17), rows: dataRows, searchId:'searchInput1', paginationId:'pagination1', pageSize:PAGE_SIZE, isPhoto:false});
-    createTable({tableId:'photoTable', headers: headerRow.slice(0,7), rows: photoRows, searchId:'searchInput2', paginationId:'pagination2', pageSize:PAGE_SIZE, isPhoto:true, dateColumnIndex:0});
+    createTable({tableId:'photoTable', headers: headerRow.slice(0,7), rows: photoRows, searchId:'searchInput2', paginationId:'pagination2', pageSize:PAGE_SIZE, isPhoto:true});
   }).catch(err=>console.error(err));
 }
 
 /* --- GENERIC TABLE --- */
-function createTable({tableId, headers, rows, searchId, paginationId, pageSize=10, isPhoto=false, dateColumnIndex=null}){
+function createTable({tableId, headers, rows, searchId, paginationId, pageSize=10, isPhoto=false}){
   const table=document.getElementById(tableId), thead=table.querySelector('thead'), tbody=table.querySelector('tbody');
   const searchInput=document.getElementById(searchId), pagination=document.getElementById(paginationId);
-  const dateFilter=document.getElementById('dateFilter');
   const originalRows=rows.slice(); let filteredRows=rows.slice(); let currentPage=1;
 
   function renderHead(){thead.innerHTML=''; const tr=document.createElement('tr'); headers.forEach(h=>{const th=document.createElement('th'); th.textContent=h||''; tr.appendChild(th);}); thead.appendChild(tr);}
@@ -228,22 +221,15 @@ function createTable({tableId, headers, rows, searchId, paginationId, pageSize=1
     liNext.appendChild(btnNext); pagination.appendChild(liNext);
   }
 
-  function applyFilters(){
+  function applySearch(){
     const searchTerm=(searchInput.value||'').toLowerCase();
-    const dateVal=dateFilter?dateFilter.value:null;
-    filteredRows=originalRows.filter(r=>{
-      const matchSearch=r.join(' ').toLowerCase().includes(searchTerm);
-      let matchDate=true;
-      if(dateVal && dateColumnIndex!==null){matchDate=r[dateColumnIndex]===dateVal;}
-      return matchSearch && matchDate;
-    });
+    filteredRows=originalRows.filter(r=>r.join(' ').toLowerCase().includes(searchTerm));
     currentPage=1; renderPage();
   }
 
   const newSearch=searchInput.cloneNode(true); searchInput.parentNode.replaceChild(newSearch,searchInput);
-  newSearch.addEventListener('input',applyFilters);
-  if(dateFilter && dateColumnIndex!==null) dateFilter.addEventListener('change',applyFilters);
-  renderHead(); applyFilters();
+  newSearch.addEventListener('input',applySearch);
+  renderHead(); applySearch();
 }
 
 /* --- TABLE SWITCH --- */
