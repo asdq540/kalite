@@ -3,289 +3,340 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Kalite Kontrol Paneli</title>
+<title>Kalite Kontrol Paneli - Kurumsal Tasarım</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
 <style>
 :root{
-  --primary:#0d6efd;
-  --bg:#f1f3f5;
-  --card:#ffffff;
-  --thead:#093e72;
-  --soft1:#eaf6ff;
-  --soft2:#eef9f0;
+  --primary:#0d6efd;
+  --bg:#f5f7fa;
+  --card:#ffffff;
+  --thead:#003366;
+  --row1:#f8fbff;
+  --row2:#f1f4f7;
+  --border:#dbe2ea;
+  --shadow:0 6px 22px rgba(0,0,0,0.08);
 }
 body{
-  background:var(--bg);
-  font-family: "Segoe UI", sans-serif;
-  padding:20px;
+  background:var(--bg);
+  font-family:"Segoe UI",sans-serif;
+  padding:20px;
 }
 .login-container{
-  max-width:420px;
-  margin:90px auto;
-  padding:30px;
-  background:var(--card);
-  border-radius:12px;
-  box-shadow:0 8px 30px rgba(0,0,0,0.08);
-  border:1px solid #e6e9ec;
+  max-width:420px;
+  margin:90px auto;
+  padding:30px;
+  background:var(--card);
+  border-radius:14px;
+  box-shadow:var(--shadow);
+  border:1px solid var(--border);
 }
-.login-container h3{ color:var(--thead); font-weight:600; }
 #mainPage{ display:none; }
-h1.section-title{ color:var(--thead); font-weight:700; margin-bottom:16px; }
+.section-title{ color:var(--thead); font-weight:700; }
+
+/* --- KURUMSAL TABLO TASARIMI --- */
 .table-card{
-  background:var(--card);
-  padding:12px;
-  border-radius:10px;
-  box-shadow:0 4px 18px rgba(0,0,0,0.06);
-  margin-bottom:28px;
+  background:var(--card);
+  padding:20px;
+  border-radius:14px;
+  box-shadow:var(--shadow);
+  border:1px solid var(--border);
+  margin-bottom:30px;
 }
-.table thead{ background:var(--thead) !important; color:#fff; }
-.table th, .table td{ padding:10px !important; font-size:14px; text-align:center; border:1px solid #e8edf2; }
-.table tbody tr:nth-child(odd){ background:var(--soft1); }
-.table tbody tr:nth-child(even){ background:var(--soft2); }
-.search-input{ margin-bottom:12px; border-radius:8px; padding:10px; border:1px solid #cfd6db; }
-.pagination { justify-content:center; margin-top:12px; flex-wrap: wrap; }
-.page-link{ cursor:pointer; }
+.table{
+  border-collapse:separate !important;
+  border-spacing:0 10px !important;
+}
+.table thead th{
+  background:var(--thead) !important;
+  color:white !important;
+  padding:14px !important;
+  font-weight:600;
+  border:none !important;
+  text-align:center;
+}
+.table tbody tr{
+  background:var(--row1);
+  border-radius:12px;
+}
+.table tbody tr:nth-child(even){ background:var(--row2); }
+.table tbody td{
+  padding:14px !important;
+  vertical-align:middle;
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  text-align:center;
+}
+.table tbody tr td:first-child{
+  border-left:1px solid var(--border);
+  border-top-left-radius:12px;
+  border-bottom-left-radius:12px;
+}
+.table tbody tr td:last-child{
+  border-right:1px solid var(--border);
+  border-top-right-radius:12px;
+  border-bottom-right-radius:12px;
+}
+
+/* Fotoğraf Boyutları */
 img.thumb{
-  width:68px;
-  height:56px;
-  object-fit:cover;
-  border-radius:6px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.12);
-  cursor:pointer;
-  transition:transform .12s;
+  width:90px;
+  height:74px;
+  object-fit:cover;
+  border-radius:10px;
+  background:#e9ecef;
+  border:1px solid #c5ced6;
+  cursor:pointer;
+  transition:0.15s;
 }
-img.thumb:hover{ transform:scale(1.06); }
+img.thumb:hover{ transform:scale(1.05); }
+
+.search-input{
+  border-radius:10px;
+  padding:10px;
+  border:1px solid #bcc6d0;
+}
+
+.pagination .page-link{ border-radius:8px; }
+
+/* Modal */
 .modal-img-wrap{
-  width:100%;
-  height:80vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:#000;
-  overflow:hidden;
-  position:relative;
+  width:100%;
+  height:80vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#000;
+  overflow:hidden;
 }
 .modal-img-wrap img{
-  max-width:100%;
-  max-height:100%;
-  object-fit:contain;
-  transform-origin:center center;
-  cursor:grab;
-  user-select:none;
+  max-width:100%;
+  max-height:100%;
+  cursor:grab;
 }
-.modal-footer .small-note { margin-right:auto; color:#666; font-size:13px; }
-.fadeWrapper{ transition: opacity 0.3s ease; }
-.fadeIn{ opacity:1; }
-.fadeOut{ opacity:0; }
-@media (max-width: 576px) {
-  .table th, .table td { font-size: 12px; padding: 6px !important; white-space: nowrap; }
-  .pagination { flex-wrap: wrap; }
-  .pagination .page-item { margin-bottom: 4px; }
-  .pagination .page-link { padding: 4px 8px; font-size: 12px; }
-  .table-responsive { overflow-x: auto; }
-}
+
 </style>
 </head>
 <body>
 
 <!-- LOGIN -->
 <div id="loginPage" class="login-container">
-  <h3 class="text-center mb-3">Kalite Kontrol Giriş</h3>
-  <div class="mb-3">
-    <label class="form-label">Kullanıcı Adı</label>
-    <input id="username" class="form-control" placeholder="Kullanıcı adınızı girin">
-  </div>
-  <div class="mb-3">
-    <label class="form-label">Şifre</label>
-    <input id="password" type="password" class="form-control" placeholder="Şifrenizi girin">
-  </div>
-  <div class="d-grid gap-2">
-    <button onclick="login()" class="btn btn-primary">Giriş Yap</button>
-  </div>
-  <div id="errorMsg" class="text-danger text-center mt-3"></div>
+  <h3 class="text-center mb-3" style="color:var(--thead); font-weight:600;">Kalite Kontrol Giriş</h3>
+  <div class="mb-3">
+    <label class="form-label">Kullanıcı Adı</label>
+    <input id="username" class="form-control" placeholder="Kullanıcı adınızı girin">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Şifre</label>
+    <input id="password" type="password" class="form-control" placeholder="Şifrenizi girin">
+  </div>
+  <div class="d-grid">
+    <button onclick="login()" class="btn btn-primary">Giriş Yap</button>
+  </div>
+  <div id="errorMsg" class="text-danger text-center mt-3"></div>
 </div>
 
 <!-- MAIN -->
 <div id="mainPage" class="container">
-  <h1 class="section-title">Kalite Veri Listesi</h1>
+  <h1 class="section-title">Kalite Veri Listesi</h1>
 
-  <div class="table-card">
-    <div class="d-flex mb-3 justify-content-center gap-2">
-      <button id="btnData" class="btn btn-primary">Veri Tablosu</button>
-      <button id="btnPhoto" class="btn btn-outline-primary">Fotoğraf Tablosu</button>
-    </div>
+  <div class="table-card">
+    <div class="d-flex mb-3 justify-content-center gap-2">
+      <button id="btnData" class="btn btn-primary">Veri Tablosu</button>
+      <button id="btnPhoto" class="btn btn-outline-primary">Fotoğraf Tablosu</button>
+    </div>
 
-    <!-- VERİ TABLOSU -->
-    <div id="dataTableWrapper" class="fadeWrapper fadeIn">
-      <div class="d-flex align-items-center mb-2">
-        <input id="searchInput1" class="search-input flex-grow-1" placeholder="Veri tablosunda ara...">
-        <button class="btn btn-outline-danger ms-3" onclick="logout()">Çıkış Yap</button>
-      </div>
-      <div class="table-responsive">
-        <table id="dataTable" class="table table-hover align-middle"><thead></thead><tbody></tbody></table>
-      </div>
-      <nav><ul id="pagination1" class="pagination"></ul></nav>
-    </div>
+    <!-- VERİ TABLOSU -->
+    <div id="dataTableWrapper">
+      <div class="d-flex align-items-center mb-3">
+        <input id="searchInput1" class="search-input flex-grow-1" placeholder="Veri tablosunda ara...">
+        <button class="btn btn-outline-danger ms-3" onclick="logout()">Çıkış Yap</button>
+      </div>
+      <div class="table-responsive">
+        <table id="dataTable" class="table align-middle"><thead></thead><tbody></tbody></table>
+      </div>
+      <nav><ul id="pagination1" class="pagination justify-content-center mt-2"></ul></nav>
+    </div>
 
-    <!-- FOTOĞRAF TABLOSU -->
-    <div id="photoTableWrapper" class="fadeWrapper" style="display:none;">
-      <div class="d-flex align-items-center mb-2">
-        <input id="searchInput2" class="search-input flex-grow-1" placeholder="Fotoğraf tablosunda ara...">
-        <div class="ms-3 text-muted small">F sütunu fotoğraflar</div>
-      </div>
-      <div class="table-responsive">
-        <table id="photoTable" class="table table-hover align-middle"><thead></thead><tbody></tbody></table>
-      </div>
-      <nav><ul id="pagination2" class="pagination"></ul></nav>
-    </div>
-  </div>
+    <!-- FOTOĞRAF TABLOSU -->
+    <div id="photoTableWrapper" style="display:none;">
+      <div class="d-flex align-items-center mb-3">
+        <input id="searchInput2" class="search-input flex-grow-1" placeholder="Fotoğraf tablosunda ara...">
+      </div>
+      <div class="table-responsive">
+        <table id="photoTable" class="table align-middle"><thead></thead><tbody></tbody></table>
+      </div>
+      <nav><ul id="pagination2" class="pagination justify-content-center mt-2"></ul></nav>
+    </div>
+  </div>
 </div>
 
-<!-- Modal -->
-<div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-xl modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-body p-0">
-        <div class="modal-img-wrap" id="modalWrap"><img id="modalImage" src="" alt="Büyütülmüş fotoğraf"></div>
-      </div>
-      <div class="modal-footer">
-        <div class="small-note">Fare tekeri ile zoom, sürükleyerek taşıyın</div>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
-      </div>
-    </div>
-  </div>
+<!-- MODAL -->
+<div class="modal fade" id="imageModal" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-body p-0">
+        <div class="modal-img-wrap"><img id="modalImage"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+
 const BACKEND_URL="https://kaliteform.onrender.com";
 const sheetUrl="https://docs.google.com/spreadsheets/d/e/2PACX-1vQBWFSVSD6NvBNqC8me1le_unCCLOKIOIS2DfZFXUTji0MHC7SaWNIy4a0Laob9xOiAJyPnp7LuZ1R-/pub?output=csv";
 const PAGE_SIZE=10;
 
-/* --- AUTH --- */
 function login(){
-  const u=document.getElementById('username').value.trim();
-  const p=document.getElementById('password').value.trim();
-  const err=document.getElementById('errorMsg'); err.textContent='';
-  fetch(BACKEND_URL+'/login',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u,password:p})})
-  .then(r=>r.json()).then(res=>{
-    if(res&&res.success){ localStorage.setItem('loggedIn','true'); showMain(); }
-    else err.textContent='Kullanıcı adı veya şifre hatalı!';
-  }).catch(()=>{err.textContent='Sunucuya ulaşılamadı!';});
+  const u=document.getElementById('username').value.trim();
+  const p=document.getElementById('password').value.trim();
+  const err=document.getElementById('errorMsg'); err.textContent="";
+
+  fetch(BACKEND_URL+"/login",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({username:u,password:p})
+  }).then(r=>r.json()).then(res=>{
+    if(res.success){ localStorage.setItem("loggedIn",true); showMain(); }
+    else err.textContent="Kullanıcı adı veya şifre hatalı!";
+  }).catch(()=> err.textContent="Sunucuya ulaşılamadı!");
 }
 
-function logout(){localStorage.removeItem('loggedIn'); document.getElementById('loginPage').style.display='block'; document.getElementById('mainPage').style.display='none'; document.getElementById('username').value=''; document.getElementById('password').value='';}
-function showMain(){document.getElementById('loginPage').style.display='none'; document.getElementById('mainPage').style.display='block'; loadCsvAndInit();}
-window.addEventListener('load',()=>{if(localStorage.getItem('loggedIn')==='true'){showMain();}});
+function logout(){ localStorage.removeItem("loggedIn"); location.reload(); }
+
+function showMain(){
+  document.getElementById('loginPage').style.display='none';
+  document.getElementById('mainPage').style.display='block';
+  loadCsvAndInit();
+}
+
+if(localStorage.getItem('loggedIn')==='true') showMain();
 
 /* --- CSV LOAD --- */
 let dataRows=[], photoRows=[], headerRow=[];
+
 function loadCsvAndInit(){
-  fetch(sheetUrl).then(res=>res.text()).then(text=>{
-    const parsed=Papa.parse(text,{header:false}).data||[];
-    if(parsed.length===0){console.warn('CSV boş'); return;}
-    headerRow=parsed[0]; const body=parsed.slice(1);
-    dataRows=body.map(r=>r.slice(9,17));
-    photoRows=body.map(r=>r.slice(0,7));
-    createTable({tableId:'dataTable', headers: headerRow.slice(9,17), rows: dataRows, searchId:'searchInput1', paginationId:'pagination1', pageSize:PAGE_SIZE, isPhoto:false});
-    createTable({tableId:'photoTable', headers: headerRow.slice(0,7), rows: photoRows, searchId:'searchInput2', paginationId:'pagination2', pageSize:PAGE_SIZE, isPhoto:true});
-  }).catch(err=>console.error(err));
+  fetch(sheetUrl).then(r=>r.text()).then(text=>{
+    const parsed=Papa.parse(text,{header:false}).data;
+    headerRow=parsed[0];
+    const body=parsed.slice(1);
+
+    dataRows=body.map(r=>r.slice(9,17));
+    photoRows=body.map(r=>r.slice(0,7));
+
+    createTable("dataTable", headerRow.slice(9,17), dataRows, "searchInput1", "pagination1", false);
+    createTable("photoTable", headerRow.slice(0,7), photoRows, "searchInput2", "pagination2", true);
+  });
 }
 
-/* --- GENERIC TABLE --- */
-function createTable({tableId, headers, rows, searchId, paginationId, pageSize=10, isPhoto=false}){
-  const table=document.getElementById(tableId), thead=table.querySelector('thead'), tbody=table.querySelector('tbody');
-  const searchInput=document.getElementById(searchId), pagination=document.getElementById(paginationId);
-  const originalRows=rows.slice(); let filteredRows=rows.slice(); let currentPage=1;
+/* --- TABLE RENDER --- */
+function createTable(tableId, headers, rows, searchId, paginationId, isPhoto){
+  const table=document.getElementById(tableId);
+  const thead=table.querySelector('thead');
+  const tbody=table.querySelector('tbody');
+  const search=document.getElementById(searchId);
+  const pagination=document.getElementById(paginationId);
 
-  function renderHead(){
-    thead.innerHTML='';
-    const tr=document.createElement('tr');
-    headers.forEach(h=>{
-      const th=document.createElement('th');
-      th.textContent=h||'';
-      tr.appendChild(th);
-    });
-    thead.appendChild(tr);
-  }
+  let filtered=[...rows];
+  let page=1;
 
-  function renderPage(){
-    tbody.innerHTML='';
-    const total=filteredRows.length;
-    const totalPages=Math.max(1, Math.ceil(total/pageSize));
-    if(currentPage>totalPages) currentPage=totalPages;
-    const start=(currentPage-1)*pageSize;
-    const pageSlice=filteredRows.slice(start,start+pageSize);
+  function renderHead(){
+    thead.innerHTML="";
+    const tr=document.createElement('tr');
+    headers.forEach(h=>{
+      const th=document.createElement('th');
+      th.textContent=h;
+      tr.appendChild(th);
+    });
+    thead.appendChild(tr);
+  }
 
-    pageSlice.forEach(row=>{
-      const tr=document.createElement('tr');
-      row.forEach((cell,idx)=>{
-        const td=document.createElement('td');
-        if(isPhoto && idx===5 && cell){
-          const img=document.createElement('img');
-          img.className='thumb';
-          img.loading='lazy';
-          img.alt='foto';
-          img.src=cell;
-          img.addEventListener('click',()=>openImageModal(cell));
-          td.appendChild(img);
-        }else td.textContent=cell;
-        tr.appendChild(td);
-      });
-      tbody.appendChild(tr);
-    });
+  function render(){
+    tbody.innerHTML="";
+    const totalPages=Math.ceil(filtered.length/PAGE_SIZE);
+    if(page>totalPages) page=totalPages;
 
-    renderPagination();
-  }
+    const start=(page-1)*PAGE_SIZE;
+    const slice=filtered.slice(start,start+PAGE_SIZE);
 
-  function renderPagination(){
-    pagination.innerHTML='';
-    const totalPages=Math.max(1, Math.ceil(filteredRows.length/pageSize));
+    slice.forEach(row=>{
+      const tr=document.createElement('tr');
+      row.forEach((c,i)=>{
+        const td=document.createElement('td');
+        if(isPhoto && i===5 && c){
+          const img=document.createElement('img');
+          img.src=c;
+          img.className='thumb';
+          img.onclick=()=>openImage(c);
+          td.appendChild(img);
+        }else td.textContent=c;
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
 
-    const liPrev=document.createElement('li'); liPrev.className='page-item '+(currentPage===1?'disabled':'');
-    const btnPrev=document.createElement('button'); btnPrev.className='page-link'; btnPrev.textContent='Geri';
-    btnPrev.addEventListener('click',(e)=>{e.preventDefault(); if(currentPage>1) currentPage--; renderPage();});
-    liPrev.appendChild(btnPrev); pagination.appendChild(liPrev);
+    renderPagination();
+  }
 
-    const liNext=document.createElement('li'); liNext.className='page-item '+(currentPage===totalPages?'disabled':'');
-    const btnNext=document.createElement('button'); btnNext.className='page-link'; btnNext.textContent='İleri';
-    btnNext.addEventListener('click',(e)=>{e.preventDefault(); if(currentPage<totalPages) currentPage++; renderPage();});
-    liNext.appendChild(btnNext); pagination.appendChild(liNext);
-  }
+  function renderPagination(){
+    pagination.innerHTML="";
+    const totalPages=Math.ceil(filtered.length/PAGE_SIZE);
 
-  searchInput.addEventListener('input', ()=>{
-    const term=(searchInput.value||'').toLowerCase();
-    filteredRows = originalRows.filter(r=>r.join(' ').toLowerCase().includes(term));
-    currentPage=1;
-    renderPage();
-  });
+    const prev=document.createElement('li');
+    prev.className="page-item "+(page===1?'disabled':'');
+    prev.innerHTML=`<button class='page-link'>Geri</button>`;
+    prev.onclick=()=>{ if(page>1){page--; render();} };
 
-  renderHead();
-  renderPage();
+    const next=document.createElement('li');
+    next.className="page-item "+(page===totalPages?'disabled':'');
+    next.innerHTML=`<button class='page-link'>İleri</button>`;
+    next.onclick=()=>{ if(page<totalPages){page++; render();} };
+
+    pagination.appendChild(prev);
+    pagination.appendChild(next);
+  }
+
+  search.oninput=function(){
+    const t=this.value.toLowerCase();
+    filtered=rows.filter(r=>r.join(" ").toLowerCase().includes(t));
+    page=1;
+    render();
+  }
+
+  renderHead(); render();
 }
 
-/* --- TABLE SWITCH --- */
-const btnData=document.getElementById('btnData'), btnPhoto=document.getElementById('btnPhoto');
-const dataWrapper=document.getElementById('dataTableWrapper'), photoWrapper=document.getElementById('photoTableWrapper');
-function showDataTable(){btnData.classList.replace('btn-outline-primary','btn-primary'); btnPhoto.classList.replace('btn-primary','btn-outline-primary'); photoWrapper.classList.add('fadeOut'); dataWrapper.style.display='block'; dataWrapper.classList.remove('fadeOut'); dataWrapper.classList.add('fadeIn'); setTimeout(()=>photoWrapper.style.display='none',300);}
-function showPhotoTable(){btnPhoto.classList.replace('btn-outline-primary','btn-primary'); btnData.classList.replace('btn-primary','btn-outline-primary'); dataWrapper.classList.add('fadeOut'); photoWrapper.style.display='block'; photoWrapper.classList.remove('fadeOut'); photoWrapper.classList.add('fadeIn'); setTimeout(()=>dataWrapper.style.display='none',300);}
-btnData.addEventListener('click', showDataTable); btnPhoto.addEventListener('click', showPhotoTable);
+/* TABLO GEÇİŞİ */
+document.getElementById('btnData').onclick=function(){
+  document.getElementById('dataTableWrapper').style.display='block';
+  document.getElementById('photoTableWrapper').style.display='none';
+  this.classList.add('btn-primary');
+  this.classList.remove('btn-outline-primary');
+  btnPhoto.classList.remove('btn-primary');
+  btnPhoto.classList.add('btn-outline-primary');
+};
 
-/* --- MODAL ZOOM/DRAG --- */
-const modalEl=document.getElementById('imageModal'); const modalImage=document.getElementById('modalImage'); const modalWrap=document.getElementById('modalWrap'); let bsModal=null;
-let scale=1, translateX=0, translateY=0, isDragging=false, dragStartX=0, dragStartY=0, imgStartX=0, imgStartY=0;
-function resetTransform(){scale=1; translateX=0; translateY=0; applyTransform();}
-function applyTransform(){modalImage.style.transform=`translate(${translateX}px,${translateY}px) scale(${scale})`;}
-function openImageModal(src){modalImage.src=src; resetTransform(); if(!bsModal) bsModal=new bootstrap.Modal(modalEl); bsModal.show();}
+document.getElementById('btnPhoto').onclick=function(){
+  document.getElementById('dataTableWrapper').style.display='none';
+  document.getElementById('photoTableWrapper').style.display='block';
+  this.classList.add('btn-primary');
+  this.classList.remove('btn-outline-primary');
+  btnData.classList.remove('btn-primary');
+  btnData.classList.add('btn-outline-primary');
+};
 
-/* ZOOM */
-modalWrap.addEventListener('wheel',function(e){if(e.target && e.target.tagName==='IMG'){e.preventDefault(); const delta=-e.deltaY; const zoomFactor=delta>0?1.08:0.92; const newScale=Math.min(6,Math.max(0.5,scale*zoomFactor)); const rect=modalImage.getBoundingClientRect(); const mx=e.clientX-rect.left; const my=e.clientY-rect.top; const dx=(mx-rect.width/2); const dy=(my-rect.height/2); translateX=translateX-dx*(newScale/scale-1); translateY=translateY-dy*(newScale/scale-1); scale=newScale; applyTransform();}},{passive:false});
-modalImage.addEventListener('pointerdown',function(e){if(e.button!==0)return; isDragging=true; modalImage.setPointerCapture(e.pointerId); modalImage.style.cursor='grabbing'; dragStartX=e.clientX; dragStartY=e.clientY; imgStartX=translateX; imgStartY=translateY;});
-modalImage.addEventListener('pointermove',function(e){if(!isDragging)return; const dx=e.clientX-dragStartX; const dy=e.clientY-dragStartY; translateX=imgStartX+dx; translateY=imgStartY+dy; applyTransform();});
-modalImage.addEventListener('pointerup',function(e){isDragging=false; modalImage.releasePointerCapture(e.pointerId); modalImage.style.cursor='grab';});
-modalEl.addEventListener('hidden.bs.modal',function(){modalImage.src=''; resetTransform();});
-modalImage.addEventListener('load',resetTransform);
+/* MODAL */
+let modal=new bootstrap.Modal(document.getElementById('imageModal'));
+function openImage(src){
+  document.getElementById('modalImage').src=src;
+  modal.show();
+}
+
 </script>
 </body>
 </html>
