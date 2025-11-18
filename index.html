@@ -1,60 +1,126 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kalite Kontrol Dashboard</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kalite Kontrol Paneli - Kurumsal Tasarım</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.min.css" rel="stylesheet"/>
 <style>
 :root{
-  --primary:#4a90e2;
-  --bg:#f0f2f5;
+  --primary:#0d6efd;
+  --bg:#f5f7fa;
   --card:#ffffff;
-  --thead:#1f3d5a;
-  --row1:#fdfdfd;
-  --row2:#f6f8fa;
+  --thead:#003366;
+  --row1:#f8fbff;
+  --row2:#f1f4f7;
   --border:#dbe2ea;
-  --shadow:0 5px 20px rgba(0,0,0,0.05);
-  --hover:#3b5998;
-  --chartColors: #a8dadc,#f1faee,#ffb4a2,#ffe066,#6a4c93,#ff8fab;
+  --shadow:0 6px 22px rgba(0,0,0,0.08);
 }
-body{background:var(--bg);font-family:"Segoe UI",sans-serif;padding:20px;}
-.login-container{max-width:420px;margin:90px auto;padding:30px;background:var(--card);border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--border);}
-#mainPage{display:none;}
-.section-title{color:var(--thead);font-weight:700;}
-.table-card{background:var(--card);padding:20px;border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:30px;}
-.table{border-collapse:separate !important;border-spacing:0 10px !important;}
+body{
+  background:var(--bg);
+  font-family:"Segoe UI",sans-serif;
+  padding:20px;
+}
+.login-container{
+  max-width:420px;
+  margin:90px auto;
+  padding:30px;
+  background:var(--card);
+  border-radius:14px;
+  box-shadow:var(--shadow);
+  border:1px solid var(--border);
+}
+#mainPage{ display:none; }
+.section-title{ color:var(--thead); font-weight:700; }
+
+.table-card{
+  background:var(--card);
+  padding:20px;
+  border-radius:14px;
+  box-shadow:var(--shadow);
+  border:1px solid var(--border);
+  margin-bottom:30px;
+}
+.table{
+  border-collapse:separate !important;
+  border-spacing:0 10px !important;
+}
 .table thead th{
-    background: var(--thead) !important;
-    color: white !important;
-    padding:14px !important;
-    font-weight:600;
-    border:none !important;
-    text-align:center;
-    position: relative;
-    transition: background 0.2s;
+  background:var(--thead) !important;
+  color:white !important;
+  padding:14px !important;
+  font-weight:600;
+  border:none !important;
+  text-align:center;
+  cursor:pointer;
 }
-.table thead th:hover{ background: var(--hover); cursor: pointer; }
-.table thead th::after{
-    content:'';
-    display:block;
-    height:3px;
-    width:100%;
-    background:var(--primary);
-    border-radius:2px;
-    margin-top:6px;
+.table tbody tr{
+  background:var(--row1);
+  border-radius:12px;
 }
-.table tbody tr{background:var(--row1);border-radius:12px;}
-.table tbody tr:nth-child(even){background:var(--row2);}
-.table tbody td{padding:14px !important;vertical-align:middle;border-top:1px solid var(--border);border-bottom:1px solid var(--border);text-align:center;}
-.table tbody tr td:first-child{border-left:1px solid var(--border);border-top-left-radius:12px;border-bottom-left-radius:12px;}
-.table tbody tr td:last-child{border-right:1px solid var(--border);border-top-right-radius:12px;border-bottom-right-radius:12px;}
-img.thumb{width:90px;height:74px;object-fit:cover;border-radius:10px;background:#e9ecef;border:1px solid #c5ced6;cursor:pointer;transition:0.15s;}
-img.thumb:hover{transform:scale(1.05);}
-.search-input{border-radius:10px;padding:10px;border:1px solid #bcc6d0;flex-grow:1;}
-.pagination .page-link{border-radius:8px;}
-.modal-img-wrap{width:100%;height:80vh;display:flex;align-items:center;justify-content:center;background:#000;overflow:hidden;}
-.modal-img-wrap img{max-width:100%;max-height:100%;cursor:grab;}
+.table tbody tr:nth-child(even){ background:var(--row2); }
+.table tbody td{
+  padding:14px !important;
+  vertical-align:middle;
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  text-align:center;
+}
+.table tbody tr td:first-child{
+  border-left:1px solid var(--border);
+  border-top-left-radius:12px;
+  border-bottom-left-radius:12px;
+}
+.table tbody tr td:last-child{
+  border-right:1px solid var(--border);
+  border-top-right-radius:12px;
+  border-bottom-right-radius:12px;
+}
+
+img.thumb{
+  width:90px;
+  height:74px;
+  object-fit:cover;
+  border-radius:10px;
+  background:#e9ecef;
+  border:1px solid #c5ced6;
+  cursor:pointer;
+  transition:0.15s;
+}
+img.thumb:hover{ transform:scale(1.05); }
+
+.search-input{
+  border-radius:10px;
+  padding:10px;
+  border:1px solid #bcc6d0;
+}
+
+.pagination .page-link{ border-radius:8px; }
+
+.modal-img-wrap{
+  width:100%;
+  height:80vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#000;
+  overflow:hidden;
+}
+.modal-img-wrap img{
+  max-width:100%;
+  max-height:100%;
+  cursor:grab;
+}
+
+.chart-card{
+  background:var(--card);
+  padding:20px;
+  border-radius:14px;
+  box-shadow:var(--shadow);
+  border:1px solid var(--border);
+  margin-bottom:30px;
+}
 </style>
 </head>
 <body>
@@ -71,47 +137,53 @@ img.thumb:hover{transform:scale(1.05);}
     <input id="password" type="password" class="form-control" placeholder="Şifrenizi girin">
   </div>
   <div class="d-grid">
-    <button id="loginBtn" class="btn btn-primary">Giriş Yap</button>
+    <button onclick="login()" class="btn btn-primary">Giriş Yap</button>
   </div>
   <div id="errorMsg" class="text-danger text-center mt-3"></div>
 </div>
 
 <!-- MAIN -->
 <div id="mainPage" class="container">
-  <h1 class="section-title">Kalite Kontrol Dashboard</h1>
+  <h1 class="section-title">Kalite Veri Listesi</h1>
 
-  <div class="d-flex mb-3 justify-content-center gap-2">
-    <button id="btnData" class="btn btn-primary">Veri Tablosu</button>
-    <button id="btnPhoto" class="btn btn-outline-primary">Fotoğraf Tablosu</button>
-    <button id="btnChart" class="btn btn-outline-primary">Grafik</button>
-  </div>
+  <div class="table-card">
+    <div class="d-flex mb-3 justify-content-center gap-2">
+      <button id="btnData" class="btn btn-primary">Veri Tablosu</button>
+      <button id="btnPhoto" class="btn btn-outline-primary">Fotoğraf Tablosu</button>
+      <button id="btnChart" class="btn btn-outline-primary">Grafik</button>
+    </div>
 
-  <!-- Veri Tablosu -->
-  <div id="dataTableWrapper">
-    <div class="d-flex align-items-center mb-3">
-      <input type="text" id="searchInput1" class="search-input" placeholder="Ara...">
-      <button class="btn btn-outline-danger ms-3" onclick="logout()">Çıkış Yap</button>
+    <!-- VERİ TABLOSU -->
+    <div id="dataTableWrapper">
+      <div class="d-flex align-items-center mb-3">
+        <input type="text" id="searchInput1" class="search-input flex-grow-1">
+        <button class="btn btn-outline-danger ms-3" onclick="logout()">Çıkış Yap</button>
+      </div>
+      <div class="table-responsive">
+        <table id="dataTable" class="table align-middle"><thead></thead><tbody></tbody></table>
+      </div>
+      <nav><ul id="pagination1" class="pagination justify-content-center mt-2"></ul></nav>
     </div>
-    <div class="table-responsive">
-      <table id="dataTable" class="table align-middle"><thead></thead><tbody></tbody></table>
-    </div>
-    <nav><ul id="pagination1" class="pagination justify-content-center mt-2"></ul></nav>
-  </div>
 
-  <!-- Fotoğraf Tablosu -->
-  <div id="photoTableWrapper" style="display:none;">
-    <div class="d-flex align-items-center mb-3">
-      <input type="text" id="searchInput2" class="search-input" placeholder="Ara...">
+    <!-- FOTOĞRAF TABLOSU -->
+    <div id="photoTableWrapper" style="display:none;">
+      <div class="d-flex align-items-center mb-3">
+        <input type="text" id="searchInput2" class="search-input flex-grow-1">
+      </div>
+      <div class="table-responsive">
+        <table id="photoTable" class="table align-middle"><thead></thead><tbody></tbody></table>
+      </div>
+      <nav><ul id="pagination2" class="pagination justify-content-center mt-2"></ul></nav>
     </div>
-    <div class="table-responsive">
-      <table id="photoTable" class="table align-middle"><thead></thead><tbody></tbody></table>
-    </div>
-    <nav><ul id="pagination2" class="pagination justify-content-center mt-2"></ul></nav>
-  </div>
 
-  <!-- Grafik -->
-  <div id="chartWrapper" class="table-card mb-4" style="display:none;">
-    <canvas id="errorChart" height="150"></canvas>
+    <!-- GRAFİK -->
+    <div id="chartWrapper" class="chart-card" style="display:none;">
+      <div class="mb-3">
+        <label>Tarih Filtrele:</label>
+        <input type="date" id="chartDate" class="form-control" style="max-width:200px;">
+      </div>
+      <canvas id="errorChart" height="150"></canvas>
+    </div>
   </div>
 </div>
 
@@ -131,97 +203,72 @@ img.thumb:hover{transform:scale(1.05);}
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
 <script>
 const BACKEND_URL="https://kaliteform.onrender.com";
 const sheetUrl="https://docs.google.com/spreadsheets/d/e/2PACX-1vQBWFSVSD6NvBNqC8me1le_unCCLOKIOIS2DfZFXUTji0MHC7SaWNIy4a0Laob9xOiAJyPnp7LuZ1R-/pub?output=csv";
 const PAGE_SIZE=10;
+let dataRows=[], photoRows=[], headerRow=[], errorChart=null;
 
-// LOGIN
-document.getElementById('loginBtn').addEventListener('click',()=>{
+function login(){
   const u=document.getElementById('username').value.trim();
   const p=document.getElementById('password').value.trim();
-  const err=document.getElementById('errorMsg'); err.textContent='';
-  if(!u||!p){err.textContent='Kullanıcı adı ve şifre boş olamaz!'; return;}
+  const err=document.getElementById('errorMsg'); err.textContent="";
   fetch(BACKEND_URL+"/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:u,password:p})})
-  .then(r=>r.json()).then(res=>{
-    if(res && res.success){ localStorage.setItem('loggedIn','true'); showMain(); }
-    else err.textContent=res.message||'Kullanıcı adı veya şifre hatalı!';
-  }).catch(()=>{err.textContent='Sunucuya ulaşılamadı!';});
-});
+  .then(r=>r.json()).then(res=>{ if(res.success){ localStorage.setItem("loggedIn",true); showMain(); } else err.textContent="Kullanıcı adı veya şifre hatalı!"; })
+  .catch(()=> err.textContent="Sunucuya ulaşılamadı!");
+}
 
-function logout(){localStorage.removeItem('loggedIn'); location.reload();}
-function showMain(){document.getElementById('loginPage').style.display='none'; document.getElementById('mainPage').style.display='block'; loadCsvAndInit();}
+function logout(){ localStorage.removeItem("loggedIn"); location.reload(); }
+function showMain(){ document.getElementById('loginPage').style.display='none'; document.getElementById('mainPage').style.display='block'; loadCsvAndInit(); }
 if(localStorage.getItem('loggedIn')==='true') showMain();
 
-let dataRows=[],photoRows=[],headerRow=[];
-let errorChart;
-
-// CSV ve tablolar
+/* CSV YÜKLEME */
 function loadCsvAndInit(){
   fetch(sheetUrl).then(r=>r.text()).then(text=>{
     const parsed=Papa.parse(text,{header:false}).data;
-    headerRow=parsed[0];
-    const body=parsed.slice(1);
+    headerRow=parsed[0]; const body=parsed.slice(1);
     dataRows=body.map(r=>r.slice(9,17));
     photoRows=body.map(r=>r.slice(0,7));
-    createTable('dataTable',headerRow.slice(9,17),dataRows,'searchInput1','pagination1',false);
-    createTable('photoTable',headerRow.slice(0,7),photoRows,'searchInput2','pagination2',true);
+    createTable("dataTable", headerRow.slice(9,17), dataRows, "searchInput1", "pagination1", false);
+    createTable("photoTable", headerRow.slice(0,7), photoRows, "searchInput2", "pagination2", true);
   });
 }
 
-function createTable(tableId,headers,rows,searchId,paginationId,isPhoto){
-  const table = document.getElementById(tableId),thead=table.querySelector('thead'),tbody=table.querySelector('tbody'),
-        search = document.getElementById(searchId),pagination=document.getElementById(paginationId);
-  let filtered=[...rows], page=1, sortColumn=null, sortAsc=false; // fotoğraf tablosu default en yeni
+/* TABLO OLUŞTURMA VE SIRALAMA */
+function createTable(tableId, headers, rows, searchId, paginationId, isPhoto){
+  const table=document.getElementById(tableId), thead=table.querySelector('thead'), tbody=table.querySelector('tbody'),
+        search=document.getElementById(searchId), pagination=document.getElementById(paginationId);
+  let filtered=[...rows], page=1, sortAsc=false;
 
   function renderHead(){
-    thead.innerHTML = '';
-    const tr = document.createElement('tr');
-    headers.forEach((h, idx) => {
-        const th = document.createElement('th');
-        let icon='', tooltip=h;
-        if(h.toLowerCase().includes('tarih')) icon='📅', tooltip='Veri tarihi';
-        else if(h.toLowerCase().includes('açıklama')) icon='📝', tooltip='İşlem açıklaması';
-        else if(h.toLowerCase().includes('fotoğraf')) icon='🖼️', tooltip='İlgili fotoğraf';
-        else if(h.toLowerCase().includes('sorumlu')) icon='👤', tooltip='Sorumlu personel';
-        th.innerHTML = `${icon} ${h}`;
-        th.title = tooltip;
-
-        if(isPhoto && idx===0){
-            th.onclick=()=>{
-                sortAsc = !sortAsc;
-                filtered.sort((a,b)=>{
-                    const da=a[idx]?.split('.')||[0,0,0];
-                    const db=b[idx]?.split('.')||[0,0,0];
-                    const dateA=new Date(+da[2],+da[1]-1,+da[0]);
-                    const dateB=new Date(+db[2],+db[1]-1,+db[0]);
-                    return sortAsc ? dateA-dateB : dateB-dateA;
-                });
-                page=1; renderPage();
-            };
-        }
-        tr.appendChild(th);
+    thead.innerHTML=''; const tr=document.createElement('tr');
+    headers.forEach((h,idx)=>{
+      const th=document.createElement('th'); th.innerHTML=h;
+      if(isPhoto && h.toLowerCase().includes('tarih')){
+        th.onclick=()=>{ sortAsc=!sortAsc; filtered.sort((a,b)=>{
+          const da=a[idx]?.split('.')||[0,0,0], db=b[idx]?.split('.')||[0,0,0];
+          const dateA=new Date(+da[2],+da[1]-1,+da[0]), dateB=new Date(+db[2],+db[1]-1,+db[0]);
+          return sortAsc? dateA-dateB : dateB-dateA;
+        }); page=1; renderPage(); };
+        // İlk yüklemede en yeni tarih
+        filtered.sort((a,b)=>{ const da=a[idx]?.split('.')||[0,0,0], db=b[idx]?.split('.')||[0,0,0]; return new Date(+db[2],+db[1]-1,+db[0]) - new Date(+da[2],+da[1]-1,+da[0]); });
+      }
+      tr.appendChild(th);
     });
     thead.appendChild(tr);
   }
 
   function renderPage(){
     tbody.innerHTML='';
-    const totalPages=Math.ceil(filtered.length/PAGE_SIZE);
-    if(page>totalPages) page=totalPages;
-    const start=(page-1)*PAGE_SIZE;
-    const slice=filtered.slice(start,start+PAGE_SIZE);
-    slice.forEach(row=>{
-      const tr=document.createElement('tr');
+    const totalPages=Math.ceil(filtered.length/PAGE_SIZE); if(page>totalPages) page=totalPages;
+    const start=(page-1)*PAGE_SIZE; const slice=filtered.slice(start,start+PAGE_SIZE);
+    slice.forEach(row=>{ const tr=document.createElement('tr');
       row.forEach((c,i)=>{
         const td=document.createElement('td');
-        if(isPhoto && i===5 && c){
-          const img=document.createElement('img'); img.src=c; img.className='thumb'; img.onclick=()=>openImage(c); td.appendChild(img);
-        }else td.textContent=c;
-        tr.appendChild(td);
-      });
-      tbody.appendChild(tr);
+        if(isPhoto && i===5 && c){ const img=document.createElement('img'); img.src=c; img.className='thumb'; img.onclick=()=>openImage(c); td.appendChild(img);}
+        else td.textContent=c; tr.appendChild(td);
+      }); tbody.appendChild(tr);
     });
     renderPagination();
   }
@@ -234,54 +281,48 @@ function createTable(tableId,headers,rows,searchId,paginationId,isPhoto){
     pagination.appendChild(prev); pagination.appendChild(next);
   }
 
-  search.oninput=function(){ const t=this.value.toLowerCase(); filtered=rows.filter(r=>r.join(' ').toLowerCase().includes(t)); page=1; renderPage();}
+  search.oninput=function(){ const t=this.value.toLowerCase(); filtered=rows.filter(r=>r.join(" ").toLowerCase().includes(t)); page=1; renderPage();}
   renderHead(); renderPage();
 }
 
-// Tablo ve grafik geçişleri
+/* TABLO GEÇİŞİ */
 const btnData=document.getElementById('btnData'), btnPhoto=document.getElementById('btnPhoto'), btnChart=document.getElementById('btnChart');
 const dataWrapper=document.getElementById('dataTableWrapper'), photoWrapper=document.getElementById('photoTableWrapper'), chartWrapper=document.getElementById('chartWrapper');
 
-btnData.addEventListener('click',()=>{
-  dataWrapper.style.display='block'; photoWrapper.style.display='none'; chartWrapper.style.display='none';
-  btnData.classList.add('btn-primary'); btnData.classList.remove('btn-outline-primary');
-  btnPhoto.classList.add('btn-outline-primary'); btnPhoto.classList.remove('btn-primary');
-  btnChart.classList.add('btn-outline-primary'); btnChart.classList.remove('btn-primary');
-});
-btnPhoto.addEventListener('click',()=>{
-  dataWrapper.style.display='none'; photoWrapper.style.display='block'; chartWrapper.style.display='none';
-  btnPhoto.classList.add('btn-primary'); btnPhoto.classList.remove('btn-outline-primary');
-  btnData.classList.add('btn-outline-primary'); btnData.classList.remove('btn-primary');
-  btnChart.classList.add('btn-outline-primary'); btnChart.classList.remove('btn-primary');
-});
-btnChart.addEventListener('click',()=>{
+btnData.onclick=()=>{dataWrapper.style.display='block'; photoWrapper.style.display='none'; chartWrapper.style.display='none'; btnData.classList.add('btn-primary'); btnData.classList.remove('btn-outline-primary'); btnPhoto.classList.add('btn-outline-primary'); btnPhoto.classList.remove('btn-primary'); btnChart.classList.add('btn-outline-primary'); btnChart.classList.remove('btn-primary');};
+btnPhoto.onclick=()=>{dataWrapper.style.display='none'; photoWrapper.style.display='block'; chartWrapper.style.display='none'; btnPhoto.classList.add('btn-primary'); btnPhoto.classList.remove('btn-outline-primary'); btnData.classList.add('btn-outline-primary'); btnData.classList.remove('btn-primary'); btnChart.classList.add('btn-outline-primary'); btnChart.classList.remove('btn-primary');};
+
+/* GRAFİK */
+btnChart.onclick=()=>{
   dataWrapper.style.display='none'; photoWrapper.style.display='none'; chartWrapper.style.display='block';
   btnChart.classList.add('btn-primary'); btnChart.classList.remove('btn-outline-primary');
   btnData.classList.add('btn-outline-primary'); btnData.classList.remove('btn-primary');
   btnPhoto.classList.add('btn-outline-primary'); btnPhoto.classList.remove('btn-primary');
+  renderChart();
+};
 
-  const countsMap = {};
+function renderChart(){
+  const selectedDate=document.getElementById('chartDate').value;
+  const countsMap={};
   dataRows.forEach(r=>{
-    const person = r[3]?.trim() || "Bilinmeyen";
-    const count = parseInt(r[4]) || 0;
-    countsMap[person] = (countsMap[person] || 0) + count;
+    const date=r[0]; if(selectedDate && !date.endsWith(selectedDate.split('-').reverse().join('.'))) return;
+    const person=r[3]?.trim()||"Bilinmeyen";
+    const count=parseInt(r[4])||0;
+    countsMap[person]=(countsMap[person]||0)+count;
   });
-  const labels = Object.keys(countsMap);
-  const data = Object.values(countsMap);
-
+  const labels=Object.keys(countsMap);
+  const data=Object.values(countsMap);
+  const ctx=document.getElementById('errorChart').getContext('2d');
+  const chartColors=['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#e377c2','#7f7f7f','#bcbd22','#17becf'];
   if(errorChart) errorChart.destroy();
-  const ctx = document.getElementById('errorChart').getContext('2d');
-  const chartColors = ['#a8dadc','#f1faee','#ffb4a2','#ffe066','#6a4c93','#ff8fab'];
-  errorChart = new Chart(ctx, {
-    type:'bar',
-    data:{labels:labels,datasets:[{label:'İşlem Sayısı',data:data,backgroundColor:chartColors}]},
-    options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}},x:{ticks:{autoSkip:false}}}
-  });
-});
+  errorChart=new Chart(ctx,{type:'bar',data:{labels:labels,datasets:[{label:'İşlem Sayısı',data:data,backgroundColor:chartColors}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}},x:{ticks:{autoSkip:false}}}});
+}
 
-// Modal
+document.getElementById('chartDate').addEventListener('change', renderChart);
+
+/* MODAL */
 let modal=new bootstrap.Modal(document.getElementById('imageModal'));
-function openImage(src){document.getElementById('modalImage').src=src; modal.show();}
+function openImage(src){ document.getElementById('modalImage').src=src; modal.show(); }
 </script>
 </body>
 </html>
