@@ -6,33 +6,86 @@
 <title>Kalite Kontrol Paneli</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
-<link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet"/>
 
 <style>
-body {
-  background: #f1f3f5;
-  font-family: "Segoe UI", sans-serif;
-  padding: 20px;
+:root {
+  --primary: #0d6efd;
+  --primary-dark: #0b5ed7;
+  --background: #f1f3f5;
+  --card-bg: #ffffff;
+  --table-header: #093e72;
 }
+
+body {
+  background: var(--background);
+  padding: 20px;
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* Login Kutusu */
 .login-container {
   max-width: 420px;
   margin: 120px auto;
   padding: 35px;
-  background: #fff;
+  background: var(--card-bg);
   border-radius: 14px;
   box-shadow: 0 6px 30px rgba(0,0,0,0.12);
   border: 1px solid #dee2e6;
 }
 .login-container h3 { font-weight: 600; color: #093e72; }
+
+/* Ana Panel */
 #mainPage h1 { color: #093e72; font-weight: 700; margin-bottom: 25px; }
-.table-container { overflow-x: auto; background: white; padding: 10px; border-radius: 12px; box-shadow: 0 2px 15px rgba(0,0,0,0.08); margin-bottom: 40px;}
-.table thead { background: #093e72 !important; color: white; }
-.table th, .table td { padding: 10px !important; font-size: 14px; text-align: center; }
-.table tbody tr:hover { background: #e0f0ff !important; }
-.dataTables_wrapper .dataTables_paginate .paginate_button { background-color: #0d6efd; color: white !important; border-radius: 6px; margin: 2px; }
-.dataTables_wrapper .dataTables_paginate .paginate_button.current { background-color: #093e72 !important; }
-.dataTables_wrapper .dataTables_filter input { border-radius: 8px; border: 1px solid #bfc4c9; padding: 5px 10px; }
+#searchInput {
+  margin-bottom: 20px;
+  border-radius: 10px;
+  padding: 10px 15px;
+  border: 1px solid #bfc4c9;
+}
+
+.table-container {
+  overflow-x: auto;
+  background: white;
+  padding: 10px;
+  border-radius: 12px;
+  box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+}
+
+.table thead { background: var(--table-header) !important; color: white; }
+.table th { padding: 12px !important; font-size: 15px; }
+.table tbody tr { transition: background 0.15s, transform 0.1s; }
+.table tbody tr:hover { background: #e9f3ff !important; transform: scale(1.01); }
+
+.btn-outline-danger { margin-top: 20px; font-weight: 600; border-radius: 10px; }
 .hidden { display: none; }
+
+/* Fotoğraf Tablosu Belirginlik */
+#photoTable td {
+  border: 1px solid #cfd8dc;
+  padding: 8px !important;
+  vertical-align: middle;
+}
+
+#photoTable tbody tr:nth-child(odd) {
+  background-color: #f9fbfc;
+}
+
+#photoTable tbody tr:nth-child(even) {
+  background-color: #e9f3f7;
+}
+
+#photoTable img {
+  max-height: 80px;
+  cursor: pointer;
+  border: 2px solid #0d6efd;
+  border-radius: 6px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+#photoTable img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
 </style>
 </head>
 <body>
@@ -55,35 +108,34 @@ body {
 <!-- Ana Panel -->
 <div id="mainPage" class="hidden container">
   <h1>Kalite Veri Listesi</h1>
-
-  <div class="table-container">
-    <h4>Veri Tablosu (J-Q)</h4>
-    <table id="dataTable" class="table table-striped table-hover display">
-      <thead></thead>
+  <input type="text" id="searchInput" class="form-control" placeholder="Tabloda arayın...">
+  
+  <!-- Ana Tablo -->
+  <div class="table-container mb-5">
+    <table class="table table-striped table-hover" id="dataTable">
+      <thead class="table-dark"></thead>
       <tbody></tbody>
     </table>
   </div>
 
+  <h2>Fotoğraflar</h2>
   <div class="table-container">
-    <h4>Fotoğraf Tablosu (A-G)</h4>
-    <table id="photoTable" class="table table-striped table-hover display">
-      <thead></thead>
+    <table class="table table-hover" id="photoTable">
+      <thead class="table-dark"></thead>
       <tbody></tbody>
     </table>
   </div>
 
-  <button class="btn btn-outline-danger mb-4" onclick="logout()">Çıkış Yap</button>
+  <button class="btn btn-outline-danger" onclick="logout()">Çıkış Yap</button>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <script>
 const BACKEND_URL = "https://kaliteform.onrender.com";
 const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBWFSVSD6NvBNqC8me1le_unCCLOKIOIS2DfZFXUTji0MHC7SaWNIy4a0Laob9xOiAJyPnp7LuZ1R-/pub?output=csv";
 
-// Login
+// Giriş
 function login() {
   const username = document.getElementById("username").value.trim();
   const password = document.getElementById("password").value.trim();
@@ -96,8 +148,8 @@ function login() {
   })
   .then(res => res.json())
   .then(data => {
-    if(data.success){
-      localStorage.setItem("loggedIn","true");
+    if (data.success) {
+      localStorage.setItem("loggedIn", "true");
       document.getElementById("loginPage").classList.add("hidden");
       document.getElementById("mainPage").classList.remove("hidden");
       loadTables();
@@ -105,76 +157,91 @@ function login() {
       errorMsg.textContent = "Kullanıcı adı veya şifre hatalı!";
     }
   })
-  .catch(()=> { errorMsg.textContent = "Sunucuya ulaşılamadı!"; });
-}
-
-// Logout
-function logout(){
-  localStorage.removeItem("loggedIn");
-  document.getElementById("mainPage").classList.add("hidden");
-  document.getElementById("loginPage").classList.remove("hidden");
-  document.getElementById("username").value="";
-  document.getElementById("password").value="";
-  document.getElementById("errorMsg").textContent="";
-}
-
-// Load tables
-function loadTables(){
-  fetch(sheetUrl)
-  .then(res=>res.text())
-  .then(csvText=>{
-    const data = Papa.parse(csvText,{header:false}).data;
-
-    // Veri Tablosu J-Q
-    const dataHeaders = data[0].slice(9,17);
-    const dataBody = data.slice(1).map(r=>r.slice(9,17));
-    const dataTable = $('#dataTable');
-    dataTable.find('thead').html('<tr>'+dataHeaders.map(h=>`<th>${h}</th>`).join('')+'</tr>');
-    dataTable.find('tbody').html(dataBody.map(r=>'<tr>'+r.map(c=>`<td>${c}</td>`).join('')+'</tr>').join(''));
-
-    // Fotoğraf Tablosu A-G
-    const photoHeaders = data[0].slice(0,7);
-    const photoBody = data.slice(1).map(r=>r.slice(0,7));
-    const photoTable = $('#photoTable');
-    photoTable.find('thead').html('<tr>'+photoHeaders.map(h=>`<th>${h}</th>`).join('')+'</tr>');
-    photoTable.find('tbody').html(photoBody.map(r=>{
-      return '<tr>'+r.map((c,i)=>{
-        if(i===5 && c) return `<td><img src="${c}" style="max-height:80px; cursor:pointer;" onclick="window.open('${c}','_blank')"/></td>`;
-        return `<td>${c}</td>`;
-      }).join('')+'</tr>';
-    }).join(''));
-
-    // Destroy previous DataTables
-    if($.fn.DataTable.isDataTable('#dataTable')) dataTable.DataTable().destroy();
-    if($.fn.DataTable.isDataTable('#photoTable')) photoTable.DataTable().destroy();
-
-    // Initialize DataTables with Turkish
-    const turkish = {
-      "sEmptyTable":     "Tabloda veri yok",
-      "sInfo":           "_TOTAL_ kayıttan _START_ - _END_ arası gösteriliyor",
-      "sInfoEmpty":      "0 kayıttan 0 - 0 arası gösteriliyor",
-      "sInfoFiltered":   "(_MAX_ kayıt içerisinden filtrelendi)",
-      "sLengthMenu":     "Sayfada _MENU_ kayıt göster",
-      "sLoadingRecords": "Yükleniyor...",
-      "sProcessing":     "İşleniyor...",
-      "sSearch":         "Ara:",
-      "sZeroRecords":    "Eşleşen kayıt bulunamadı",
-      "oPaginate": {
-        "sFirst":    "İlk",
-        "sLast":     "Son",
-        "sNext":     "Sonraki",
-        "sPrevious": "Önceki"
-      }
-    };
-
-    dataTable.DataTable({ pageLength:20, order: [], language: turkish });
-    photoTable.DataTable({ pageLength:20, order: [], language: turkish });
+  .catch(() => {
+    errorMsg.textContent = "Sunucuya ulaşılamadı!";
   });
 }
 
-// Check login on page load
-window.onload = function(){
-  if(localStorage.getItem("loggedIn")==="true"){
+function logout() {
+  localStorage.removeItem("loggedIn");
+  document.getElementById("mainPage").classList.add("hidden");
+  document.getElementById("loginPage").classList.remove("hidden");
+  document.getElementById("username").value = "";
+  document.getElementById("password").value = "";
+  document.getElementById("errorMsg").textContent = "";
+}
+
+// Tablo Yükleme
+function loadTables() {
+  fetch(sheetUrl)
+    .then(res => res.text())
+    .then(csvText => {
+      const data = Papa.parse(csvText, { header: false }).data;
+
+      const mainStart = 9, mainEnd = 16;  // J-Q
+      const photoStart = 0, photoEnd = 6; // A-G
+      const photoColumnImg = 5; // F sütunu
+
+      const dataTable = document.getElementById("dataTable");
+      const photoTable = document.getElementById("photoTable");
+
+      const mainThead = dataTable.querySelector("thead");
+      const mainTbody = dataTable.querySelector("tbody");
+      const photoThead = photoTable.querySelector("thead");
+      const photoTbody = photoTable.querySelector("tbody");
+
+      mainThead.innerHTML = ""; mainTbody.innerHTML = "";
+      photoThead.innerHTML = ""; photoTbody.innerHTML = "";
+
+      // Ana tablo başlık
+      const mainHeaderRow = document.createElement("tr");
+      data[0].slice(mainStart, mainEnd+1).forEach(text => {
+        const th = document.createElement("th"); th.textContent = text;
+        mainHeaderRow.appendChild(th);
+      });
+      mainThead.appendChild(mainHeaderRow);
+
+      // Fotoğraf tablo başlık
+      const photoHeaderRow = document.createElement("tr");
+      data[0].slice(photoStart, photoEnd+1).forEach(text => {
+        const th = document.createElement("th"); th.textContent = text;
+        photoHeaderRow.appendChild(th);
+      });
+      photoThead.appendChild(photoHeaderRow);
+
+      // Ana tablo içerik
+      data.slice(1).forEach(row => {
+        const tr = document.createElement("tr");
+        row.slice(mainStart, mainEnd+1).forEach(cell => {
+          const td = document.createElement("td"); td.textContent = cell;
+          tr.appendChild(td);
+        });
+        mainTbody.appendChild(tr);
+      });
+
+      // Fotoğraf tablo içerik
+      data.slice(1).forEach(row => {
+        const tr = document.createElement("tr");
+        row.slice(photoStart, photoEnd+1).forEach((cell, idx) => {
+          const td = document.createElement("td");
+          if (idx === photoColumnImg) {
+            if(cell) {
+              const img = document.createElement("img");
+              img.src = cell;
+              img.alt = "Fotoğraf";
+              td.appendChild(img);
+            }
+          } else td.textContent = cell;
+          tr.appendChild(td);
+        });
+        photoTbody.appendChild(tr);
+      });
+    });
+}
+
+// Sayfa yüklendiğinde oturum kontrolü
+window.onload = function() {
+  if (localStorage.getItem("loggedIn") === "true") {
     document.getElementById("loginPage").classList.add("hidden");
     document.getElementById("mainPage").classList.remove("hidden");
     loadTables();
