@@ -199,17 +199,50 @@ function createTable({tableId, headers, rows, searchId, paginationId, pageSize=1
   const searchInput=document.getElementById(searchId), pagination=document.getElementById(paginationId);
   const originalRows=rows.slice(); let filteredRows=rows.slice(); let currentPage=1;
 
-  function renderHead(){thead.innerHTML=''; const tr=document.createElement('tr'); headers.forEach(h=>{const th=document.createElement('th'); th.textContent=h||''; tr.appendChild(th);}); thead.appendChild(tr);}
+  function renderHead(){
+    thead.innerHTML='';
+    const tr=document.createElement('tr');
+    headers.forEach(h=>{
+      const th=document.createElement('th');
+      th.textContent=h||'';
+      tr.appendChild(th);
+    });
+    thead.appendChild(tr);
+  }
+
   function renderPage(){
-    tbody.innerHTML=''; const total=Math.max(1, filteredRows.length); const totalPages=Math.max(1, Math.ceil(total/pageSize));
+    tbody.innerHTML='';
+    const total=filteredRows.length;
+    const totalPages=Math.max(1, Math.ceil(total/pageSize));
     if(currentPage>totalPages) currentPage=totalPages;
-    const start=(currentPage-1)*pageSize; const pageSlice=filteredRows.slice(start,start+pageSize);
-    pageSlice.forEach(row=>{const tr=document.createElement('tr'); row.forEach((cell,idx)=>{const td=document.createElement('td'); if(isPhoto && idx===5 && cell){const img=document.createElement('img'); img.className='thumb'; img.loading='lazy'; img.alt='foto'; img.src=cell; img.addEventListener('click',()=>openImageModal(cell)); td.appendChild(img);}else td.textContent=cell; tr.appendChild(td);}); tbody.appendChild(tr);});
+    const start=(currentPage-1)*pageSize;
+    const pageSlice=filteredRows.slice(start,start+pageSize);
+
+    pageSlice.forEach(row=>{
+      const tr=document.createElement('tr');
+      row.forEach((cell,idx)=>{
+        const td=document.createElement('td');
+        if(isPhoto && idx===5 && cell){
+          const img=document.createElement('img');
+          img.className='thumb';
+          img.loading='lazy';
+          img.alt='foto';
+          img.src=cell;
+          img.addEventListener('click',()=>openImageModal(cell));
+          td.appendChild(img);
+        }else td.textContent=cell;
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+
     renderPagination();
   }
 
   function renderPagination(){
-    pagination.innerHTML=''; const totalPages=Math.max(1, Math.ceil(filteredRows.length/pageSize));
+    pagination.innerHTML='';
+    const totalPages=Math.max(1, Math.ceil(filteredRows.length/pageSize));
+
     const liPrev=document.createElement('li'); liPrev.className='page-item '+(currentPage===1?'disabled':'');
     const btnPrev=document.createElement('button'); btnPrev.className='page-link'; btnPrev.textContent='Geri';
     btnPrev.addEventListener('click',(e)=>{e.preventDefault(); if(currentPage>1) currentPage--; renderPage();});
@@ -221,15 +254,15 @@ function createTable({tableId, headers, rows, searchId, paginationId, pageSize=1
     liNext.appendChild(btnNext); pagination.appendChild(liNext);
   }
 
-  function applySearch(){
-    const searchTerm=(searchInput.value||'').toLowerCase();
-    filteredRows=originalRows.filter(r=>r.join(' ').toLowerCase().includes(searchTerm));
-    currentPage=1; renderPage();
-  }
+  searchInput.addEventListener('input', ()=>{
+    const term=(searchInput.value||'').toLowerCase();
+    filteredRows = originalRows.filter(r=>r.join(' ').toLowerCase().includes(term));
+    currentPage=1;
+    renderPage();
+  });
 
-  const newSearch=searchInput.cloneNode(true); searchInput.parentNode.replaceChild(newSearch,searchInput);
-  newSearch.addEventListener('input',applySearch);
-  renderHead(); applySearch();
+  renderHead();
+  renderPage();
 }
 
 /* --- TABLE SWITCH --- */
