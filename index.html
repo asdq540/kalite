@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Kalite Kontrol Paneli - Kurumsal Tasarım</title>
+<title>Kalite Kontrol Paneli</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
 <link href="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.min.css" rel="stylesheet"/>
 <style>
@@ -16,7 +16,6 @@
   --row2:#f1f4f7;
   --border:#dbe2ea;
   --shadow:0 6px 22px rgba(0,0,0,0.08);
-  --symbol-color:#ffca28;
 }
 body{
   background:var(--bg);
@@ -54,26 +53,13 @@ body{
   font-weight:600;
   border:none !important;
   text-align:center;
-  cursor:pointer;
-  position:relative;
-}
-.table thead th span.symbol{
-  display:inline-block;
-  background:var(--symbol-color);
-  color:#000;
-  font-weight:bold;
-  border-radius:50%;
-  width:18px;
-  height:18px;
-  line-height:18px;
-  text-align:center;
-  margin-right:6px;
-  font-size:12px;
+  border-radius:6px;
+  box-shadow: inset 0 -2px 0 rgba(255,255,255,0.3);
 }
 .table tbody tr{
-  background:var(--row1);
   border-radius:12px;
 }
+.table tbody tr:nth-child(odd){ background:var(--row1); }
 .table tbody tr:nth-child(even){ background:var(--row2); }
 .table tbody td{
   padding:14px !important;
@@ -81,18 +67,10 @@ body{
   border-top:1px solid var(--border);
   border-bottom:1px solid var(--border);
   text-align:center;
+  background:#fff;
+  border-radius:6px;
+  margin:2px 0;
 }
-.table tbody tr td:first-child{
-  border-left:1px solid var(--border);
-  border-top-left-radius:12px;
-  border-bottom-left-radius:12px;
-}
-.table tbody tr td:last-child{
-  border-right:1px solid var(--border);
-  border-top-right-radius:12px;
-  border-bottom-right-radius:12px;
-}
-
 img.thumb{
   width:90px;
   height:74px;
@@ -140,7 +118,6 @@ img.thumb:hover{ transform:scale(1.05); }
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="loginPage" class="login-container">
   <h3 class="text-center mb-3" style="color:var(--thead); font-weight:600;">Kalite Kontrol Giriş</h3>
   <div class="mb-3">
@@ -157,7 +134,6 @@ img.thumb:hover{ transform:scale(1.05); }
   <div id="errorMsg" class="text-danger text-center mt-3"></div>
 </div>
 
-<!-- MAIN -->
 <div id="mainPage" class="container">
   <h1 class="section-title">Kalite Veri Listesi</h1>
 
@@ -168,7 +144,6 @@ img.thumb:hover{ transform:scale(1.05); }
       <button id="btnChart" class="btn btn-outline-primary">Grafik</button>
     </div>
 
-    <!-- VERİ TABLOSU -->
     <div id="dataTableWrapper">
       <div class="d-flex align-items-center mb-3">
         <input type="text" id="searchInput1" class="search-input flex-grow-1" placeholder="Ara...">
@@ -180,7 +155,6 @@ img.thumb:hover{ transform:scale(1.05); }
       <nav><ul id="pagination1" class="pagination justify-content-center mt-2"></ul></nav>
     </div>
 
-    <!-- FOTOĞRAF TABLOSU -->
     <div id="photoTableWrapper" style="display:none;">
       <div class="d-flex align-items-center mb-3">
         <input type="text" id="searchInput2" class="search-input flex-grow-1" placeholder="Ara...">
@@ -191,7 +165,6 @@ img.thumb:hover{ transform:scale(1.05); }
       <nav><ul id="pagination2" class="pagination justify-content-center mt-2"></ul></nav>
     </div>
 
-    <!-- GRAFİK -->
     <div id="chartWrapper" class="chart-card" style="display:none;">
       <div class="mb-3">
         <label>Tarih Filtrele:</label>
@@ -202,7 +175,6 @@ img.thumb:hover{ transform:scale(1.05); }
   </div>
 </div>
 
-<!-- MODAL -->
 <div class="modal fade" id="imageModal" tabindex="-1">
   <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content">
@@ -257,16 +229,15 @@ function createTable(tableId, headers, rows, searchId, paginationId, isPhoto){
   function renderHead(){
     thead.innerHTML=''; const tr=document.createElement('tr');
     headers.forEach((h,idx)=>{
-      const th=document.createElement('th');
-      // Sembol ekle
-      th.innerHTML=`<span class="symbol" title="${h}">i</span>${h}`;
+      const th=document.createElement('th'); th.textContent=h;
       if(isPhoto && h.toLowerCase().includes('tarih')){
+        th.style.cursor='pointer';
         th.onclick=()=>{ sortAsc=!sortAsc; filtered.sort((a,b)=>{
-          const da=a[idx]?.split('.')||[0,0,0], db=b[idx]?.split('.')||[0,0,0];
-          const dateA=new Date(+da[2],+da[1]-1,+da[0]), dateB=new Date(+db[2],+db[1]-1,+db[0]);
+          const [dA,mA,yA]=a[idx]?.split('.')||[0,0,0]; const [dB,mB,yB]=b[idx]?.split('.')||[0,0,0];
+          const dateA=new Date(+yA,+mA-1,+dA), dateB=new Date(+yB,+mB-1,+dB);
           return sortAsc? dateA-dateB : dateB-dateA;
         }); page=1; renderPage(); };
-        filtered.sort((a,b)=>{ const da=a[idx]?.split('.')||[0,0,0], db=b[idx]?.split('.')||[0,0,0]; return new Date(+db[2],+db[1]-1,+db[0]) - new Date(+da[2],+da[1]-1,+da[0]); });
+        filtered.sort((a,b)=>{ const [dA,mA,yA]=a[idx]?.split('.')||[0,0,0]; const [dB,mB,yB]=b[idx]?.split('.')||[0,0,0]; return new Date(+yB,+mB-1,+dB)-new Date(+yA,+mA-1,+dA); });
       }
       tr.appendChild(th);
     });
@@ -299,14 +270,11 @@ function createTable(tableId, headers, rows, searchId, paginationId, isPhoto){
   renderHead(); renderPage();
 }
 
-/* TABLO GEÇİŞİ */
 const btnData=document.getElementById('btnData'), btnPhoto=document.getElementById('btnPhoto'), btnChart=document.getElementById('btnChart');
 const dataWrapper=document.getElementById('dataTableWrapper'), photoWrapper=document.getElementById('photoTableWrapper'), chartWrapper=document.getElementById('chartWrapper');
 
 btnData.onclick=()=>{dataWrapper.style.display='block'; photoWrapper.style.display='none'; chartWrapper.style.display='none'; btnData.classList.add('btn-primary'); btnData.classList.remove('btn-outline-primary'); btnPhoto.classList.add('btn-outline-primary'); btnPhoto.classList.remove('btn-primary'); btnChart.classList.add('btn-outline-primary'); btnChart.classList.remove('btn-primary');};
 btnPhoto.onclick=()=>{dataWrapper.style.display='none'; photoWrapper.style.display='block'; chartWrapper.style.display='none'; btnPhoto.classList.add('btn-primary'); btnPhoto.classList.remove('btn-outline-primary'); btnData.classList.add('btn-outline-primary'); btnData.classList.remove('btn-primary'); btnChart.classList.add('btn-outline-primary'); btnChart.classList.remove('btn-primary');};
-
-/* GRAFİK */
 btnChart.onclick=()=>{
   dataWrapper.style.display='none'; photoWrapper.style.display='none'; chartWrapper.style.display='block';
   btnChart.classList.add('btn-primary'); btnChart.classList.remove('btn-outline-primary');
@@ -316,10 +284,10 @@ btnChart.onclick=()=>{
 };
 
 function renderChart(){
-  const selectedDate=document.getElementById('chartDate').value;
+  const selectedDate=document.getElementById('chartDate').value; // yyyy-mm-dd
   const countsMap={};
   dataRows.forEach(r=>{
-    const dateStr=r[0];
+    const dateStr=r[0]; // dd.mm.yyyy
     if(selectedDate){
       const [yyyy,mm,dd]=selectedDate.split('-'); 
       const formatted=dd+'.'+mm+'.'+yyyy;
@@ -339,7 +307,6 @@ function renderChart(){
 
 document.getElementById('chartDate').addEventListener('change', renderChart);
 
-/* MODAL */
 let modal=new bootstrap.Modal(document.getElementById('imageModal'));
 function openImage(src){ document.getElementById('modalImage').src=src; modal.show(); }
 </script>
