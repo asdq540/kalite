@@ -89,39 +89,41 @@ img.thumb:hover{transform:scale(1.05);}
     </div>
   </div>
 
-  <!-- Grafik -->
-  <div class="table-card mb-4">
-    <canvas id="errorChart" height="150"></canvas>
+  <!-- Butonlar: Veri Tablosu / Fotoğraf Tablosu / Grafik -->
+  <div class="d-flex mb-3 justify-content-center gap-2">
+    <button id="btnData" class="btn btn-primary">Veri Tablosu</button>
+    <button id="btnPhoto" class="btn btn-outline-primary">Fotoğraf Tablosu</button>
+    <button id="btnChart" class="btn btn-outline-primary">Grafik</button>
   </div>
 
   <!-- Veri Tablosu -->
-  <div class="table-card">
-    <div class="d-flex mb-3 justify-content-center gap-2">
-      <button id="btnData" class="btn btn-primary">Veri Tablosu</button>
-      <button id="btnPhoto" class="btn btn-outline-primary">Fotoğraf Tablosu</button>
+  <div id="dataTableWrapper">
+    <div class="d-flex align-items-center mb-3">
+      <input type="text" id="searchInput1" class="search-input" placeholder="Ara...">
+      <button class="btn btn-outline-danger ms-3" onclick="logout()">Çıkış Yap</button>
     </div>
-
-    <div id="dataTableWrapper">
-      <div class="d-flex align-items-center mb-3">
-        <input type="text" id="searchInput1" class="search-input" placeholder="Ara...">
-        <button class="btn btn-outline-danger ms-3" onclick="logout()">Çıkış Yap</button>
-      </div>
-      <div class="table-responsive">
-        <table id="dataTable" class="table align-middle"><thead></thead><tbody></tbody></table>
-      </div>
-      <nav><ul id="pagination1" class="pagination justify-content-center mt-2"></ul></nav>
+    <div class="table-responsive">
+      <table id="dataTable" class="table align-middle"><thead></thead><tbody></tbody></table>
     </div>
-
-    <div id="photoTableWrapper" style="display:none;">
-      <div class="d-flex align-items-center mb-3">
-        <input type="text" id="searchInput2" class="search-input" placeholder="Ara...">
-      </div>
-      <div class="table-responsive">
-        <table id="photoTable" class="table align-middle"><thead></thead><tbody></tbody></table>
-      </div>
-      <nav><ul id="pagination2" class="pagination justify-content-center mt-2"></ul></nav>
-    </div>
+    <nav><ul id="pagination1" class="pagination justify-content-center mt-2"></ul></nav>
   </div>
+
+  <!-- Fotoğraf Tablosu -->
+  <div id="photoTableWrapper" style="display:none;">
+    <div class="d-flex align-items-center mb-3">
+      <input type="text" id="searchInput2" class="search-input" placeholder="Ara...">
+    </div>
+    <div class="table-responsive">
+      <table id="photoTable" class="table align-middle"><thead></thead><tbody></tbody></table>
+    </div>
+    <nav><ul id="pagination2" class="pagination justify-content-center mt-2"></ul></nav>
+  </div>
+
+  <!-- Grafik -->
+  <div id="chartWrapper" class="table-card mb-4" style="display:none;">
+    <canvas id="errorChart" height="150"></canvas>
+  </div>
+
 </div>
 
 <!-- MODAL -->
@@ -192,17 +194,48 @@ function createTable(tableId,headers,rows,searchId,paginationId,isPhoto){
   renderHead(); render();
 }
 
-// Tablo geçişi
-document.getElementById('btnData').onclick=function(){document.getElementById('dataTableWrapper').style.display='block'; document.getElementById('photoTableWrapper').style.display='none'; this.classList.add('btn-primary'); this.classList.remove('btn-outline-primary'); btnPhoto.classList.remove('btn-primary'); btnPhoto.classList.add('btn-outline-primary');};
-document.getElementById('btnPhoto').onclick=function(){document.getElementById('dataTableWrapper').style.display='none'; document.getElementById('photoTableWrapper').style.display='block'; this.classList.add('btn-primary'); this.classList.remove('btn-outline-primary'); btnData.classList.remove('btn-primary'); btnData.classList.add('btn-outline-primary');};
+// Tablo ve grafik geçişi
+const btnData = document.getElementById('btnData');
+const btnPhoto = document.getElementById('btnPhoto');
+const btnChart = document.getElementById('btnChart');
+const dataWrapper = document.getElementById('dataTableWrapper');
+const photoWrapper = document.getElementById('photoTableWrapper');
+const chartWrapper = document.getElementById('chartWrapper');
+
+btnData.addEventListener('click',()=>{
+    dataWrapper.style.display='block';
+    photoWrapper.style.display='none';
+    chartWrapper.style.display='none';
+    btnData.classList.add('btn-primary'); btnData.classList.remove('btn-outline-primary');
+    btnPhoto.classList.add('btn-outline-primary'); btnPhoto.classList.remove('btn-primary');
+    btnChart.classList.add('btn-outline-primary'); btnChart.classList.remove('btn-primary');
+});
+
+btnPhoto.addEventListener('click',()=>{
+    dataWrapper.style.display='none';
+    photoWrapper.style.display='block';
+    chartWrapper.style.display='none';
+    btnPhoto.classList.add('btn-primary'); btnPhoto.classList.remove('btn-outline-primary');
+    btnData.classList.add('btn-outline-primary'); btnData.classList.remove('btn-primary');
+    btnChart.classList.add('btn-outline-primary'); btnChart.classList.remove('btn-primary');
+});
+
+btnChart.addEventListener('click',()=>{
+    dataWrapper.style.display='none';
+    photoWrapper.style.display='none';
+    chartWrapper.style.display='block';
+    btnChart.classList.add('btn-primary'); btnChart.classList.remove('btn-outline-primary');
+    btnData.classList.add('btn-outline-primary'); btnData.classList.remove('btn-primary');
+    btnPhoto.classList.add('btn-outline-primary'); btnPhoto.classList.remove('btn-primary');
+    updateDashboardStats();
+});
 
 // Modal
 let modal=new bootstrap.Modal(document.getElementById('imageModal'));
 function openImage(src){document.getElementById('modalImage').src=src; modal.show();}
 
-// Dashboard ve Sorumlu Personel Bazlı Grafik
+// Dashboard ve Grafik
 function updateDashboardStats(){
-    // Kartlar
     const totalProcess = dataRows.length;
     const totalError = dataRows.filter(r=>r[2]?.toUpperCase().includes('HATA')).length;
     const errorRate = totalProcess ? Math.round(totalError/totalProcess*100) : 0;
@@ -212,11 +245,10 @@ function updateDashboardStats(){
     document.getElementById('errorRate').textContent = errorRate;
     document.getElementById('todayProcess').textContent = todayProcess;
 
-    // M ve N sütunları bazlı sayım
     const countsMap = {};
     dataRows.forEach(r=>{
-        const person = r[3]?.trim() || "Bilinmeyen"; // M sütunu
-        const count = parseInt(r[4]) || 0; // N sütunu
+        const person = r[3]?.trim() || "Bilinmeyen";
+        const count = parseInt(r[4]) || 0;
         countsMap[person] = (countsMap[person] || 0) + count;
     });
     const labels = Object.keys(countsMap);
@@ -227,7 +259,7 @@ function updateDashboardStats(){
     errorChart = new Chart(ctx, {
         type:'bar',
         data:{labels:labels,datasets:[{label:'İşlem Sayısı',data:data,backgroundColor:'#0d6efd'}]},
-        options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}, x:{ticks:{autoSkip:false}}}}
+        options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true},x:{ticks:{autoSkip:false}}}}
     });
 }
 </script>
