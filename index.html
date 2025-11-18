@@ -239,12 +239,21 @@ function updateDashboardStats(){
     const totalProcess = dataRows.length;
     const totalError = dataRows.filter(r=>r[2]?.toUpperCase().includes('HATA')).length;
     const errorRate = totalProcess ? Math.round(totalError/totalProcess*100) : 0;
-    const todayProcess = dataRows.filter(r=>r[0]===new Date().toLocaleDateString()).length;
+
+    // Bugünkü işlem (dd.mm.yyyy formatı)
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2,'0');
+    const mm = String(today.getMonth()+1).padStart(2,'0');
+    const yyyy = today.getFullYear();
+    const todayStr = `${dd}.${mm}.${yyyy}`;
+    const todayProcess = dataRows.filter(r => r[0] === todayStr).length;
+
     document.getElementById('totalProcess').textContent = totalProcess;
     document.getElementById('totalError').textContent = totalError;
     document.getElementById('errorRate').textContent = errorRate;
     document.getElementById('todayProcess').textContent = todayProcess;
 
+    // Grafik: M sütunu (sorumlu personel) ve N sütunu (sayısı)
     const countsMap = {};
     dataRows.forEach(r=>{
         const person = r[3]?.trim() || "Bilinmeyen";
