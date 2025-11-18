@@ -6,7 +6,6 @@
 <title>Kalite Kontrol Paneli</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
 <style>
-/* ORİJİNAL MİNİMAL STİL */
 :root{
   --primary:#0d6efd;
   --bg:#f1f3f5;
@@ -40,22 +39,12 @@ h1.section-title{ color:var(--thead); font-weight:700; margin-bottom:16px; }
   margin-bottom:28px;
 }
 .table thead{ background:var(--thead) !important; color:#fff; }
-
-/* Taşan Fotoğraf ve Tablo Hücresi Düzeltmeleri Korumak İçin Eklendi */
-.table th, .table td{ 
-    padding:10px !important; 
-    font-size:14px; 
-    text-align:center; 
-    border:1px solid #e8edf2;
-    word-wrap: break-word; /* Metin taşmasını önler */
-}
+.table th, .table td{ padding:10px !important; font-size:14px; text-align:center; border:1px solid #e8edf2; }
 .table tbody tr:nth-child(odd){ background:var(--soft1); }
 .table tbody tr:nth-child(even){ background:var(--soft2); }
 .search-input{ margin-bottom:12px; border-radius:8px; padding:10px; border:1px solid #cfd6db; }
 .pagination { justify-content:center; margin-top:12px; flex-wrap: wrap; }
 .page-link{ cursor:pointer; }
-
-/* Fotoğraf Önizleme Boyutları Korumak İçin Eklendi */
 img.thumb{
   width:68px;
   height:56px;
@@ -64,12 +53,8 @@ img.thumb{
   box-shadow:0 2px 8px rgba(0,0,0,0.12);
   cursor:pointer;
   transition:transform .12s;
-    max-width: 100%;
-    height: auto;
 }
 img.thumb:hover{ transform:scale(1.06); }
-
-/* Modal Görüntü Boyutları Korumak İçin Eklendi */
 .modal-img-wrap{
   width:100%;
   height:80vh;
@@ -81,8 +66,8 @@ img.thumb:hover{ transform:scale(1.06); }
   position:relative;
 }
 .modal-img-wrap img{
-  max-width:100%; 
-  max-height:100%; 
+  max-width:100%;
+  max-height:100%;
   object-fit:contain;
   transform-origin:center center;
   cursor:grab;
@@ -92,22 +77,18 @@ img.thumb:hover{ transform:scale(1.06); }
 .fadeWrapper{ transition: opacity 0.3s ease; }
 .fadeIn{ opacity:1; }
 .fadeOut{ opacity:0; }
-
 @media (max-width: 576px) {
   .table th, .table td { font-size: 12px; padding: 6px !important; white-space: nowrap; }
   .pagination { flex-wrap: wrap; }
   .pagination .page-item { margin-bottom: 4px; }
   .pagination .page-link { padding: 4px 8px; font-size: 12px; }
-  .table-responsive { 
-    overflow-x: auto; 
-    width: 100%;
-    display: block; 
-}
+  .table-responsive { overflow-x: auto; }
 }
 </style>
 </head>
 <body>
 
+<!-- LOGIN -->
 <div id="loginPage" class="login-container">
   <h3 class="text-center mb-3">Kalite Kontrol Giriş</h3>
   <div class="mb-3">
@@ -124,6 +105,7 @@ img.thumb:hover{ transform:scale(1.06); }
   <div id="errorMsg" class="text-danger text-center mt-3"></div>
 </div>
 
+<!-- MAIN -->
 <div id="mainPage" class="container">
   <h1 class="section-title">Kalite Veri Listesi</h1>
 
@@ -133,9 +115,10 @@ img.thumb:hover{ transform:scale(1.06); }
       <button id="btnPhoto" class="btn btn-outline-primary">Fotoğraf Tablosu</button>
     </div>
 
-        <div id="dataTableWrapper" class="fadeWrapper fadeIn">
+    <!-- VERİ TABLOSU -->
+    <div id="dataTableWrapper" class="fadeWrapper fadeIn">
       <div class="d-flex align-items-center mb-2">
-        <input id="searchInput1" type="date" class="search-input form-control flex-grow-1" placeholder="Veri tablosunda ara..."> 
+        <input id="searchInput1" class="search-input flex-grow-1" placeholder="Veri tablosunda ara...">
         <button class="btn btn-outline-danger ms-3" onclick="logout()">Çıkış Yap</button>
       </div>
       <div class="table-responsive">
@@ -144,9 +127,10 @@ img.thumb:hover{ transform:scale(1.06); }
       <nav><ul id="pagination1" class="pagination"></ul></nav>
     </div>
 
-        <div id="photoTableWrapper" class="fadeWrapper" style="display:none;">
+    <!-- FOTOĞRAF TABLOSU -->
+    <div id="photoTableWrapper" class="fadeWrapper" style="display:none;">
       <div class="d-flex align-items-center mb-2">
-        <input id="searchInput2" type="date" class="search-input form-control flex-grow-1" placeholder="Fotoğraf tablosunda ara...">
+        <input id="searchInput2" class="search-input flex-grow-1" placeholder="Fotoğraf tablosunda ara...">
         <div class="ms-3 text-muted small">F sütunu fotoğraflar</div>
       </div>
       <div class="table-responsive">
@@ -157,6 +141,7 @@ img.thumb:hover{ transform:scale(1.06); }
   </div>
 </div>
 
+<!-- Modal -->
 <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content">
@@ -168,14 +153,14 @@ img.thumb:hover{ transform:scale(1.06); }
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
       </div>
     </div>
-    </div>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 const BACKEND_URL="https://kaliteform.onrender.com";
-const sheetUrl="https://docs.google.com/spreadsheets/d/e/2PACX-1vQBWFSVSD6NvBNqC8me1le_unCCLOKIOIS2DfZFXUTji0MHC7SaWNIy4aob9xOiAJyPnp7LuZ1R-/pub?output=csv";
+const sheetUrl="https://docs.google.com/spreadsheets/d/e/2PACX-1vQBWFSVSD6NvBNqC8me1le_unCCLOKIOIS2DfZFXUTji0MHC7SaWNIy4a0Laob9xOiAJyPnp7LuZ1R-/pub?output=csv";
 const PAGE_SIZE=10;
 
 /* --- AUTH --- */
@@ -203,26 +188,6 @@ function loadCsvAndInit(){
     headerRow=parsed[0]; const body=parsed.slice(1);
     dataRows=body.map(r=>r.slice(9,17));
     photoRows=body.map(r=>r.slice(0,7));
-
-    // OTOMATİK TARİH ATAMA VE FİLTRELEME
-    function getCurrentDateISO() {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    }
-
-    const todayISO = getCurrentDateISO();
-    const searchInput1 = document.getElementById('searchInput1');
-    const searchInput2 = document.getElementById('searchInput2');
-    
-    searchInput1.value = todayISO;
-    searchInput2.value = todayISO;
-    
-    // Otomatik filtrelemeyi tetikle
-    searchInput1.dispatchEvent(new Event('input'));
-
     createTable({tableId:'dataTable', headers: headerRow.slice(9,17), rows: dataRows, searchId:'searchInput1', paginationId:'pagination1', pageSize:PAGE_SIZE, isPhoto:false});
     createTable({tableId:'photoTable', headers: headerRow.slice(0,7), rows: photoRows, searchId:'searchInput2', paginationId:'pagination2', pageSize:PAGE_SIZE, isPhoto:true});
   }).catch(err=>console.error(err));
