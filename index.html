@@ -22,9 +22,22 @@ body {
   font-family: "Segoe UI", sans-serif;
 }
 
+/* Login Kutusu */
+.login-container {
+  max-width: 420px;
+  margin: 120px auto;
+  padding: 35px;
+  background: var(--card-bg);
+  border-radius: 14px;
+  box-shadow: 0 6px 30px rgba(0,0,0,0.12);
+  border: 1px solid #dee2e6;
+}
+.login-container h3 { font-weight: 600; color: #093e72; }
+
+/* Ana Panel */
 #mainPage h1 { color: #093e72; font-weight: 700; margin-bottom: 25px; }
 
-#searchInput {
+#searchInputData, #searchInputPhoto {
   margin-bottom: 20px;
   border-radius: 10px;
   padding: 10px 15px;
@@ -55,12 +68,28 @@ body {
 .table tbody tr:hover { background: #e9f3ff !important; transform: scale(1.01); }
 
 .btn-outline-danger { margin-top: 20px; font-weight: 600; border-radius: 10px; }
+.hidden { display: none; }
 </style>
 </head>
 <body>
 
+<!-- Login -->
+<div id="loginPage" class="login-container">
+  <h3 class="text-center mb-4">Kalite Kontrol Giriş</h3>
+  <div class="mb-3">
+    <label class="form-label">Kullanıcı Adı</label>
+    <input type="text" id="username" class="form-control" placeholder="Kullanıcı adınızı girin">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Şifre</label>
+    <input type="password" id="password" class="form-control" placeholder="Şifrenizi girin">
+  </div>
+  <button class="btn btn-primary w-100" onclick="login()">Giriş Yap</button>
+  <div id="errorMsg" class="text-danger text-center mt-3"></div>
+</div>
+
 <!-- Ana Panel -->
-<div id="mainPage" class="container">
+<div id="mainPage" class="container hidden">
   <h1>Kalite Veri Listesi</h1>
 
   <!-- Veri Tablosu -->
@@ -86,9 +115,38 @@ body {
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script>
+// Sabit kullanıcı adı ve şifre
+const VALID_USERNAME = "admin";
+const VALID_PASSWORD = "12345";
+
 const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBWFSVSD6NvBNqC8me1le_unCCLOKIOIS2DfZFXUTji0MHC7SaWNIy4a0Laob9xOiAJyPnp7LuZ1R-/pub?output=csv";
 
-// Veri ve Fotoğraf tablolarını yükleme
+// Giriş
+function login() {
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const errorMsg = document.getElementById("errorMsg");
+
+  if(username === VALID_USERNAME && password === VALID_PASSWORD){
+    document.getElementById("loginPage").classList.add("hidden");
+    document.getElementById("mainPage").classList.remove("hidden");
+    localStorage.setItem("loggedIn", "true");
+    loadTables();
+  } else {
+    errorMsg.textContent = "Kullanıcı adı veya şifre hatalı!";
+  }
+}
+
+// Sayfa yüklendiğinde oturum kontrolü
+window.onload = function() {
+  if(localStorage.getItem("loggedIn") === "true"){
+    document.getElementById("loginPage").classList.add("hidden");
+    document.getElementById("mainPage").classList.remove("hidden");
+    loadTables();
+  }
+};
+
+// Tabloları yükleme
 function loadTables() {
   fetch(sheetUrl)
     .then(res => res.text())
@@ -170,8 +228,7 @@ function loadTables() {
 
     });
 }
-
-window.onload = loadTables;
 </script>
+
 </body>
 </html>
