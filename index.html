@@ -6,177 +6,118 @@
 <title>Kalite Kontrol Paneli</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet"/>
 
 <style>
-:root {
-  --primary: #0d6efd;
-  --background: #f1f3f5;
-  --card-bg: #ffffff;
-  --table-header: #093e72;
-}
-
-body {
-  background: var(--background);
-  font-family: "Segoe UI", sans-serif;
-  padding: 20px;
-}
-
-.login-container {
-  max-width: 420px;
-  margin: 120px auto;
-  padding: 35px;
-  background: var(--card-bg);
-  border-radius: 14px;
-  box-shadow: 0 6px 30px rgba(0,0,0,0.12);
-  border: 1px solid #dee2e6;
-}
-.login-container h3 { color: #093e72; font-weight: 600; }
-
-#mainPage h1 { color: #093e72; font-weight: 700; margin-bottom: 25px; }
-.table-container { overflow-x: auto; margin-bottom: 30px; }
-.dataTables_wrapper .dataTables_filter input { border-radius: 10px; padding: 5px; }
-.table thead { background: var(--table-header); color: white; }
-.table th, .table td { text-align: center; vertical-align: middle; }
-.table-hover tbody tr:hover { background-color: #e9f3ff; }
-.hidden { display: none; }
-img.table-img { max-height: 80px; border-radius: 6px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+body { background: #f1f3f5; padding: 20px; font-family: "Segoe UI", sans-serif; }
+.card-header { font-weight: 600; font-size: 18px; }
+.table img { max-height: 60px; border-radius: 6px; }
 </style>
 </head>
 <body>
 
-<!-- Login -->
-<div id="loginPage" class="login-container">
-  <h3 class="text-center mb-4">Kalite Kontrol Giriş</h3>
-  <div class="mb-3">
-    <label class="form-label">Kullanıcı Adı</label>
-    <input type="text" id="username" class="form-control" placeholder="Kullanıcı adınızı girin">
+<div class="container mt-4">
+
+  <!-- Veri Tablosu -->
+  <div class="card mb-5 shadow-sm">
+    <div class="card-header bg-primary text-white">
+      Kalite Veri Tablosu
+    </div>
+    <div class="card-body">
+      <input type="text" id="searchData" class="form-control mb-3" placeholder="Tabloda ara...">
+      <table id="dataTable" class="table table-bordered table-striped" style="width:100%">
+        <thead></thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </div>
-  <div class="mb-3">
-    <label class="form-label">Şifre</label>
-    <input type="password" id="password" class="form-control" placeholder="Şifrenizi girin">
+
+  <!-- Fotoğraf Tablosu -->
+  <div class="card mb-5 shadow-sm">
+    <div class="card-header bg-success text-white">
+      Fotoğraf Tablosu
+    </div>
+    <div class="card-body">
+      <input type="text" id="searchFoto" class="form-control mb-3" placeholder="Fotoğraflarda ara...">
+      <table id="fotoTable" class="table table-bordered table-striped" style="width:100%">
+        <thead></thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </div>
-  <button class="btn btn-primary w-100" onclick="login()">Giriş Yap</button>
-  <div id="errorMsg" class="text-danger text-center mt-3"></div>
+
 </div>
 
-<!-- Ana Panel -->
-<div id="mainPage" class="hidden container">
-  <h1>Kalite Veri Listesi</h1>
-  <div class="table-container">
-    <table class="table table-striped table-hover" id="dataTable">
-      <thead></thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-  <h2>Fotoğraf Tablosu</h2>
-  <div class="table-container">
-    <table class="table table-striped table-hover" id="photoTable">
-      <thead></thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-  <button class="btn btn-outline-danger" onclick="logout()">Çıkış Yap</button>
-</div>
-
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 
 <script>
-const BACKEND_URL = "https://kaliteform.onrender.com";
 const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBWFSVSD6NvBNqC8me1le_unCCLOKIOIS2DfZFXUTji0MHC7SaWNIy4a0Laob9xOiAJyPnp7LuZ1R-/pub?output=csv";
 
-// Login
-function login() {
-  const username = $('#username').val().trim();
-  const password = $('#password').val().trim();
-  const errorMsg = $('#errorMsg');
-
-  fetch(BACKEND_URL + "/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if(data.success){
-      localStorage.setItem("loggedIn","true");
-      $('#loginPage').hide();
-      $('#mainPage').show();
-      loadTables();
-    } else {
-      errorMsg.text("Kullanıcı adı veya şifre hatalı!");
-    }
-  })
-  .catch(() => { errorMsg.text("Sunucuya ulaşılamadı!"); });
-}
-
-// Logout
-function logout() {
-  localStorage.removeItem("loggedIn");
-  $('#mainPage').hide();
-  $('#loginPage').show();
-  $('#username').val('');
-  $('#password').val('');
-  $('#errorMsg').text('');
-}
-
-// Load tables
 function loadTables() {
   fetch(sheetUrl)
-    .then(res => res.text())
+    .then(response => response.text())
     .then(csvText => {
       const data = Papa.parse(csvText, { header: false }).data;
 
-      // Ana tablo J-Q (9-16), sadece dolu satırları al
-      const startColMain = 9, endColMain = 16;
-      let headerMain = data[0].slice(startColMain,endColMain+1);
-      let bodyMain = data.slice(1)
-                         .filter(row => row[startColMain] && row[startColMain].trim() !== "")
-                         .map(row => row.slice(startColMain,endColMain+1));
-      populateTable('#dataTable', headerMain, bodyMain, 10); // sayfa başına 10
+      // --- Veri Tablosu (J-Q sütunları) ---
+      const dataHeaders = data[0].slice(9, 17); // J-Q
+      const dataRows = data.slice(1).map(row => row.slice(9, 17));
 
-      // Fotoğraf tablosu A-G (0-6)
-      const startColPhoto = 0, endColPhoto = 6;
-      let headerPhoto = data[0].slice(startColPhoto,endColPhoto+1);
-      let bodyPhoto = data.slice(1).map(row => {
-        let rowData = row.slice(startColPhoto,endColPhoto+1);
-        // F sütunu resim (5. index)
-        if(rowData[5]) rowData[5] = `<img src="${rowData[5]}" class="table-img">`;
-        return rowData;
+      $('#dataTable').DataTable({
+        destroy: true,
+        data: dataRows,
+        columns: dataHeaders.map(h => ({ title: h })),
+        pageLength: 20,
+        ordering: false,
+        language: {
+          search: "Ara:",
+          paginate: { first: "İlk", last: "Son", next: ">", previous: "<" },
+          info: "_TOTAL_ kayıttan _START_ - _END_ gösteriliyor"
+        }
       });
-      populateTable('#photoTable', headerPhoto, bodyPhoto, 20); // foto tablosu 20
+
+      // --- Fotoğraf Tablosu (A-G sütunları) ---
+      const fotoHeaders = data[0].slice(0, 7); // A-G
+      const fotoRows = data.slice(1).map(row => {
+        const rowCopy = row.slice(0, 7);
+        // F sütununu (5. index) img tag olarak değiştir
+        if (rowCopy[5]) {
+          rowCopy[5] = `<img src="${rowCopy[5]}" alt="Fotoğraf">`;
+        }
+        return rowCopy;
+      });
+
+      $('#fotoTable').DataTable({
+        destroy: true,
+        data: fotoRows,
+        columns: fotoHeaders.map(h => ({ title: h })),
+        pageLength: 20,
+        ordering: false,
+        language: {
+          search: "Ara:",
+          paginate: { first: "İlk", last: "Son", next: ">", previous: "<" },
+          info: "_TOTAL_ kayıttan _START_ - _END_ gösteriliyor"
+        }
+      });
     });
 }
 
-// Table populate
-function populateTable(selector, header, body, pageLength){
-  const table = $(selector);
-  table.find('thead').html('<tr>'+header.map(h=>`<th>${h}</th>`).join('')+'</tr>');
-  table.find('tbody').html(body.map(r=>'<tr>'+r.map(c=>`<td>${c}</td>`).join('')+'</tr>').join(''));
+// Arama inputları ile filtreleme
+$(document).ready(function() {
+  loadTables();
 
-  $(selector).DataTable({
-    pageLength: pageLength,
-    destroy: true,
-    language: {
-      search: "Ara:",
-      paginate: { first: "İlk", last: "Son", next: ">", previous: "<" },
-      info: "_TOTAL_ kayıttan _START_ - _END_ gösteriliyor"
-    }
+  $('#searchData').on('keyup', function() {
+    $('#dataTable').DataTable().search(this.value).draw();
   });
-}
 
-// Page load check
-$(document).ready(function(){
-  if(localStorage.getItem("loggedIn")==="true"){
-    $('#loginPage').hide();
-    $('#mainPage').show();
-    loadTables();
-  }
+  $('#searchFoto').on('keyup', function() {
+    $('#fotoTable').DataTable().search(this.value).draw();
+  });
 });
 </script>
+
 </body>
 </html>
