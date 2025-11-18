@@ -11,7 +11,8 @@
 <style>
 body { background: #f1f3f5; padding: 20px; font-family: "Segoe UI", sans-serif; }
 .card-header { font-weight: 600; font-size: 18px; }
-.table img { max-height: 60px; border-radius: 6px; }
+.table img { max-height: 60px; border-radius: 6px; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
+.table img:hover { transform: scale(1.1); box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
 </style>
 </head>
 <body>
@@ -24,7 +25,7 @@ body { background: #f1f3f5; padding: 20px; font-family: "Segoe UI", sans-serif; 
       Kalite Veri Tablosu
     </div>
     <div class="card-body">
-      <input type="text" id="searchData" class="form-control mb-3" placeholder="Tabloda ara...">
+      <input type="text" id="searchData" class="form-control mb-3" placeholder="Veri tablosunda ara...">
       <table id="dataTable" class="table table-bordered table-striped" style="width:100%">
         <thead></thead>
         <tbody></tbody>
@@ -38,7 +39,7 @@ body { background: #f1f3f5; padding: 20px; font-family: "Segoe UI", sans-serif; 
       Fotoğraf Tablosu
     </div>
     <div class="card-body">
-      <input type="text" id="searchFoto" class="form-control mb-3" placeholder="Fotoğraflarda ara...">
+      <input type="text" id="searchFoto" class="form-control mb-3" placeholder="Fotoğraf tablosunda ara...">
       <table id="fotoTable" class="table table-bordered table-striped" style="width:100%">
         <thead></thead>
         <tbody></tbody>
@@ -66,7 +67,7 @@ function loadTables() {
       const dataHeaders = data[0].slice(9, 17); // J-Q
       const dataRows = data.slice(1).map(row => row.slice(9, 17));
 
-      $('#dataTable').DataTable({
+      const dataTable = $('#dataTable').DataTable({
         destroy: true,
         data: dataRows,
         columns: dataHeaders.map(h => ({ title: h })),
@@ -76,21 +77,26 @@ function loadTables() {
           search: "Ara:",
           paginate: { first: "İlk", last: "Son", next: ">", previous: "<" },
           info: "_TOTAL_ kayıttan _START_ - _END_ gösteriliyor"
-        }
+        },
+        dom: 'lrtip' // Datatables arama kutusunu kaldırıyoruz çünkü kendi input kullanacağız
+      });
+
+      // Arama inputu bağlama
+      $('#searchData').on('keyup', function() {
+        dataTable.search(this.value).draw();
       });
 
       // --- Fotoğraf Tablosu (A-G sütunları) ---
       const fotoHeaders = data[0].slice(0, 7); // A-G
       const fotoRows = data.slice(1).map(row => {
         const rowCopy = row.slice(0, 7);
-        // F sütununu (5. index) img tag olarak değiştir
-        if (rowCopy[5]) {
-          rowCopy[5] = `<img src="${rowCopy[5]}" alt="Fotoğraf">`;
+        if (rowCopy[5]) { // F sütunu
+          rowCopy[5] = `<a href="${rowCopy[5]}" target="_blank"><img src="${rowCopy[5]}" alt="Fotoğraf"></a>`;
         }
         return rowCopy;
       });
 
-      $('#fotoTable').DataTable({
+      const fotoTable = $('#fotoTable').DataTable({
         destroy: true,
         data: fotoRows,
         columns: fotoHeaders.map(h => ({ title: h })),
@@ -100,22 +106,20 @@ function loadTables() {
           search: "Ara:",
           paginate: { first: "İlk", last: "Son", next: ">", previous: "<" },
           info: "_TOTAL_ kayıttan _START_ - _END_ gösteriliyor"
-        }
+        },
+        dom: 'lrtip'
       });
+
+      $('#searchFoto').on('keyup', function() {
+        fotoTable.search(this.value).draw();
+      });
+
     });
 }
 
-// Arama inputları ile filtreleme
+// Sayfa yüklenince tabloları yükle
 $(document).ready(function() {
   loadTables();
-
-  $('#searchData').on('keyup', function() {
-    $('#dataTable').DataTable().search(this.value).draw();
-  });
-
-  $('#searchFoto').on('keyup', function() {
-    $('#fotoTable').DataTable().search(this.value).draw();
-  });
 });
 </script>
 
