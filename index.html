@@ -16,6 +16,7 @@
   --row2:#f1f4f7;
   --border:#dbe2ea;
   --shadow:0 6px 22px rgba(0,0,0,0.08);
+  --symbol-color:#ffca28;
 }
 body{
   background:var(--bg);
@@ -54,6 +55,20 @@ body{
   border:none !important;
   text-align:center;
   cursor:pointer;
+  position:relative;
+}
+.table thead th span.symbol{
+  display:inline-block;
+  background:var(--symbol-color);
+  color:#000;
+  font-weight:bold;
+  border-radius:50%;
+  width:18px;
+  height:18px;
+  line-height:18px;
+  text-align:center;
+  margin-right:6px;
+  font-size:12px;
 }
 .table tbody tr{
   background:var(--row1);
@@ -156,7 +171,7 @@ img.thumb:hover{ transform:scale(1.05); }
     <!-- VERİ TABLOSU -->
     <div id="dataTableWrapper">
       <div class="d-flex align-items-center mb-3">
-        <input type="text" id="searchInput1" class="search-input flex-grow-1">
+        <input type="text" id="searchInput1" class="search-input flex-grow-1" placeholder="Ara...">
         <button class="btn btn-outline-danger ms-3" onclick="logout()">Çıkış Yap</button>
       </div>
       <div class="table-responsive">
@@ -168,7 +183,7 @@ img.thumb:hover{ transform:scale(1.05); }
     <!-- FOTOĞRAF TABLOSU -->
     <div id="photoTableWrapper" style="display:none;">
       <div class="d-flex align-items-center mb-3">
-        <input type="text" id="searchInput2" class="search-input flex-grow-1">
+        <input type="text" id="searchInput2" class="search-input flex-grow-1" placeholder="Ara...">
       </div>
       <div class="table-responsive">
         <table id="photoTable" class="table align-middle"><thead></thead><tbody></tbody></table>
@@ -223,7 +238,6 @@ function logout(){ localStorage.removeItem("loggedIn"); location.reload(); }
 function showMain(){ document.getElementById('loginPage').style.display='none'; document.getElementById('mainPage').style.display='block'; loadCsvAndInit(); }
 if(localStorage.getItem('loggedIn')==='true') showMain();
 
-/* CSV YÜKLEME */
 function loadCsvAndInit(){
   fetch(sheetUrl).then(r=>r.text()).then(text=>{
     const parsed=Papa.parse(text,{header:false}).data;
@@ -235,7 +249,6 @@ function loadCsvAndInit(){
   });
 }
 
-/* TABLO OLUŞTURMA VE SIRALAMA */
 function createTable(tableId, headers, rows, searchId, paginationId, isPhoto){
   const table=document.getElementById(tableId), thead=table.querySelector('thead'), tbody=table.querySelector('tbody'),
         search=document.getElementById(searchId), pagination=document.getElementById(paginationId);
@@ -244,14 +257,15 @@ function createTable(tableId, headers, rows, searchId, paginationId, isPhoto){
   function renderHead(){
     thead.innerHTML=''; const tr=document.createElement('tr');
     headers.forEach((h,idx)=>{
-      const th=document.createElement('th'); th.innerHTML=h;
+      const th=document.createElement('th');
+      // Sembol ekle
+      th.innerHTML=`<span class="symbol" title="${h}">i</span>${h}`;
       if(isPhoto && h.toLowerCase().includes('tarih')){
         th.onclick=()=>{ sortAsc=!sortAsc; filtered.sort((a,b)=>{
           const da=a[idx]?.split('.')||[0,0,0], db=b[idx]?.split('.')||[0,0,0];
           const dateA=new Date(+da[2],+da[1]-1,+da[0]), dateB=new Date(+db[2],+db[1]-1,+db[0]);
           return sortAsc? dateA-dateB : dateB-dateA;
         }); page=1; renderPage(); };
-        // İlk yüklemede en yeni tarih
         filtered.sort((a,b)=>{ const da=a[idx]?.split('.')||[0,0,0], db=b[idx]?.split('.')||[0,0,0]; return new Date(+db[2],+db[1]-1,+db[0]) - new Date(+da[2],+da[1]-1,+da[0]); });
       }
       tr.appendChild(th);
@@ -305,7 +319,12 @@ function renderChart(){
   const selectedDate=document.getElementById('chartDate').value;
   const countsMap={};
   dataRows.forEach(r=>{
-    const date=r[0]; if(selectedDate && !date.endsWith(selectedDate.split('-').reverse().join('.'))) return;
+    const dateStr=r[0];
+    if(selectedDate){
+      const [yyyy,mm,dd]=selectedDate.split('-'); 
+      const formatted=dd+'.'+mm+'.'+yyyy;
+      if(dateStr!==formatted) return;
+    }
     const person=r[3]?.trim()||"Bilinmeyen";
     const count=parseInt(r[4])||0;
     countsMap[person]=(countsMap[person]||0)+count;
