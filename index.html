@@ -89,6 +89,7 @@ img.thumb:hover{ transform:scale(1.05); }
   border-radius:10px;
   padding:10px;
   border:1px solid #bcc6d0;
+  flex-grow:1;
 }
 .pagination .page-link{ border-radius:8px; }
 .modal-img-wrap{
@@ -132,10 +133,10 @@ img.thumb:hover{ transform:scale(1.05); }
     </div>
     <div id="dataTableWrapper">
       <div class="d-flex align-items-center mb-3">
-        <div class="input-group" style="max-width:250px;">
+        <div class="input-group" style="max-width:250px; position:relative;">
           <input type="text" id="searchInput1" class="form-control" placeholder="Ara...">
-          <input type="date" id="dateInput1" style="width:1px; padding:0; border:none;">
-          <button class="btn btn-outline-secondary" id="dateBtn1">📅</button>
+          <input type="date" id="dateInput1" style="position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer;">
+          <button class="btn btn-outline-secondary" id="dateBtn1" style="position:absolute; right:0;">📅</button>
         </div>
         <button class="btn btn-outline-danger ms-3" onclick="logout()">Çıkış Yap</button>
       </div>
@@ -146,10 +147,10 @@ img.thumb:hover{ transform:scale(1.05); }
     </div>
     <div id="photoTableWrapper" style="display:none;">
       <div class="d-flex align-items-center mb-3">
-        <div class="input-group" style="max-width:250px;">
+        <div class="input-group" style="max-width:250px; position:relative;">
           <input type="text" id="searchInput2" class="form-control" placeholder="Ara...">
-          <input type="date" id="dateInput2" style="width:1px; padding:0; border:none;">
-          <button class="btn btn-outline-secondary" id="dateBtn2">📅</button>
+          <input type="date" id="dateInput2" style="position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer;">
+          <button class="btn btn-outline-secondary" id="dateBtn2" style="position:absolute; right:0;">📅</button>
         </div>
       </div>
       <div class="table-responsive">
@@ -189,11 +190,8 @@ function login(){
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify({username:u,password:p})
   }).then(r=>r.json()).then(res=>{
-    if(res && res.success){
-      localStorage.setItem('loggedIn','true'); showMain();
-    }else{
-      err.textContent=res.message||'Kullanıcı adı veya şifre hatalı!';
-    }
+    if(res && res.success){ localStorage.setItem('loggedIn','true'); showMain(); }
+    else err.textContent=res.message||'Kullanıcı adı veya şifre hatalı!';
   }).catch(()=>{err.textContent='Sunucuya ulaşılamadı!';});
 }
 document.getElementById('loginBtn').addEventListener('click',login);
@@ -229,13 +227,13 @@ document.getElementById('btnPhoto').onclick=function(){document.getElementById('
 let modal=new bootstrap.Modal(document.getElementById('imageModal'));
 function openImage(src){document.getElementById('modalImage').src=src; modal.show();}
 
-// Datepicker butonları
+// Tarih butonları ve datepicker
 function setupDatePicker(dateInputId, searchInputId, btnId){
   const dateInput=document.getElementById(dateInputId);
   const searchInput=document.getElementById(searchInputId);
   const btn=document.getElementById(btnId);
-  btn.addEventListener('click',()=>{ dateInput.focus(); dateInput.click(); });
-  dateInput.addEventListener('change',()=>{ searchInput.value=dateInput.value; searchInput.dispatchEvent(new Event('input')); });
+  btn.addEventListener('click',()=>{ dateInput.style.opacity='1'; dateInput.focus(); dateInput.click(); });
+  dateInput.addEventListener('change',()=>{ searchInput.value=dateInput.value; searchInput.dispatchEvent(new Event('input')); dateInput.style.opacity='0'; });
 }
 setupDatePicker('dateInput1','searchInput1','dateBtn1');
 setupDatePicker('dateInput2','searchInput2','dateBtn2');
