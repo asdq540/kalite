@@ -53,13 +53,31 @@ body {
 
 .table {
   border-collapse: collapse !important;
+  width: 100%;
 }
 .table th, .table td {
   border: 1px solid #dee2e6 !important;
+  padding: 8px;
+}
+.table thead th {
+  background: var(--table-header);
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
 /* Gizleme */
 .hidden { display: none; }
+
+/* Responsive küçük ekranlarda butonlar düzeni */
+@media (max-width: 576px) {
+  .tab-menu button {
+    display: inline-block;
+    margin-bottom: 8px;
+    width: 48%;
+  }
+}
 </style>
 </head>
 <body>
@@ -85,9 +103,9 @@ body {
   <h1 class="mb-4">Kalite Kontrol Paneli</h1>
 
   <!-- TAB MENÜ -->
-  <div class="tab-menu">
-    <button class="btn btn-primary" onclick="showTab('veriTablosu')">Veri Tablosu</button>
-    <button class="btn btn-secondary" onclick="showTab('fotoTablosu')">Fotoğraf Tablosu</button>
+  <div class="tab-menu mb-3">
+    <button id="tabVeriBtn" class="btn btn-primary" onclick="showTab('veriTablosu')">Veri Tablosu</button>
+    <button id="tabFotoBtn" class="btn btn-outline-secondary" onclick="showTab('fotoTablosu')">Fotoğraf Tablosu</button>
   </div>
 
   <!-- ARAMA -->
@@ -137,6 +155,7 @@ function login() {
       document.getElementById("loginPage").classList.add("hidden");
       document.getElementById("mainPage").classList.remove("hidden");
       loadTables();
+      showTab('veriTablosu'); // varsayılan sekme
     } else {
       errorMsg.textContent = "Kullanıcı adı veya şifre hatalı!";
     }
@@ -154,6 +173,26 @@ function showTab(tabName) {
   document.getElementById("veriTablosu").classList.add("hidden");
   document.getElementById("fotoTablosu").classList.add("hidden");
   document.getElementById(tabName).classList.remove("hidden");
+
+  // sekme buton renkleri
+  const tabVeriBtn = document.getElementById('tabVeriBtn');
+  const tabFotoBtn = document.getElementById('tabFotoBtn');
+  if (tabName === 'veriTablosu') {
+    tabVeriBtn.classList.replace('btn-outline-secondary','btn-primary');
+    tabVeriBtn.classList.add('btn-primary');
+    tabVeriBtn.classList.remove('btn-outline-secondary');
+    tabFotoBtn.classList.remove('btn-primary');
+    tabFotoBtn.classList.add('btn-outline-secondary');
+  } else {
+    tabFotoBtn.classList.replace('btn-outline-secondary','btn-primary');
+    tabFotoBtn.classList.add('btn-primary');
+    tabFotoBtn.classList.remove('btn-outline-secondary');
+    tabVeriBtn.classList.remove('btn-primary');
+    tabVeriBtn.classList.add('btn-outline-secondary');
+  }
+
+  // mevcut arama değerini aktif tabloya uygula
+  filterVisibleTable();
 }
 
 /* ---------------------- TABLOLARI YÜKLE ---------------------- */
@@ -162,9 +201,15 @@ function loadTables() {
     .then(res => res.text())
     .then(csv => {
       const data = Papa.parse(csv, { header: false }).data;
-
       loadVeriTablosu(data);
       loadFotoTablosu(data);
+      // arama kutusuna event listener sadece bir kez ekle
+      const searchInput = document.getElementById('searchInput');
+      searchInput.removeEventListener('input', filterVisibleTable); // guard
+      searchInput.addEventListener('input', filterVisibleTable);
+    })
+    .catch(err => {
+      console.error('Sheet yüklenirken hata:', err);
     });
 }
 
@@ -189,7 +234,7 @@ function loadVeriTablosu(data) {
     const tr = document.createElement("tr");
     row.slice(startCol, endCol + 1).forEach(cell => {
       const td = document.createElement("td");
-      td.textContent = cell;
+      td.textContent = cell !== undefined ? cell : '';
       tr.appendChild(td);
     });
     tbody.appendChild(tr);
@@ -215,24 +260,24 @@ function loadFotoTablosu(data) {
   const photoTh = document.createElement("th");
   photoTh.textContent = "Fotoğraf";
   headerRow.appendChild(photoTh);
-
   thead.appendChild(headerRow);
 
   data.slice(1).forEach(row => {
     const tr = document.createElement("tr");
-
     row.slice(startCol, endCol + 1).forEach(cell => {
       const td = document.createElement("td");
-      td.textContent = cell;
+      td.textContent = cell !== undefined ? cell : '';
       tr.appendChild(td);
     });
 
     const photoTd = document.createElement("td");
-    const photoUrl = row[5];
+    const photoUrl = row[5]; // F sütunu (index 5)
 
     if (photoUrl && photoUrl.trim() !== "") {
+      // güvenlik için URL encode edilmesine dikkat et
+      const safeUrl = photoUrl.replace(/'/g, "%27");
       photoTd.innerHTML = `
-        <button class="btn btn-sm btn-primary" onclick="window.open('${photoUrl}', '_blank')">
+        <button class="btn btn-sm btn-primary" onclick="window.open('${safeUrl}', '_blank')">
           Fotoğrafı Aç
         </button>`;
     } else {
@@ -244,12 +289,31 @@ function loadFotoTablosu(data) {
   });
 }
 
+/* ----- ARAMA: Görünür tabloyu filtrele ----- */
+function filterVisibleTable() {
+  const filter = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+
+  // hangi tablo görünürse onun tbody'sini seç
+  const veriVisible = !document.getElementById('veriTablosu').classList.contains('hidden');
+  const tbody = veriVisible
+    ? document.querySelector('#dataTable1 tbody')
+    : document.querySelector('#dataTable2 tbody');
+
+  if (!tbody) return;
+
+  tbody.querySelectorAll('tr').forEach(tr => {
+    const text = (tr.textContent || '').toLowerCase();
+    tr.style.display = text.includes(filter) ? '' : 'none';
+  });
+}
+
 /* ---------------------- OTURUM KONTROL ---------------------- */
 window.onload = () => {
   if (localStorage.getItem("loggedIn") === "true") {
     document.getElementById("loginPage").classList.add("hidden");
     document.getElementById("mainPage").classList.remove("hidden");
     loadTables();
+    showTab('veriTablosu');
   }
 };
 </script>
