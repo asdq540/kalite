@@ -200,7 +200,7 @@ document.getElementById('btnPhoto').onclick=function(){document.getElementById('
 let modal=new bootstrap.Modal(document.getElementById('imageModal'));
 function openImage(src){document.getElementById('modalImage').src=src; modal.show();}
 
-// Dashboard ve Grafik (Açıklama bazlı)
+// Dashboard ve Tarih+Açıklama Bazlı Grafik
 function updateDashboardStats(){
     // Kartlar
     const totalProcess = dataRows.length;
@@ -212,10 +212,12 @@ function updateDashboardStats(){
     document.getElementById('errorRate').textContent = errorRate;
     document.getElementById('todayProcess').textContent = todayProcess;
 
-    // Açıklama sayımı
+    // Tarih ve Açıklama bazlı sayım
     const countsMap = {};
     dataRows.forEach(r=>{
-        const key = r[2]?.trim() || "Bilinmeyen";
+        const date = r[0]?.trim() || "Bilinmeyen Tarih";
+        const desc = r[2]?.trim() || "Bilinmeyen Açıklama";
+        const key = date + " - " + desc;
         countsMap[key] = (countsMap[key] || 0) + 1;
     });
     const labels = Object.keys(countsMap);
@@ -226,7 +228,7 @@ function updateDashboardStats(){
     errorChart = new Chart(ctx, {
         type:'bar',
         data:{labels:labels,datasets:[{label:'Açıklama Sıklığı',data:data,backgroundColor:'#dc3545'}]},
-        options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
+        options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}, x:{ticks:{autoSkip:false}}}}
     });
 }
 </script>
