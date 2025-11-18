@@ -338,5 +338,27 @@ function openImage(src){
 }
 
 </script>
+<script>
+// Flexible datepicker for both inputs
+function attachFlexibleDatepicker(id){
+  const input = document.getElementById(id);
+  if(!input) return;
+  input.addEventListener("click", () => {
+      const picker = document.createElement("input");
+      picker.type = "date";
+      picker.style.position = "absolute";
+      picker.style.opacity = "0";
+      document.body.appendChild(picker);
+      picker.addEventListener("change", () => {
+          input.value = picker.value;
+      });
+      picker.focus();
+      picker.click();
+      picker.addEventListener("blur", () => picker.remove());
+  });
+}
+attachFlexibleDatepicker("searchInput1");
+attachFlexibleDatepicker("searchInput2");
+</script>
 </body>
 </html>
