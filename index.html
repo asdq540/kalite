@@ -7,14 +7,16 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
 <style>
 :root{
-  --primary:#0d6efd;
-  --bg:#f5f7fa;
+  --primary:#4a90e2;
+  --bg:#f0f2f5;
   --card:#ffffff;
-  --thead:#003366;
-  --row1:#f8fbff;
-  --row2:#f1f4f7;
+  --thead:#1f3d5a;
+  --row1:#fdfdfd;
+  --row2:#f6f8fa;
   --border:#dbe2ea;
-  --shadow:0 6px 22px rgba(0,0,0,0.08);
+  --shadow:0 5px 20px rgba(0,0,0,0.05);
+  --hover:#3b5998;
+  --chartColors: #a8dadc,#f1faee,#ffb4a2,#ffe066,#6a4c93,#ff8fab;
 }
 body{background:var(--bg);font-family:"Segoe UI",sans-serif;padding:20px;}
 .login-container{max-width:420px;margin:90px auto;padding:30px;background:var(--card);border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--border);}
@@ -32,13 +34,13 @@ body{background:var(--bg);font-family:"Segoe UI",sans-serif;padding:20px;}
     position: relative;
     transition: background 0.2s;
 }
-.table thead th:hover{ background: #0056b3; cursor: pointer; }
+.table thead th:hover{ background: var(--hover); cursor: pointer; }
 .table thead th::after{
     content:'';
     display:block;
     height:3px;
     width:100%;
-    background:#0d6efd;
+    background:var(--primary);
     border-radius:2px;
     margin-top:6px;
 }
@@ -171,14 +173,13 @@ function loadCsvAndInit(){
 function createTable(tableId,headers,rows,searchId,paginationId,isPhoto){
   const table = document.getElementById(tableId),thead=table.querySelector('thead'),tbody=table.querySelector('tbody'),
         search = document.getElementById(searchId),pagination=document.getElementById(paginationId);
-  let filtered=[...rows], page=1, sortColumn=null, sortAsc=true;
+  let filtered=[...rows], page=1, sortColumn=null, sortAsc=false; // fotoğraf tablosu default en yeni
 
   function renderHead(){
     thead.innerHTML = '';
     const tr = document.createElement('tr');
     headers.forEach((h, idx) => {
         const th = document.createElement('th');
-        // Semboller
         let icon='', tooltip=h;
         if(h.toLowerCase().includes('tarih')) icon='📅', tooltip='Veri tarihi';
         else if(h.toLowerCase().includes('açıklama')) icon='📝', tooltip='İşlem açıklaması';
@@ -189,7 +190,7 @@ function createTable(tableId,headers,rows,searchId,paginationId,isPhoto){
 
         if(isPhoto && idx===0){
             th.onclick=()=>{
-                if(sortColumn===idx) sortAsc=!sortAsc; else {sortColumn=idx; sortAsc=true;}
+                sortAsc = !sortAsc;
                 filtered.sort((a,b)=>{
                     const da=a[idx]?.split('.')||[0,0,0];
                     const db=b[idx]?.split('.')||[0,0,0];
@@ -211,7 +212,6 @@ function createTable(tableId,headers,rows,searchId,paginationId,isPhoto){
     if(page>totalPages) page=totalPages;
     const start=(page-1)*PAGE_SIZE;
     const slice=filtered.slice(start,start+PAGE_SIZE);
-
     slice.forEach(row=>{
       const tr=document.createElement('tr');
       row.forEach((c,i)=>{
@@ -260,7 +260,6 @@ btnChart.addEventListener('click',()=>{
   btnData.classList.add('btn-outline-primary'); btnData.classList.remove('btn-primary');
   btnPhoto.classList.add('btn-outline-primary'); btnPhoto.classList.remove('btn-primary');
 
-  // Grafik: M sütunu (sorumlu) ve N sütunu (sayısı)
   const countsMap = {};
   dataRows.forEach(r=>{
     const person = r[3]?.trim() || "Bilinmeyen";
@@ -272,9 +271,10 @@ btnChart.addEventListener('click',()=>{
 
   if(errorChart) errorChart.destroy();
   const ctx = document.getElementById('errorChart').getContext('2d');
+  const chartColors = ['#a8dadc','#f1faee','#ffb4a2','#ffe066','#6a4c93','#ff8fab'];
   errorChart = new Chart(ctx, {
     type:'bar',
-    data:{labels:labels,datasets:[{label:'İşlem Sayısı',data:data,backgroundColor:'#0d6efd'}]},
+    data:{labels:labels,datasets:[{label:'İşlem Sayısı',data:data,backgroundColor:chartColors}]},
     options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}},x:{ticks:{autoSkip:false}}}
   });
 });
