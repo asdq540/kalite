@@ -52,34 +52,20 @@ body {
   box-shadow: 0 2px 15px rgba(0,0,0,0.08);
 }
 
-/* Tablo Stilleri */
+/* TABLO KENARLIKLARI */
 .table {
-  border-collapse: collapse; /* Hücreler net ayrılır */
-  width: 100%;
+  border-collapse: collapse;
 }
+
 .table th, .table td {
-  border: 1px solid #dee2e6; /* Hücre kenarlıkları */
+  border: 1px solid #dee2e6;
   padding: 10px;
-  vertical-align: middle;
-}
-.table thead th {
-  background-color: var(--table-header);
-  color: #fff;
-}
-.table tbody tr {
-  transition: background 0.15s, transform 0.1s;
-}
-.table tbody tr:hover {
-  background: #e9f3ff !important;
-  transform: scale(1.01);
 }
 
-.btn-outline-danger {
-  margin-top: 20px;
-  font-weight: 600;
-  border-radius: 10px;
-}
+.table thead { background: var(--table-header); color: white; }
+.table tbody tr:hover { background: #e9f3ff !important; }
 
+.btn-outline-danger { margin-top: 20px; font-weight: 600; border-radius: 10px; }
 .hidden { display: none; }
 </style>
 </head>
@@ -135,7 +121,7 @@ function login() {
   .then(res => res.json())
   .then(data => {
     if (data.success) {
-      localStorage.setItem("loggedIn", "true");  
+      localStorage.setItem("loggedIn", "true");
       document.getElementById("loginPage").classList.add("hidden");
       document.getElementById("mainPage").classList.remove("hidden");
       loadTable();
@@ -168,29 +154,51 @@ function loadTable() {
     .then(csvText => {
       const data = Papa.parse(csvText, { header: false }).data;
 
-      const startCol = 9;  // J
-      const endCol = 16;   // Q
+      const startCol = 9;
+      const endCol = 16;
 
       const thead = table.querySelector("thead");
       const tbody = table.querySelector("tbody");
       thead.innerHTML = "";
       tbody.innerHTML = "";
 
+      // BAŞLIK OLUŞTUR
       const headerRow = document.createElement("tr");
       data[0].slice(startCol, endCol + 1).forEach(text => {
         const th = document.createElement("th");
         th.textContent = text;
         headerRow.appendChild(th);
       });
+
+      // FOTOĞRAF SÜTUNU BAŞLIK
+      const photoHeader = document.createElement("th");
+      photoHeader.textContent = "Fotoğraf";
+      headerRow.appendChild(photoHeader);
+
       thead.appendChild(headerRow);
 
+      // VERİLERİ YAZ
       data.slice(1).forEach(row => {
         const tr = document.createElement("tr");
+
         row.slice(startCol, endCol + 1).forEach(cell => {
           const td = document.createElement("td");
           td.textContent = cell;
           tr.appendChild(td);
         });
+
+        // FOTOĞRAF BUTONU
+        const photoTd = document.createElement("td");
+        const photoUrl = row[5]; // F sütunu fotoğraf linki
+
+        if (photoUrl && photoUrl.trim() !== "") {
+          photoTd.innerHTML =
+            `<button class="btn btn-sm btn-primary" onclick="window.open('${photoUrl}', '_blank')">Fotoğrafı Gör</button>`;
+        } else {
+          photoTd.innerHTML = `<span class="text-muted">Yok</span>`;
+        }
+
+        tr.appendChild(photoTd);
         tbody.appendChild(tr);
       });
 
@@ -204,7 +212,7 @@ function loadTable() {
     });
 }
 
-// Oturum Kontrolü
+// Sayfa Yüklendiğinde Oturum Kontrolü
 window.onload = function() {
   if (localStorage.getItem("loggedIn") === "true") {
     document.getElementById("loginPage").classList.add("hidden");
