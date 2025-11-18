@@ -52,7 +52,7 @@ h1.section-title{ color:var(--thead); font-weight:700; margin-bottom:16px; }
 .search-input{ margin-bottom:12px; border-radius:8px; padding:10px; border:1px solid #cfd6db; }
 
 /* pagination */
-.pagination { justify-content:center; margin-top:12px; }
+.pagination { justify-content:center; margin-top:12px; flex-wrap: wrap; }
 .page-link{ cursor:pointer; }
 
 /* thumbnail */
@@ -95,6 +95,28 @@ img.thumb:hover{ transform:scale(1.06); }
 }
 .fadeIn{ opacity:1; }
 .fadeOut{ opacity:0; }
+
+/* --- Mobile Responsive --- */
+@media (max-width: 576px) {
+  .table th, .table td {
+    font-size: 12px;
+    padding: 6px !important;
+    white-space: nowrap; /* hücre sığmazsa scroll ile taşır */
+  }
+  .pagination {
+    flex-wrap: wrap;
+  }
+  .pagination .page-item {
+    margin-bottom: 4px;
+  }
+  .pagination .page-link {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+  .table-responsive {
+    overflow-x: auto;
+  }
+}
 </style>
 </head>
 <body>
