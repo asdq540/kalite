@@ -20,10 +20,10 @@ body { background: var(--background); font-family: "Segoe UI", sans-serif; paddi
 .login-container h3 { font-weight: 600; color: #093e72; }
 
 #mainPage h1 { color: #093e72; font-weight: 700; margin-bottom: 25px; }
-#searchInput { margin-bottom: 20px; border-radius: 10px; padding: 10px 15px; border: 1px solid #bfc4c9; }
+#searchInput, #searchData, #searchPhoto { margin-bottom: 20px; border-radius: 10px; padding: 10px 15px; border: 1px solid #bfc4c9; }
 
 .table-container { overflow-x: auto; background: white; padding: 10px; border-radius: 12px; box-shadow: 0 2px 15px rgba(0,0,0,0.08); margin-bottom:20px; }
-.table { border-collapse: collapse; }
+.table { border-collapse: collapse; width:100%; }
 .table th, .table td { border: 1px solid #dee2e6 !important; padding: 8px !important; text-align:center; }
 .table thead { background: var(--table-header) !important; color: white; }
 .table tbody tr:hover { background: #e9f3ff !important; }
@@ -136,76 +136,53 @@ function loadCSV(){
     .then(csvText=>{
       const data = Papa.parse(csvText,{header:false}).data;
 
-      // Başlıkları sakla
-      const headerData = data[0];
-
-      // Veri tablosu J-Q (9-16)
-      const dataHeader = headerData.slice(9,17);
+      const header = data[0];
       dataRows = data.slice(1).map(r=>r.slice(9,17));
-
-      // Fotoğraf tablosu A-G (0-6)
-      const photoHeader = headerData.slice(0,7);
       photoRows = data.slice(1).map(r=>r.slice(0,7));
 
-      renderData(dataHeader, dataRows);
-      renderPhotos(photoHeader, photoRows);
+      renderData(header.slice(9,17));
+      renderPhotos(header.slice(0,7));
       setupSearch();
     });
 }
 
 // Veri Tablosu render
-function renderData(header, rows){
+function renderData(header){
   const table = document.getElementById("dataTable");
   const thead = table.querySelector("thead");
   const tbody = table.querySelector("tbody");
-  tbody.innerHTML="";
-  thead.innerHTML="";
+  tbody.innerHTML=""; thead.innerHTML="";
 
-  // Başlık
   const trHead = document.createElement("tr");
-  header.slice(9,17).forEach(text=>{
-    const th = document.createElement("th"); th.textContent=text; trHead.appendChild(th);
-  });
+  header.forEach(text=>{ const th=document.createElement("th"); th.textContent=text; trHead.appendChild(th); });
   thead.appendChild(trHead);
 
   const start = (dataPage-1)*pageSize;
   const end = start+pageSize;
-  rows.slice(start,end).forEach(row=>{
+  dataRows.slice(start,end).forEach(row=>{
     const tr = document.createElement("tr");
-    row.forEach(cell=>{
-      const td = document.createElement("td"); td.textContent=cell; tr.appendChild(td);
-    });
+    row.forEach(cell=>{ const td=document.createElement("td"); td.textContent=cell; tr.appendChild(td); });
     tbody.appendChild(tr);
   });
   setupPagination('data');
 }
 
 // Fotoğraf Tablosu render
-function renderPhotos(header, rows){
+function renderPhotos(header){
   const table = document.getElementById("photoTable");
   const thead = table.querySelector("thead");
   const tbody = table.querySelector("tbody");
-  tbody.innerHTML="";
-  thead.innerHTML="";
+  tbody.innerHTML=""; thead.innerHTML="";
 
-  // Başlık
   const trHead = document.createElement("tr");
   header.forEach(text=>{ const th=document.createElement("th"); th.textContent=text; trHead.appendChild(th); });
   thead.appendChild(trHead);
 
   const start = (photoPage-1)*pageSize;
   const end = start+pageSize;
-  rows.slice(start,end).forEach(row=>{
+  photoRows.slice(start,end).forEach(row=>{
     const tr = document.createElement("tr");
-    row.forEach((cell,idx)=>{
-      const td=document.createElement("td"); td.textContent=cell;
-      // İsim sütunu (F sütunu index=5) -> renklendirme bir önceki E sütunu index=4
-      if(idx===4){ 
-        const color = stringToColor(row[5]); 
-        td.style.background=color; td.style.color="white"; td.style.fontWeight="600";
-      }
-      tr.appendChild(td);
-    });
+    row.forEach(cell=>{ const td=document.createElement("td"); td.textContent=cell; tr.appendChild(td); });
     tbody.appendChild(tr);
   });
   setupPagination('photo');
@@ -240,18 +217,6 @@ function setupSearch(){
       tr.style.display= tr.textContent.toLowerCase().includes(filter)? "":"none";
     });
   });
-}
-
-// İsimden renk üret
-function stringToColor(str){
-  let hash=0;
-  for(let i=0;i<str.length;i++){ hash=str.charCodeAt(i)+((hash<<5)-hash);}
-  let color="#";
-  for(let i=0;i<3;i++){
-    const value=(hash>>(i*8))&0xFF;
-    color+=("00"+value.toString(16)).slice(-2);
-  }
-  return color+"33"; // Soft renk
 }
 
 // Sayfa yüklenince kontrol
