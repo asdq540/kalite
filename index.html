@@ -34,16 +34,15 @@ body {
 }
 .login-container h3 { font-weight: 600; color: #093e72; }
 
-/* Ana Panel */
-#mainPage h1 { color: #093e72; font-weight: 700; margin-bottom: 25px; }
-
-#searchInput {
+/* Tab Menü */
+.tab-menu {
   margin-bottom: 20px;
-  border-radius: 10px;
-  padding: 10px 15px;
-  border: 1px solid #bfc4c9;
+}
+.tab-menu button {
+  margin-right: 10px;
 }
 
+/* Tablolar */
 .table-container {
   overflow-x: auto;
   background: white;
@@ -52,20 +51,14 @@ body {
   box-shadow: 0 2px 15px rgba(0,0,0,0.08);
 }
 
-/* TABLO KENARLIKLARI */
 .table {
-  border-collapse: collapse;
+  border-collapse: collapse !important;
 }
-
 .table th, .table td {
-  border: 1px solid #dee2e6;
-  padding: 10px;
+  border: 1px solid #dee2e6 !important;
 }
 
-.table thead { background: var(--table-header); color: white; }
-.table tbody tr:hover { background: #e9f3ff !important; }
-
-.btn-outline-danger { margin-top: 20px; font-weight: 600; border-radius: 10px; }
+/* Gizleme */
 .hidden { display: none; }
 </style>
 </head>
@@ -88,17 +81,36 @@ body {
 
 <!-- Ana Panel -->
 <div id="mainPage" class="hidden container">
-  <h1>Kalite Veri Listesi</h1>
-  <input type="text" id="searchInput" class="form-control" placeholder="Tabloda arayın...">
 
-  <div class="table-container">
-    <table class="table table-striped table-hover" id="dataTable">
+  <h1 class="mb-4">Kalite Kontrol Paneli</h1>
+
+  <!-- TAB MENÜ -->
+  <div class="tab-menu">
+    <button class="btn btn-primary" onclick="showTab('veriTablosu')">Veri Tablosu</button>
+    <button class="btn btn-secondary" onclick="showTab('fotoTablosu')">Fotoğraf Tablosu</button>
+  </div>
+
+  <!-- ARAMA -->
+  <input type="text" id="searchInput" class="form-control mb-3" placeholder="Arama yapın...">
+
+  <!-- VERİ TABLOSU (J–Q) -->
+  <div id="veriTablosu" class="table-container">
+    <table class="table table-striped table-hover" id="dataTable1">
       <thead></thead>
       <tbody></tbody>
     </table>
   </div>
 
-  <button class="btn btn-outline-danger" onclick="logout()">Çıkış Yap</button>
+  <!-- FOTOĞRAF TABLOSU (A–G + Fotoğraf) -->
+  <div id="fotoTablosu" class="table-container hidden">
+    <table class="table table-striped table-hover" id="dataTable2">
+      <thead></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <button class="btn btn-outline-danger mt-3" onclick="logout()">Çıkış Yap</button>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -107,7 +119,7 @@ body {
 const BACKEND_URL = "https://kaliteform.onrender.com";
 const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBWFSVSD6NvBNqC8me1le_unCCLOKIOIS2DfZFXUTji0MHC7SaWNIy4a0Laob9xOiAJyPnp7LuZ1R-/pub?output=csv";
 
-// Giriş İşlemi
+/* ---------------------- LOGIN ---------------------- */
 function login() {
   const username = document.getElementById("username").value.trim();
   const password = document.getElementById("password").value.trim();
@@ -124,100 +136,120 @@ function login() {
       localStorage.setItem("loggedIn", "true");
       document.getElementById("loginPage").classList.add("hidden");
       document.getElementById("mainPage").classList.remove("hidden");
-      loadTable();
+      loadTables();
     } else {
       errorMsg.textContent = "Kullanıcı adı veya şifre hatalı!";
     }
   })
-  .catch(() => {
-    errorMsg.textContent = "Sunucuya ulaşılamadı!";
-  });
+  .catch(() => errorMsg.textContent = "Sunucuya ulaşılamadı!");
 }
 
-// Çıkış Yap
 function logout() {
   localStorage.removeItem("loggedIn");
-  document.getElementById("mainPage").classList.add("hidden");
-  document.getElementById("loginPage").classList.remove("hidden");
-  document.getElementById("username").value = "";
-  document.getElementById("password").value = "";
-  document.getElementById("errorMsg").textContent = "";
+  location.reload();
 }
 
-// Tabloyu Yükle
-function loadTable() {
-  const table = document.getElementById("dataTable");
-  const searchInput = document.getElementById("searchInput");
+/* ---------------------- TAB MENÜ ---------------------- */
+function showTab(tabName) {
+  document.getElementById("veriTablosu").classList.add("hidden");
+  document.getElementById("fotoTablosu").classList.add("hidden");
+  document.getElementById(tabName).classList.remove("hidden");
+}
 
+/* ---------------------- TABLOLARI YÜKLE ---------------------- */
+function loadTables() {
   fetch(sheetUrl)
-    .then(response => response.text())
-    .then(csvText => {
-      const data = Papa.parse(csvText, { header: false }).data;
+    .then(res => res.text())
+    .then(csv => {
+      const data = Papa.parse(csv, { header: false }).data;
 
-      const startCol = 9;
-      const endCol = 16;
-
-      const thead = table.querySelector("thead");
-      const tbody = table.querySelector("tbody");
-      thead.innerHTML = "";
-      tbody.innerHTML = "";
-
-      // BAŞLIK OLUŞTUR
-      const headerRow = document.createElement("tr");
-      data[0].slice(startCol, endCol + 1).forEach(text => {
-        const th = document.createElement("th");
-        th.textContent = text;
-        headerRow.appendChild(th);
-      });
-
-      // FOTOĞRAF SÜTUNU BAŞLIK
-      const photoHeader = document.createElement("th");
-      photoHeader.textContent = "Fotoğraf";
-      headerRow.appendChild(photoHeader);
-
-      thead.appendChild(headerRow);
-
-      // VERİLERİ YAZ
-      data.slice(1).forEach(row => {
-        const tr = document.createElement("tr");
-
-        row.slice(startCol, endCol + 1).forEach(cell => {
-          const td = document.createElement("td");
-          td.textContent = cell;
-          tr.appendChild(td);
-        });
-
-        // FOTOĞRAF BUTONU
-        const photoTd = document.createElement("td");
-        const photoUrl = row[5]; // F sütunu fotoğraf linki
-
-        if (photoUrl && photoUrl.trim() !== "") {
-          photoTd.innerHTML =
-            `<button class="btn btn-sm btn-primary" onclick="window.open('${photoUrl}', '_blank')">Fotoğrafı Gör</button>`;
-        } else {
-          photoTd.innerHTML = `<span class="text-muted">Yok</span>`;
-        }
-
-        tr.appendChild(photoTd);
-        tbody.appendChild(tr);
-      });
-
-      // Arama
-      searchInput.addEventListener("keyup", () => {
-        const filter = searchInput.value.toLowerCase();
-        tbody.querySelectorAll("tr").forEach(tr => {
-          tr.style.display = tr.textContent.toLowerCase().includes(filter) ? "" : "none";
-        });
-      });
+      loadVeriTablosu(data);
+      loadFotoTablosu(data);
     });
 }
 
-// Sayfa Yüklendiğinde Oturum Kontrolü
-window.onload = function() {
+/* ----- VERİ TABLOSU (J–Q) ----- */
+function loadVeriTablosu(data) {
+  const startCol = 9;  
+  const endCol = 16;
+
+  const thead = document.querySelector("#dataTable1 thead");
+  const tbody = document.querySelector("#dataTable1 tbody");
+  thead.innerHTML = ""; tbody.innerHTML = "";
+
+  const headerRow = document.createElement("tr");
+  data[0].slice(startCol, endCol + 1).forEach(h => {
+    const th = document.createElement("th");
+    th.textContent = h;
+    headerRow.appendChild(th);
+  });
+  thead.appendChild(headerRow);
+
+  data.slice(1).forEach(row => {
+    const tr = document.createElement("tr");
+    row.slice(startCol, endCol + 1).forEach(cell => {
+      const td = document.createElement("td");
+      td.textContent = cell;
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+/* ----- FOTOĞRAF TABLOSU (A–G + Fotoğraf) ----- */
+function loadFotoTablosu(data) {
+  const startCol = 0;
+  const endCol = 6;
+
+  const thead = document.querySelector("#dataTable2 thead");
+  const tbody = document.querySelector("#dataTable2 tbody");
+  thead.innerHTML = ""; tbody.innerHTML = "";
+
+  const headerRow = document.createElement("tr");
+  data[0].slice(startCol, endCol + 1).forEach(h => {
+    const th = document.createElement("th");
+    th.textContent = h;
+    headerRow.appendChild(th);
+  });
+
+  const photoTh = document.createElement("th");
+  photoTh.textContent = "Fotoğraf";
+  headerRow.appendChild(photoTh);
+
+  thead.appendChild(headerRow);
+
+  data.slice(1).forEach(row => {
+    const tr = document.createElement("tr");
+
+    row.slice(startCol, endCol + 1).forEach(cell => {
+      const td = document.createElement("td");
+      td.textContent = cell;
+      tr.appendChild(td);
+    });
+
+    const photoTd = document.createElement("td");
+    const photoUrl = row[5];
+
+    if (photoUrl && photoUrl.trim() !== "") {
+      photoTd.innerHTML = `
+        <button class="btn btn-sm btn-primary" onclick="window.open('${photoUrl}', '_blank')">
+          Fotoğrafı Aç
+        </button>`;
+    } else {
+      photoTd.innerHTML = `<span class="text-muted">Yok</span>`;
+    }
+
+    tr.appendChild(photoTd);
+    tbody.appendChild(tr);
+  });
+}
+
+/* ---------------------- OTURUM KONTROL ---------------------- */
+window.onload = () => {
   if (localStorage.getItem("loggedIn") === "true") {
     document.getElementById("loginPage").classList.add("hidden");
     document.getElementById("mainPage").classList.remove("hidden");
-    loadTable();
+    loadTables();
   }
 };
 </script>
