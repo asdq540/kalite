@@ -131,11 +131,13 @@ function loadTables() {
     .then(csvText => {
       const data = Papa.parse(csvText, { header: false }).data;
 
-      // Ana tablo J-Q (9-16)
+      // Ana tablo J-Q (9-16), sadece dolu satırları al
       const startColMain = 9, endColMain = 16;
       let headerMain = data[0].slice(startColMain,endColMain+1);
-      let bodyMain = data.slice(1).map(row => row.slice(startColMain,endColMain+1));
-      populateTable('#dataTable', headerMain, bodyMain);
+      let bodyMain = data.slice(1)
+                         .filter(row => row[startColMain] && row[startColMain].trim() !== "")
+                         .map(row => row.slice(startColMain,endColMain+1));
+      populateTable('#dataTable', headerMain, bodyMain, 10); // sayfa başına 10
 
       // Fotoğraf tablosu A-G (0-6)
       const startColPhoto = 0, endColPhoto = 6;
@@ -146,18 +148,18 @@ function loadTables() {
         if(rowData[5]) rowData[5] = `<img src="${rowData[5]}" class="table-img">`;
         return rowData;
       });
-      populateTable('#photoTable', headerPhoto, bodyPhoto);
+      populateTable('#photoTable', headerPhoto, bodyPhoto, 20); // foto tablosu 20
     });
 }
 
 // Table populate
-function populateTable(selector, header, body){
+function populateTable(selector, header, body, pageLength){
   const table = $(selector);
   table.find('thead').html('<tr>'+header.map(h=>`<th>${h}</th>`).join('')+'</tr>');
   table.find('tbody').html(body.map(r=>'<tr>'+r.map(c=>`<td>${c}</td>`).join('')+'</tr>').join(''));
 
   $(selector).DataTable({
-    pageLength: 20,
+    pageLength: pageLength,
     destroy: true,
     language: {
       search: "Ara:",
