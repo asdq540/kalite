@@ -13,8 +13,8 @@
   --bg:#f6f8fa;
   --card:#ffffff;
   --thead:#264653;
-  --row1:#fefefe;
-  --row2:#f1f3f5;
+  --row1:#ffffff;
+  --row2:#f3f4f6;
   --border:#d4d7dc;
   --shadow:0 4px 18px rgba(0,0,0,0.08);
 }
@@ -95,15 +95,16 @@ img.thumb{
   cursor:pointer;
 }
 
+/* Arama */
 .search-input{
   border-radius:10px;
   padding:10px;
   border:1px solid #bcc6d0;
 }
 
-/* Grafik alanı kısaldı */
+/* Grafik alanı yükseklik */
 #chartContainer{
-  height: 260px !important;
+  height:260px !important;
   padding:15px;
 }
 
@@ -113,6 +114,7 @@ img.thumb{
   border-radius:30px;
   font-weight:600;
   border:1px solid var(--primary);
+  background:white;
 }
 .tab-btn.active{
   background:var(--primary);
@@ -122,392 +124,471 @@ img.thumb{
 </head>
 <body>
 
-<!-- LOGIN -->
+<!-- LOGIN SAYFASI -->
 <div id="loginPage" class="login-container">
   <h3 class="text-center mb-3" style="color:var(--thead);">Kalite Kontrol Giriş</h3>
+
   <div class="mb-3">
     <label class="form-label">Kullanıcı Adı</label>
     <input id="username" class="form-control">
   </div>
+
   <div class="mb-3">
     <label class="form-label">Şifre</label>
     <input id="password" type="password" class="form-control">
   </div>
+
   <button onclick="login()" class="btn btn-primary w-100">Giriş Yap</button>
+
   <div id="errorMsg" class="text-danger text-center mt-2"></div>
 </div>
-<!-- BÖLÜM 3 — JavaScript: CSV yükleme, tablolar, sıralama, modal, grafik -->
+
+<!-- ANA SAYFA -->
+<div id="mainPage">
+
+  <div class="d-flex gap-2 mb-4">
+    <button id="btnData"  class="tab-btn active">Veri Tablosu</button>
+    <button id="btnPhoto" class="tab-btn">Fotoğraflar</button>
+    <button id="btnChart" class="tab-btn">Grafik</button>
+    <button class="btn btn-danger ms-auto" onclick="logout()">Çıkış</button>
+  </div>
+
+  <!-- VERİ TABLOSU -->
+  <div id="dataTableWrapper">
+    <div class="table-card">
+      <h4 class="section-title mb-3">Veriler</h4>
+      <input id="searchInput1" class="search-input mb-3" placeholder="Ara...">
+
+      <table id="dataTable" class="table">
+        <thead></thead>
+        <tbody></tbody>
+      </table>
+
+      <ul id="pagination1" class="pagination justify-content-center"></ul>
+    </div>
+  </div>
+
+  <!-- FOTO TABLOSU -->
+  <div id="photoTableWrapper" style="display:none;">
+    <div class="table-card">
+      <h4 class="section-title mb-3">Fotoğraflar</h4>
+      <input id="searchInput2" class="search-input mb-3" placeholder="Ara...">
+
+      <table id="photoTable" class="table">
+        <thead></thead>
+        <tbody></tbody>
+      </table>
+
+      <ul id="pagination2" class="pagination justify-content-center"></ul>
+    </div>
+  </div>
+
+  <!-- GRAFİK -->
+  <div id="chartWrapper" style="display:none;">
+    <div class="table-card">
+      <h4 class="section-title mb-3">Tekrar Sayısı Grafiği (T–U–V)</h4>
+
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <label class="form-label">Tarih Seç (Opsiyonel)</label>
+          <input type="date" id="chartDate" class="form-control">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Periyot</label>
+          <select id="chartPeriod" class="form-select">
+            <option value="daily">Günlük</option>
+            <option value="weekly">Haftalık</option>
+            <option value="monthly">Aylık</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="chartContainer">
+        <canvas id="errorChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOTO MODAL -->
+<div class="modal fade" id="imageModal">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <img id="modalImage" style="width:100%;border-radius:8px;">
+    </div>
+  </div>
+</div>
+
+
+<!-- JS KÜTÜPHANELERİ -->
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-/* --- GLOBALS --- */
+/* ============================
+   GLOBALS
+============================ */
 const BACKEND_URL = "https://kaliteform.onrender.com";
 const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBWFSVSD6NvBNqC8me1le_unCCLOKIOIS2DfZFXUTji0MHC7SaWNIy4a0Laob9xOiAJyPnp7LuZ1R-/pub?output=csv";
 const PAGE_SIZE = 10;
 
-let fullRows = [];    // ham CSV satırları (her satır bir array)
-let dataRows = [];    // gösterim için kesilmiş veri (veri tablosu)
-let photoRows = [];   // gösterim için kesilmiş veri (foto tablo)
+let fullRows = [];    
+let dataRows = [];    
+let photoRows = [];   
 let headerRow = [];
+
 let errorChart = null;
 
-/* --- AUTH --- */
+
+/* ============================
+   LOGIN
+============================ */
 function login(){
-  const u = document.getElementById('username').value.trim();
-  const p = document.getElementById('password').value.trim();
-  const err = document.getElementById('errorMsg'); err.textContent = "";
-  if(!u || !p){ err.textContent = "Kullanıcı adı ve şifre boş olamaz."; return; }
+  const u = username.value.trim();
+  const p = password.value.trim();
+  errorMsg.textContent = "";
+
+  if(!u || !p){
+    errorMsg.textContent = "Kullanıcı adı ve şifre boş olamaz.";
+    return;
+  }
+
   fetch(BACKEND_URL + "/login", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({username: u, password: p})
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({username:u, password:p})
   }).then(r=>r.json()).then(res=>{
-    if(res && res.success){ localStorage.setItem("loggedIn","true"); showMain(); }
-    else err.textContent = res?.message || "Giriş başarısız.";
-  }).catch(()=> err.textContent = "Sunucuya ulaşılamadı.");
+    if(res.success){
+      localStorage.setItem("loggedIn","true");
+      showMain();
+    } else {
+      errorMsg.textContent = res.message || "Giriş başarısız.";
+    }
+  }).catch(()=>{
+    errorMsg.textContent = "Sunucuya ulaşılamadı.";
+  });
 }
 
-function logout(){ localStorage.removeItem("loggedIn"); location.reload(); }
+function logout(){
+  localStorage.removeItem("loggedIn");
+  location.reload();
+}
 
+if(localStorage.getItem("loggedIn")==="true") showMain();
+
+
+/* ============================
+   ANA SAYFAYI AÇ + CSV YÜKLE
+============================ */
 function showMain(){
-  document.getElementById('loginPage').style.display = 'none';
-  document.getElementById('mainPage').style.display = 'block';
-  loadCsvAndInit();
+  loginPage.style.display = "none";
+  mainPage.style.display = "block";
+  loadCsv();
 }
 
-if(localStorage.getItem('loggedIn')==='true') showMain();
-
-/* --- CSV LOAD --- */
-function loadCsvAndInit(){
+function loadCsv(){
   fetch(sheetUrl).then(r=>r.text()).then(text=>{
-    const parsed = Papa.parse(text, { header:false }).data;
-    if(!parsed || parsed.length===0){ console.error("CSV boş veya okunamadı"); return; }
+    const parsed = Papa.parse(text,{header:false}).data;
+
     headerRow = parsed[0];
-    const body = parsed.slice(1);
-    fullRows = body.map(r => r); // tüm satırı sakla (index'lerle çalışacağız)
-    // oluşturduğumuz gösterim satırları (orijinal projenin önceki slice'ları)
-    dataRows = body.map(r => r.slice(9,17));   // veri tablosu için (örnek)
-    photoRows = body.map(r => r.slice(0,7));   // fotoğraf tablosu için (örnek)
+    fullRows = parsed.slice(1);
 
-    // tabloları oluştur
-    createTable("dataTable", headerRow.slice(9,17), dataRows, "searchInput1", "pagination1", false, false);
-    createTable("photoTable", headerRow.slice(0,7), photoRows, "searchInput2", "pagination2", true, true);
+    dataRows  = fullRows.map(r => r.slice(9,17));
+    photoRows = fullRows.map(r => r.slice(0,7));
 
-    // grafik ilk yüklemede render et (tümü)
+    createTable("dataTable",  headerRow.slice(9,17), dataRows,  "searchInput1", "pagination1", false, false);
+    createTable("photoTable", headerRow.slice(0,7), photoRows, "searchInput2", "pagination2", true,  true);
+
     renderChart();
-  }).catch(err=>{ console.error(err); });
+  });
 }
 
-/* --- GENERIC TABLE (data veya photo) --- */
-function createTable(tableId, headers, rows, searchId, paginationId, isPhoto=false, dateSort=false){
+/* ============================
+   TABLOLAR
+============================ */
+function createTable(tableId, headers, rows, searchId, paginationId, isPhoto, dateSort){
   const table = document.getElementById(tableId);
-  const thead = table.querySelector('thead');
-  const tbody = table.querySelector('tbody');
+  const thead = table.querySelector("thead");
+  const tbody = table.querySelector("tbody");
   const search = document.getElementById(searchId);
   const pagination = document.getElementById(paginationId);
 
   let filtered = [...rows];
   let page = 1;
-  let sortAsc = false;
   let sortCol = null;
+  let sortAsc = false;
 
   function renderHead(){
     thead.innerHTML = "";
-    const tr = document.createElement('tr');
-    headers.forEach((h, idx) => {
-      const th = document.createElement('th');
-      th.textContent = h || '';
-      // tarih sütunu için (foto table) tıklayınca sıralama
-      if(dateSort && idx===0){
-        th.style.cursor = 'pointer';
-        th.title = 'Tarihe göre sırala';
-        th.addEventListener('click', () => {
-          sortCol = idx;
-          sortAsc = !sortAsc;
+    let tr = document.createElement("tr");
+    headers.forEach((h,i)=>{
+      let th = document.createElement("th");
+      th.textContent = h;
+
+      if(dateSort && i===0){
+        th.style.cursor="pointer";
+        th.onclick = ()=>{
+          sortCol=i;
+          sortAsc=!sortAsc;
           sortRows();
-          page = 1;
           renderPage();
-        });
+        };
       }
+
       tr.appendChild(th);
     });
     thead.appendChild(tr);
   }
 
   function sortRows(){
-    if(sortCol===null) return;
     filtered.sort((a,b)=>{
-      // tarih formatı dd.mm.yyyy
-      const da = a[sortCol] || '';
-      const db = b[sortCol] || '';
-      const pA = parseDateSafe(da);
-      const pB = parseDateSafe(db);
-      if(pA && pB){
-        return sortAsc ? pA - pB : pB - pA;
+      if(sortCol===null) return 0;
+
+      let A = a[sortCol]||"";
+      let B = b[sortCol]||"";
+
+      let dA = parseDateSafe(A);
+      let dB = parseDateSafe(B);
+
+      if(dA && dB){
+        return sortAsc ? dA - dB : dB - dA;
       }
-      // fallback string compare
-      const sA = (a[sortCol] || '').toString().toLowerCase();
-      const sB = (b[sortCol] || '').toString().toLowerCase();
-      if(sA < sB) return sortAsc ? -1 : 1;
-      if(sA > sB) return sortAsc ? 1 : -1;
+
+      A = A.toString().toLowerCase();
+      B = B.toString().toLowerCase();
+      if(A<B) return sortAsc?-1:1;
+      if(A>B) return sortAsc?1:-1;
       return 0;
     });
   }
 
+  if(dateSort){
+    sortCol = 0;
+    sortAsc = false; // en yeni başta
+    sortRows();
+  }
+
   function renderPage(){
-    tbody.innerHTML = '';
-    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-    if(page > totalPages) page = totalPages;
-    const start = (page-1)*PAGE_SIZE;
-    const slice = filtered.slice(start, start + PAGE_SIZE);
-    slice.forEach(row => {
-      const tr = document.createElement('tr');
-      row.forEach((cell, i) => {
-        const td = document.createElement('td');
-        if(isPhoto && i===5 && cell){
-          const img = document.createElement('img');
-          img.src = cell;
-          img.className = 'thumb';
-          img.loading = 'lazy';
-          img.alt = 'foto';
-          img.addEventListener('click', ()=> openImage(cell));
+    tbody.innerHTML="";
+    let start = (page-1)*PAGE_SIZE;
+    let slice = filtered.slice(start, start+PAGE_SIZE);
+
+    slice.forEach(r=>{
+      let tr=document.createElement("tr");
+
+      r.forEach((cell,idx)=>{
+        let td=document.createElement("td");
+
+        if(isPhoto && idx===5 && cell){
+          let img=document.createElement("img");
+          img.src=cell;
+          img.className="thumb";
+          img.onclick=()=>openImage(cell);
           td.appendChild(img);
-        } else {
-          td.textContent = cell ?? '';
         }
+        else td.textContent=cell||"";
+
         tr.appendChild(td);
       });
+
       tbody.appendChild(tr);
     });
+
     renderPagination();
   }
 
   function renderPagination(){
-    pagination.innerHTML = '';
-    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-    const liPrev = document.createElement('li'); liPrev.className = 'page-item ' + (page===1?'disabled':'');
-    const btnPrev = document.createElement('button'); btnPrev.className='page-link'; btnPrev.textContent='Geri';
-    btnPrev.addEventListener('click', (e)=>{ e.preventDefault(); if(page>1){ page--; renderPage(); } });
-    liPrev.appendChild(btnPrev); pagination.appendChild(liPrev);
+    pagination.innerHTML="";
 
-    const liNext = document.createElement('li'); liNext.className = 'page-item ' + (page===totalPages?'disabled':'');
-    const btnNext = document.createElement('button'); btnNext.className='page-link'; btnNext.textContent='İleri';
-    btnNext.addEventListener('click', (e)=>{ e.preventDefault(); if(page<totalPages){ page++; renderPage(); } });
-    liNext.appendChild(btnNext); pagination.appendChild(liNext);
+    let totalPages = Math.max(1, Math.ceil(filtered.length/PAGE_SIZE));
+
+    let prev=document.createElement("li");
+    prev.className="page-item " + (page===1?"disabled":"");
+    let prevBtn=document.createElement("button");
+    prevBtn.className="page-link";
+    prevBtn.textContent="Geri";
+    prevBtn.onclick=()=>{ if(page>1){page--;renderPage();} };
+    prev.appendChild(prevBtn);
+    pagination.appendChild(prev);
+
+    let next=document.createElement("li");
+    next.className="page-item " + (page===totalPages?"disabled":"");
+    let nextBtn=document.createElement("button");
+    nextBtn.className="page-link";
+    nextBtn.textContent="İleri";
+    nextBtn.onclick=()=>{ if(page<totalPages){page++;renderPage();} };
+    next.appendChild(nextBtn);
+    pagination.appendChild(next);
   }
 
-  search.oninput = function(){
-    const term = (this.value || '').toLowerCase();
-    filtered = rows.filter(r => r.join(' ').toLowerCase().includes(term));
-    page = 1;
-    // eğer tarih sıralaması varsayılan olarak ayarlanmış ise yeniden sırala
-    sortRows();
+  search.oninput=function(){
+    let t=this.value.toLowerCase();
+    filtered = rows.filter(r => r.join(" ").toLowerCase().includes(t));
+    page=1;
+    if(sortCol!==null) sortRows();
     renderPage();
-  }
-
-  // Eğer tarih sıralı başlatılacaksa (foto tablo) default en yeni başa gelsin
-  if(dateSort){
-    sortCol = 0; sortAsc = false; // başlangıçta azalan (yeni -> eski)
-    sortRows();
-  }
+  };
 
   renderHead();
   renderPage();
 }
 
-/* güvenli tarih parse */
+/* ============================
+   TARİH PARSE
+============================ */
 function parseDateSafe(s){
-  if(!s || typeof s !== 'string') return null;
-  const parts = s.split('.');
-  if(parts.length !== 3) return null;
-  const gg = parseInt(parts[0],10), aa = parseInt(parts[1],10), yyyy = parseInt(parts[2],10);
-  if(isNaN(gg)||isNaN(aa)||isNaN(yyyy)) return null;
-  return new Date(yyyy, aa-1, gg);
+  if(!s) return null;
+  let p=s.split(".");
+  if(p.length!==3) return null;
+  let d=new Date(p[2], p[1]-1, p[0]);
+  return isNaN(d)?null:d;
 }
 
-/* --- TABLAR ARASI GEÇİŞ --- */
-const btnData = document.getElementById('btnData');
-const btnPhoto = document.getElementById('btnPhoto');
-const btnChart = document.getElementById('btnChart');
-
-btnData.addEventListener('click', ()=> {
-  document.getElementById('dataTableWrapper').style.display='block';
-  document.getElementById('photoTableWrapper').style.display='none';
-  document.getElementById('chartWrapper').style.display='none';
-  setActive(btnData);
-});
-btnPhoto.addEventListener('click', ()=> {
-  document.getElementById('dataTableWrapper').style.display='none';
-  document.getElementById('photoTableWrapper').style.display='block';
-  document.getElementById('chartWrapper').style.display='none';
-  setActive(btnPhoto);
-});
-btnChart.addEventListener('click', ()=> {
-  document.getElementById('dataTableWrapper').style.display='none';
-  document.getElementById('photoTableWrapper').style.display='none';
-  document.getElementById('chartWrapper').style.display='block';
-  setActive(btnChart);
-  renderChart();
-});
-
-function setActive(el){
-  [btnData,btnPhoto,btnChart].forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
-}
-
-/* --- MODAL (RESİM BÜYÜT) --- */
-let modal = new bootstrap.Modal(document.getElementById('imageModal'));
+/* ============================
+   MODAL
+============================ */
 function openImage(src){
-  document.getElementById('modalImage').src = src;
-  modal.show();
+  modalImage.src=src;
+  new bootstrap.Modal(document.getElementById("imageModal")).show();
 }
 
-/* --- GRAFİK: T (date) = fullRows[row][19], U (desc) = [20], V (count) = [21] --- */
+/* ============================
+   SEKMELER
+============================ */
+btnData.onclick = ()=>{
+  dataTableWrapper.style.display="block";
+  photoTableWrapper.style.display="none";
+  chartWrapper.style.display="none";
+  activate(btnData);
+};
+btnPhoto.onclick = ()=>{
+  dataTableWrapper.style.display="none";
+  photoTableWrapper.style.display="block";
+  chartWrapper.style.display="none";
+  activate(btnPhoto);
+};
+btnChart.onclick = ()=>{
+  dataTableWrapper.style.display="none";
+  photoTableWrapper.style.display="none";
+  chartWrapper.style.display="block";
+  activate(btnChart);
+  renderChart();
+};
+
+function activate(btn){
+  btnData.classList.remove("active");
+  btnPhoto.classList.remove("active");
+  btnChart.classList.remove("active");
+  btn.classList.add("active");
+}
+
+/* ============================
+   GRAFİK – T / U / V SÜTUNLARI
+============================ */
 function renderChart(){
-  // period ve seçili tarih
-  const selectedDate = document.getElementById('chartDate').value; // yyyy-mm-dd veya ''
-  const period = document.getElementById('chartPeriod') ? document.getElementById('chartPeriod').value : 'daily';
 
-  // counts map: "desc|periodKey" => total
-  const counts = {};
+  let selectedDate = chartDate.value;
+  let period = chartPeriod.value;
 
-  // helper: parse fullRows row's date string safely
-  function getRowDateStr(row){
-    // row may be shorter; ensure index 19 exists
-    const d = row[19];
-    return (typeof d === 'string') ? d.trim() : '';
-  }
-
-  function getRowDesc(row){
-    return (row[20]||'').toString().trim() || 'Açıklama Yok';
-  }
-
-  function getRowCount(row){
-    return parseInt(row[21]) || 0;
-  }
-
-  // convert input date (yyyy-mm-dd) -> dd.mm.yyyy for daily comparison
-  let formattedSelectedDate = null;
+  let formattedDate = null;
   if(selectedDate){
-    const parts = selectedDate.split('-');
-    if(parts.length===3){
-      formattedSelectedDate = `${parts[2]}.${parts[1]}.${parts[0]}`; // dd.mm.yyyy
-    }
+    let p = selectedDate.split("-");
+    formattedDate = `${p[2]}.${p[1]}.${p[0]}`; // dd.mm.yyyy
   }
 
-  // period key generator
-  function periodKeyFor(dateStr){
-    const dObj = parseDateSafe(dateStr);
-    if(!dObj) return dateStr || 'unknown';
-    if(period === 'daily') return dateStr;
-    if(period === 'weekly'){
-      const onejan = new Date(dObj.getFullYear(),0,1);
-      const week = Math.ceil((((dObj - onejan)/86400000) + onejan.getDay() + 1) / 7);
-      return `${dObj.getFullYear()}-W${week}`;
-    }
-    if(period === 'monthly'){
-      return `${dObj.getFullYear()}-${String(dObj.getMonth()+1).padStart(2,'0')}`;
-    }
-    return dateStr;
-  }
+  let counts = {};
+  let labelsSet = new Set();
 
-  // iterate fullRows (not sliced dataRows) so indices 19/20/21 are valid
-  fullRows.forEach(row => {
-    if(!row) return;
-    const dateStr = getRowDateStr(row);
+  fullRows.forEach(row=>{
+    let dateStr = row[19] || "";
+    let desc    = row[20] || "Açıklama Yok";
+    let count   = parseInt(row[21]) || 0;
+
     if(!dateStr) return;
-    // daily filter check
-    if(period === 'daily' && formattedSelectedDate){
-      if(dateStr !== formattedSelectedDate) return;
+
+    // günlük filtre
+    if(period==="daily" && formattedDate && dateStr!==formattedDate) return;
+
+    let d = parseDateSafe(dateStr);
+    if(!d) return;
+
+    let key="";
+    if(period==="daily")  key=dateStr;
+    if(period==="weekly"){
+      let onejan=new Date(d.getFullYear(),0,1);
+      let week = Math.ceil((((d - onejan)/86400000)+onejan.getDay()+1)/7);
+      key=`${d.getFullYear()}-W${week}`;
     }
-    // if selectedDate not provided for weekly/monthly, show all period buckets
-    const desc = getRowDesc(row);
-    const cnt = getRowCount(row);
-    const key = periodKeyFor(dateStr);
-    const fullKey = `${desc}|${key}`;
-    counts[fullKey] = (counts[fullKey] || 0) + cnt;
+    if(period==="monthly"){
+      key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+    }
+
+    labelsSet.add(key);
+    let link = desc+"|"+key;
+    counts[link] = (counts[link]||0) + count;
   });
 
-  // group by desc and collect labels
-  const descGroups = {}; // desc => { periodKey: value, ... }
-  const labelsSet = new Set();
-  for(const k in counts){
-    const [desc, pKey] = k.split('|');
-    labelsSet.add(pKey);
-    if(!descGroups[desc]) descGroups[desc] = {};
-    descGroups[desc][pKey] = counts[k];
+  let labels = [...labelsSet].sort();
+
+  // dataset üret
+  let groups = {};
+  for(let k in counts){
+    let [desc, periodKey] = k.split("|");
+    if(!groups[desc]) groups[desc]={};
+    groups[desc][periodKey]=counts[k];
   }
 
-  const labels = [...labelsSet].sort();
+  const palette=["#4B9CD3","#F4A261","#E76F51","#2A9D8F","#264653","#8AB17D","#F77F00","#3A86FF"];
 
-  // build bar + line datasets: bar for counts, line for trend (same data)
-  const barDatasets = [];
-  const lineDatasets = [];
-  const palette = ["#4B9CD3","#F4A261","#E76F51","#2A9D8F","#264653","#8AB17D","#F77F00","#3A86FF"];
+  let datasets=[];
+  let i=0;
+  for(let desc in groups){
+    let arr = labels.map(l=> groups[desc][l]||0 );
+    let c = palette[i % palette.length];
 
-  let idx = 0;
-  for(const desc in descGroups){
-    const arr = labels.map(l => descGroups[desc][l] || 0);
-    const color = palette[idx % palette.length];
-
-    barDatasets.push({
-      label: desc + " (Bar)",
+    datasets.push({
+      label: desc+" (Bar)",
       data: arr,
-      backgroundColor: color,
-      borderColor: color,
-      borderWidth: 1,
-      type: 'bar'
+      type:"bar",
+      backgroundColor:c
     });
 
-    lineDatasets.push({
-      label: desc + " (Çizgi)",
+    datasets.push({
+      label: desc+" (Çizgi)",
       data: arr,
-      borderColor: color,
-      backgroundColor: color,
-      tension: 0.25,
-      fill: false,
-      pointRadius: 3,
-      borderWidth: 2,
-      type: 'line',
-      yAxisID: undefined
+      type:"line",
+      borderColor:c,
+      tension:0.25,
+      fill:false
     });
 
-    idx++;
+    i++;
   }
 
-  const datasets = [...barDatasets, ...lineDatasets];
-
-  // render Chart.js
-  const ctx = document.getElementById('errorChart').getContext('2d');
+  let ctx=document.getElementById("errorChart").getContext("2d");
   if(errorChart) errorChart.destroy();
 
-  errorChart = new Chart(ctx, {
-    data: { labels, datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'top', labels: { usePointStyle: true } },
-        tooltip: { mode: 'index', intersect: false }
+  errorChart=new Chart(ctx,{
+    data:{ labels, datasets },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{position:"top"},
+        tooltip:{mode:"index", intersect:false}
       },
-      scales: {
-        x: { stacked: false },
-        y: { beginAtZero: true }
+      scales:{
+        y:{beginAtZero:true}
       }
     }
   });
+}
 
-} // renderChart
-
-// event listeners for chart controls
-const chartDateEl = document.getElementById('chartDate');
-if(chartDateEl) chartDateEl.addEventListener('change', ()=> renderChart());
-const chartPeriodEl = document.getElementById('chartPeriod');
-if(chartPeriodEl) chartPeriodEl.addEventListener('change', ()=> renderChart());
+chartDate.onchange=renderChart;
+chartPeriod.onchange=renderChart;
 
 </script>
-
 </body>
 </html>
