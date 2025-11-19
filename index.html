@@ -102,9 +102,9 @@ img.thumb{
   border:1px solid #bcc6d0;
 }
 
-/* Grafik alanı yükseklik */
+/* Grafik yüksekliği — 2 KAT ARTTIRILDI */
 #chartContainer{
-  height:260px !important;
+  height:520px !important;  /* eski 260 idi → 520 yapıldı */
   padding:15px;
 }
 
@@ -485,7 +485,7 @@ function activate(btn){
 }
 
 /* ============================
-   GRAFİK – T / U / V SÜTUNLARI
+   GRAFİK (ÇİZGİ KALDIRILDI — SADECE BAR)
 ============================ */
 function renderChart(){
 
@@ -549,19 +549,11 @@ function renderChart(){
     let c = palette[i % palette.length];
 
     datasets.push({
-      label: desc+" (Bar)",
+      label: desc,
       data: arr,
-      type:"bar",
-      backgroundColor:c
-    });
-
-    datasets.push({
-      label: desc+" (Çizgi)",
-      data: arr,
-      type:"line",
-      borderColor:c,
-      tension:0.25,
-      fill:false
+      backgroundColor:c,
+      borderWidth:0,
+      type:"bar"
     });
 
     i++;
