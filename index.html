@@ -173,6 +173,105 @@ function loadCsvAndInit(){
   });
 }
 
+/* CREATE TABLE (orijinal fonksiyon) */
+function createTable(tableId, headers, rows, searchId, paginationId, isPhoto=false, dateSort=false){
+  const table=document.getElementById(tableId);
+  const thead=table.querySelector('thead');
+  const tbody=table.querySelector('tbody');
+  const search=document.getElementById(searchId);
+  const pagination=document.getElementById(paginationId);
+  let filtered=[...rows];
+  let page=1, sortCol=null, sortAsc=false;
+
+  function parseDateSafe(s){
+    if(!s||typeof s!=='string') return null;
+    const p=s.split('.');
+    if(p.length!==3) return null;
+    const d=new Date(+p[2], +p[1]-1, +p[0]);
+    return isNaN(d)?null:d;
+  }
+
+  function renderHead(){
+    thead.innerHTML='';
+    const tr=document.createElement('tr');
+    headers.forEach((h,idx)=>{
+      const th=document.createElement('th');
+      th.textContent=h||'';
+      if(dateSort && idx===0){
+        th.style.cursor='pointer';
+        th.title='Tarihe göre sırala (tıkla)';
+        th.addEventListener('click',()=>{
+          sortCol=idx; sortAsc=!sortAsc; sortRows(); page=1; renderPage();
+        });
+      }
+      tr.appendChild(th);
+    });
+    thead.appendChild(tr);
+  }
+
+  function sortRows(){
+    if(sortCol===null) return;
+    filtered.sort((a,b)=>{
+      const A=a[sortCol]||'', B=b[sortCol]||'';
+      const dA=parseDateSafe(A), dB=parseDateSafe(B);
+      if(dA && dB) return sortAsc?dA-dB:dB-dA;
+      const sA=(A+'').toLowerCase(), sB=(B+'').toLowerCase();
+      if(sA<sB) return sortAsc?-1:1;
+      if(sA>sB) return sortAsc?1:-1;
+      return 0;
+    });
+  }
+
+  function renderPage(){
+    tbody.innerHTML='';
+    const totalPages=Math.max(1, Math.ceil(filtered.length/PAGE_SIZE));
+    if(page>totalPages) page=totalPages;
+    const start=(page-1)*PAGE_SIZE;
+    const slice=filtered.slice(start,start+PAGE_SIZE);
+    slice.forEach(r=>{
+      const tr=document.createElement('tr');
+      r.forEach((cell,ci)=>{
+        const td=document.createElement('td');
+        if(isPhoto && ci===5 && cell){
+          const img=document.createElement('img');
+          img.src=cell; img.className='thumb'; img.loading='lazy'; img.alt='foto';
+          img.addEventListener('click',()=>openImage(cell));
+          td.appendChild(img);
+        } else td.textContent=cell??'';
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    renderPagination();
+  }
+
+  function renderPagination(){
+    pagination.innerHTML='';
+    const totalPages=Math.max(1, Math.ceil(filtered.length/PAGE_SIZE));
+    const liPrev=document.createElement('li'); liPrev.className='page-item '+(page===1?'disabled':'');
+    const btnPrev=document.createElement('button'); btnPrev.className='page-link'; btnPrev.textContent='Geri';
+    btnPrev.addEventListener('click',(e)=>{e.preventDefault(); if(page>1){page--;renderPage();}});
+    liPrev.appendChild(btnPrev); pagination.appendChild(liPrev);
+
+    const liNext=document.createElement('li'); liNext.className='page-item '+(page===totalPages?'disabled':'');
+    const btnNext=document.createElement('button'); btnNext.className='page-link'; btnNext.textContent='İleri';
+    btnNext.addEventListener('click',(e)=>{e.preventDefault(); if(page<totalPages){page++;renderPage();}});
+    liNext.appendChild(btnNext); pagination.appendChild(liNext);
+  }
+
+  search.addEventListener('input',()=>{
+    const term=(search.value||'').toLowerCase();
+    filtered=rows.filter(r=>r.join(' ').toLowerCase().includes(term));
+    page=1; if(sortCol!==null) sortRows(); renderPage();
+  });
+
+  if(dateSort){sortCol=0; sortAsc=false; sortRows();}
+  renderHead(); renderPage();
+}
+
+/* IMAGE MODAL */
+function openImage(src){const img=document.getElementById('modalImage'); img.src=src; const bs=new bootstrap.Modal(document.getElementById('imageModal')); bs.show();}
+
 /* DATE UTILS */
 function parseDateFromDDMMYYYY(s){ if(!s) return null; const p=s.split('.'); if(p.length!==3) return null; const d=new Date(+p[2], +p[1]-1, +p[0]); return isNaN(d)?null:d; }
 function weekKeyFromDate(d){ const onejan=new Date(d.getFullYear(),0,1); const week=Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7); return `W${week}`; }
@@ -190,10 +289,7 @@ function renderChart(){
   let formattedSelected=null, selectedDateObj=null;
   if(dateInput){
     const parts=dateInput.split('-');
-    if(parts.length===3){
-      formattedSelected=`${parts[2]}.${parts[1]}.${parts[0]}`;
-      selectedDateObj=new Date(+parts[0], +parts[1]-1, +parts[2]);
-    }
+    if(parts.length===3){ formattedSelected=`${parts[2]}.${parts[1]}.${parts[0]}`; selectedDateObj=new Date(+parts[0], +parts[1]-1, +parts[2]); }
   }
 
   const counts={}, labelsSet=new Set();
@@ -205,15 +301,10 @@ function renderChart(){
     if(!dObj) return;
 
     if(period==='daily' && formattedSelected && dateStr!==formattedSelected) return;
-    if(period==='weekly' && selectedDateObj){
-      if(weekKeyFromDate(selectedDateObj)!==weekKeyFromDate(dObj)) return;
-    }
-    if(period==='monthly' && selectedDateObj){
-      if(monthKeyFromDate(selectedDateObj)!==monthKeyFromDate(dObj)) return;
-    }
+    if(period==='weekly' && selectedDateObj){ if(weekKeyFromDate(selectedDateObj)!==weekKeyFromDate(dObj)) return; }
+    if(period==='monthly' && selectedDateObj){ if(monthKeyFromDate(selectedDateObj)!==monthKeyFromDate(dObj)) return; }
 
-    let key='';
-    if(period==='daily') key=dateStr;
+    let key=''; if(period==='daily') key=dateStr;
     else if(period==='weekly') key=weekKeyFromDate(dObj);
     else if(period==='monthly') key=monthKeyFromDate(dObj);
     labelsSet.add(key);
@@ -226,37 +317,62 @@ function renderChart(){
 
   const labels=Array.from(labelsSet).sort();
   const groups={};
-  for(const k in counts){
-    const [desc,pKey]=k.split('|');
-    if(!groups[desc]) groups[desc]={};
-    groups[desc][pKey]=counts[k];
-  }
+  for(const k in counts){ const [desc,pKey]=k.split('|'); if(!groups[desc]) groups[desc]={}; groups[desc][pKey]=counts[k]; }
 
   const palette=["#4B9CD3","#F4A261","#E76F51","#2A9D8F","#264653","#8AB17D","#F77F00","#3A86FF"];
-  const datasets=[];
-  let i=0;
-  for(const desc in groups){
+  const datasets=[], descs=Object.keys(groups);
+  descs.forEach((desc,i)=>{
     const arr=labels.map(l=>groups[desc][l]||0);
-    datasets.push({label:desc,data:arr,backgroundColor:palette[i%palette.length],borderWidth:0,type:'bar'});
-    i++;
-  }
+    datasets.push({label:desc,data:arr,backgroundColor:palette[i%palette.length],borderColor:palette[i%palette.length],borderWidth:0,type:'bar'});
+  });
 
   const ctx=document.getElementById('errorChart').getContext('2d');
   if(errorChart) errorChart.destroy();
-  errorChart=new Chart(ctx,{data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}}}});
+  errorChart=new Chart(ctx,{data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'},tooltip:{mode:'index',intersect:false}},scales:{y:{beginAtZero:true}}}});
 }
 
 /* PERIOD BUTTONS */
 document.addEventListener('click',function(e){
-  if(e.target.classList.contains('period-btn')){
+  if(e.target && e.target.classList.contains('period-btn')){
     document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
     e.target.classList.add('active');
+    document.getElementById('chartPeriod').value=e.target.dataset.period;
     renderChart();
   }
 });
-document.getElementById('chartPeriod').addEventListener('change',renderChart);
-document.getElementById('chartDate').addEventListener('change',renderChart);
-document.getElementById('refreshChart').addEventListener('click',renderChart);
+
+/* SELECT and DATE change handlers */
+document.getElementById('chartPeriod').addEventListener('change',function(){
+  document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.period-btn').forEach(b=>{ if(b.dataset.period===this.value) b.classList.add('active'); });
+  renderChart();
+});
+document.getElementById('chartDate').addEventListener('change', renderChart);
+document.getElementById('refreshChart').addEventListener('click', renderChart);
+
+/* TAB SWITCHES */
+document.getElementById('btnData').addEventListener('click',()=>{
+  document.getElementById('dataTableWrapper').style.display='block';
+  document.getElementById('photoTableWrapper').style.display='none';
+  document.getElementById('chartWrapper').style.display='none';
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('btnData').classList.add('active');
+});
+document.getElementById('btnPhoto').addEventListener('click',()=>{
+  document.getElementById('dataTableWrapper').style.display='none';
+  document.getElementById('photoTableWrapper').style.display='block';
+  document.getElementById('chartWrapper').style.display='none';
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('btnPhoto').classList.add('active');
+});
+document.getElementById('btnChart').addEventListener('click',()=>{
+  document.getElementById('dataTableWrapper').style.display='none';
+  document.getElementById('photoTableWrapper').style.display='none';
+  document.getElementById('chartWrapper').style.display='block';
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('btnChart').classList.add('active');
+  renderChart();
+});
 </script>
 </body>
 </html>
