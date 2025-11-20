@@ -236,4 +236,51 @@ function renderChart(){
     if(!row) return;
     const dateStr=(row[19]||'').toString().trim();
     if(!dateStr) return;
-    if(period==='
+    if(period==='daily' && formattedSelected && formattedSelected!==dateStr) return;
+    const d=parseDateFromDDMMYYYY(dateStr); if(!d) return;
+    let key='';
+    if(period==='daily') key=dateStr;
+    else if(period==='weekly') key=weekKeyFromDate(d);
+    else if(period==='monthly') key=monthKeyFromDate(d);
+    if(!counts[key]) counts[key]={T:0,U:0,V:0};
+    counts[key].T+=(+row[9]||0); counts[key].U+=(+row[10]||0); counts[key].V+=(+row[11]||0);
+    labelsSet.add(key);
+  });
+
+  const labels=Array.from(labelsSet).sort();
+  const dataT=labels.map(l=>counts[l]?.T||0);
+  const dataU=labels.map(l=>counts[l]?.U||0);
+  const dataV=labels.map(l=>counts[l]?.V||0);
+
+  const ctx=document.getElementById('errorChart').getContext('2d');
+  if(errorChart) errorChart.destroy();
+  errorChart=new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels,
+      datasets:[
+        {label:'T',data:dataT,backgroundColor:'rgba(42,157,143,0.8)'},
+        {label:'U',data:dataU,backgroundColor:'rgba(233,196,106,0.8)'},
+        {label:'V',data:dataV,backgroundColor:'rgba(231,111,81,0.8)'}
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{legend:{position:'top'}},
+      scales:{y:{beginAtZero:true}}
+    }
+  });
+}
+
+/* Periyot butonları */
+document.querySelectorAll('.period-btn').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.period-btn').forEach(bb=>bb.classList.remove('active'));
+    b.classList.add('active');
+    renderChart();
+  });
+});
+document.getElementById('refreshChart').addEventListener('click',()=>renderChart());
+</script>
+</body>
+</html>
