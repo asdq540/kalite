@@ -136,7 +136,6 @@ img.thumb{width:88px;height:72px;object-fit:cover;border-radius:8px;border:1px s
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-
 /* CONFIG */
 const BACKEND_URL = "https://kaliteform.onrender.com";
 const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBWFSVSD6NvBNqC8me1le_unCCLOKIOIS2DfZFXUTji0MHC7SaWNIy4a0Laob9xOiAJyPnp7LuZ1R-/pub?output=csv";
@@ -189,28 +188,17 @@ function loadCsvAndInit(){
 }
 
 /* UTILS */
-function parseDateFromDDMMYYYY(s){
-  if(!s) return null;
-  const p = s.split('.');
-  if(p.length!==3) return null;
-  const d = new Date(+p[2], +p[1]-1, +p[0]);
-  return isNaN(d) ? null : d;
-}
-function weekKeyFromDate(d){
-  const onejan = new Date(d.getFullYear(),0,1);
-  const week = Math.ceil((((d - onejan)/86400000)+ onejan.getDay() + 1)/7);
-  return `W${week}`;
-}
-function monthKeyFromDate(d){
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-}
+function parseDateFromDDMMYYYY(s){ if(!s) return null; const p=s.split('.'); if(p.length!==3) return null; const d=new Date(+p[2], +p[1]-1, +p[0]); return isNaN(d)?null:d; }
+function weekKeyFromDate(d){ const onejan=new Date(d.getFullYear(),0,1); const week=Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7); return `W${week}`; }
+function monthKeyFromDate(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+
+/* TABLE GENERATOR SAME AS BEFORE (DEĞİŞMEDİ) */
 
 /* --------------------------- */
 /*      UPDATED renderChart    */
 /* --------------------------- */
-
 function renderChart(){
-  const dateInput = document.getElementById('chartDate').value; 
+  const dateInput = document.getElementById('chartDate').value;
   const btn = document.querySelector('.period-btn.active');
   const btnPeriod = btn ? btn.dataset.period : null;
   const selectPeriod = document.getElementById('chartPeriod').value;
@@ -218,39 +206,41 @@ function renderChart(){
 
   let formattedSelected = null;
   let selectedDateObj = null;
-
   if(dateInput){
     const parts = dateInput.split('-');
-    formattedSelected = `${parts[2]}.${parts[1]}.${parts[0]}`;
-    selectedDateObj = new Date(+parts[0], +parts[1]-1, +parts[2]);
+    if(parts.length===3){
+      formattedSelected = `${parts[2]}.${parts[1]}.${parts[0]}`;
+      selectedDateObj = new Date(+parts[0], +parts[1]-1, +parts[2]);
+    }
   }
 
-  const counts = {};
+  const counts={};
   const labelsSet = new Set();
 
   fullRows.forEach(row=>{
-    const dateStr = (row[19]||'').toString().trim();
+    if(!row) return;
+    const dateStr=(row[19]||'').toString().trim();
     if(!dateStr) return;
-    const dObj = parseDateFromDDMMYYYY(dateStr);
+    const dObj=parseDateFromDDMMYYYY(dateStr);
     if(!dObj) return;
 
-    /* DAILY */
+    // DAILY
     if(period==='daily' && formattedSelected){
-      if(dateStr !== formattedSelected) return;
+      if(dateStr!==formattedSelected) return;
     }
 
-    /* WEEKLY */
+    // WEEKLY
     if(period==='weekly' && selectedDateObj){
       const selectedWeek = weekKeyFromDate(selectedDateObj);
       const rowWeek = weekKeyFromDate(dObj);
-      if(selectedWeek !== rowWeek) return;
+      if(selectedWeek!==rowWeek) return;
     }
 
-    /* MONTHLY */
+    // MONTHLY
     if(period==='monthly' && selectedDateObj){
-      const selectedMonth = `${selectedDateObj.getFullYear()}-${String(selectedDateObj.getMonth()+1).padStart(2,'0')}`;
+      const selectedMonth = monthKeyFromDate(selectedDateObj);
       const rowMonth = monthKeyFromDate(dObj);
-      if(selectedMonth !== rowMonth) return;
+      if(selectedMonth!==rowMonth) return;
     }
 
     let key='';
@@ -260,44 +250,32 @@ function renderChart(){
 
     labelsSet.add(key);
 
-    const desc = (row[20]||'Açıklama Yok').toString().trim();
-    const cnt = parseInt(row[21]) || 0;
-    const fullKey = `${desc}|${key}`;
-    counts[fullKey] = (counts[fullKey]||0) + cnt;
+    const desc=(row[20]||'Açıklama Yok').toString().trim();
+    const cnt=parseInt(row[21])||0;
+    const fullKey=`${desc}|${key}`;
+    counts[fullKey]=(counts[fullKey]||0)+cnt;
   });
 
-  const labels = Array.from(labelsSet).sort();
-
-  const groups = {};
+  const labels=Array.from(labelsSet).sort();
+  const groups={};
   for(const k in counts){
-    const [desc, pKey] = k.split('|');
-    if(!groups[desc]) groups[desc] = {};
-    groups[desc][pKey] = counts[k];
+    const [desc,pKey]=k.split('|');
+    if(!groups[desc]) groups[desc]={};
+    groups[desc][pKey]=counts[k];
   }
 
-  const palette = ["#4B9CD3","#F4A261","#E76F51","#2A9D8F","#264653","#8AB17D","#F77F00","#3A86FF"];
+  const palette=["#4B9CD3","#F4A261","#E76F51","#2A9D8F","#264653","#8AB17D","#F77F00","#3A86FF"];
   const datasets=[];
   let i=0;
-
   for(const desc in groups){
-    const arr = labels.map(l => groups[desc][l] || 0);
-    datasets.push({
-      label: desc,
-      data: arr,
-      backgroundColor: palette[i%palette.length],
-      borderWidth:0,
-      type:'bar'
-    });
+    const arr=labels.map(l=>groups[desc][l]||0);
+    datasets.push({label:desc,data:arr,backgroundColor:palette[i%palette.length],borderWidth:0,type:'bar'});
     i++;
   }
 
-  const ctx = document.getElementById('errorChart').getContext('2d');
+  const ctx=document.getElementById('errorChart').getContext('2d');
   if(errorChart) errorChart.destroy();
-
-  errorChart = new Chart(ctx,{
-    data:{labels,datasets},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}}}
-  });
+  errorChart=new Chart(ctx,{data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}}}});
 }
 
 /* EVENT HANDLERS */
