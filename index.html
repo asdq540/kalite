@@ -62,7 +62,7 @@ img.thumb{width:88px;height:72px;object-fit:cover;border-radius:8px;border:1px s
   </div>
 
   <!-- DATA -->
-  <div id="dataTableWrapper" class="show">
+  <div id="dataTableWrapper">
     <div class="table-card">
       <div class="d-flex align-items-center justify-content-between mb-3">
         <h4 class="section-title mb-0">Veri Tablosu</h4>
@@ -138,28 +138,28 @@ img.thumb{width:88px;height:72px;object-fit:cover;border-radius:8px;border:1px s
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// MOCK login
-function login(){
-  const u=document.getElementById('username').value.trim();
-  const p=document.getElementById('password').value.trim();
-  const err=document.getElementById('errorMsg'); err.textContent='';
+const PAGE_SIZE = 10;
+let fullRows=[], dataRows=[], photoRows=[], headerRow=[], errorChart=null;
+
+/* LOGIN */
+function login() {
+  const u = document.getElementById('username').value.trim();
+  const p = document.getElementById('password').value.trim();
+  const err = document.getElementById('errorMsg'); err.textContent='';
   if(!u||!p){ err.textContent='Kullanıcı adı ve şifre boş olamaz.'; return; }
   if(u==='admin' && p==='1234'){ localStorage.setItem('loggedIn','true'); showMain(); }
   else err.textContent='Kullanıcı adı veya şifre yanlış.';
 }
-
 function logout(){ localStorage.removeItem('loggedIn'); location.reload(); }
-
 function showMain(){
   document.getElementById('loginPage').style.display='none';
   document.getElementById('mainPage').style.display='block';
   showTab('dataTableWrapper','btnData');
   loadCsvAndInit();
 }
-
 if(localStorage.getItem('loggedIn')==='true') showMain();
 
-// Tab geçişleri
+/* TAB GEÇİŞLERİ */
 function showTab(wrapperId, btnId){
   ['dataTableWrapper','photoTableWrapper','chartWrapper'].forEach(id=>{
     const el=document.getElementById(id);
@@ -169,12 +169,71 @@ function showTab(wrapperId, btnId){
   document.getElementById(btnId).classList.add('active');
   if(wrapperId==='chartWrapper') renderChart();
 }
-
 document.getElementById('btnData').addEventListener('click',()=>showTab('dataTableWrapper','btnData'));
 document.getElementById('btnPhoto').addEventListener('click',()=>showTab('photoTableWrapper','btnPhoto'));
 document.getElementById('btnChart').addEventListener('click',()=>showTab('chartWrapper','btnChart'));
 
-// --- Buraya loadCsvAndInit(), createTable(), renderChart() vb. kodlarını ekleyebilirsin ---
-</script>
-</body>
-</html>
+/* CSV LOAD ve TABLO */
+const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBWFSVSD6NvBNqC8me1le_unCCLOKIOIS2DfZFXUTji0MHC7SaWNIy4a0Laob9xOiAJyPnp7LuZ1R-/pub?output=csv";
+function loadCsvAndInit(){
+  fetch(sheetUrl).then(r=>r.text()).then(text=>{
+    const parsed = Papa.parse(text,{header:false}).data;
+    if(!parsed || parsed.length===0){ console.error('CSV boş'); return; }
+    headerRow = parsed[0]; fullRows = parsed.slice(1);
+    dataRows = fullRows.map(r=>r.slice(9,17));
+    photoRows = fullRows.map(r=>r.slice(0,7));
+    document.getElementById('dataCount').textContent=dataRows.length;
+    document.getElementById('photoCount').textContent=photoRows.length;
+    createTable('dataTable',headerRow.slice(9,17),dataRows,'searchInput1','pagination1',false,false);
+    createTable('photoTable',headerRow.slice(0,7),photoRows,'searchInput2','pagination2',true,true);
+    renderChart();
+  }).catch(err=>console.error(err));
+}
+
+/* Tablo oluşturma */
+function createTable(tableId, headers, rows, searchId, paginationId, isPhoto=false, dateSort=false){
+  const table = document.getElementById(tableId);
+  const thead = table.querySelector('thead'); const tbody = table.querySelector('tbody');
+  const search = document.getElementById(searchId); const pagination = document.getElementById(paginationId);
+  let filtered = [...rows]; let page=1; let sortCol=null, sortAsc=false;
+  function parseDateSafe(s){ if(!s||typeof s!=='string') return null; const p=s.split('.'); if(p.length!==3) return null; const d=new Date(+p[2],+p[1]-1,+p[0]); return isNaN(d)?null:d; }
+  function renderHead(){ thead.innerHTML=''; const tr=document.createElement('tr'); headers.forEach((h,idx)=>{ const th=document.createElement('th'); th.textContent=h||''; if(dateSort && idx===0){ th.style.cursor='pointer'; th.title='Tarihe göre sırala'; th.addEventListener('click',()=>{ sortCol=idx; sortAsc=!sortAsc; sortRows(); page=1; renderPage(); });} tr.appendChild(th); }); thead.appendChild(tr);}
+  function sortRows(){ if(sortCol===null) return; filtered.sort((a,b)=>{ const A=a[sortCol]||''; const B=b[sortCol]||''; const dA=parseDateSafe(A), dB=parseDateSafe(B); if(dA&&dB) return sortAsc? dA-dB : dB-dA; const sA=(A+'').toLowerCase(), sB=(B+'').toLowerCase(); if(sA<sB) return sortAsc?-1:1; if(sA>sB) return sortAsc?1:-1; return 0; });}
+  function renderPage(){ tbody.innerHTML=''; const totalPages=Math.max(1,Math.ceil(filtered.length/PAGE_SIZE)); if(page>totalPages) page=totalPages; const start=(page-1)*PAGE_SIZE; const slice=filtered.slice(start,start+PAGE_SIZE); slice.forEach(r=>{ const tr=document.createElement('tr'); r.forEach((cell,ci)=>{ const td=document.createElement('td'); if(isPhoto && ci===5 && cell){ const img=document.createElement('img'); img.src=cell; img.className='thumb'; img.loading='lazy'; img.alt='foto'; img.addEventListener('click',()=>openImage(cell)); td.appendChild(img);} else td.textContent=cell??''; tr.appendChild(td); }); tbody.appendChild(tr);}); renderPagination();}
+  function renderPagination(){ pagination.innerHTML=''; const totalPages=Math.max(1,Math.ceil(filtered.length/PAGE_SIZE));
+    const liPrev=document.createElement('li'); liPrev.className='page-item '+(page===1?'disabled':''); const btnPrev=document.createElement('button'); btnPrev.className='page-link'; btnPrev.textContent='Geri'; btnPrev.addEventListener('click',e=>{ e.preventDefault(); if(page>1){ page--; renderPage(); }}); liPrev.appendChild(btnPrev); pagination.appendChild(liPrev);
+    const liNext=document.createElement('li'); liNext.className='page-item '+(page===totalPages?'disabled':''); const btnNext=document.createElement('button'); btnNext.className='page-link'; btnNext.textContent='İleri'; btnNext.addEventListener('click',e=>{ e.preventDefault(); if(page<totalPages){ page++; renderPage(); }}); liNext.appendChild(btnNext); pagination.appendChild(liNext);
+  }
+  search.addEventListener('input',()=>{ const term=(search.value||'').toLowerCase(); filtered=rows.filter(r=>r.join(' ').toLowerCase().includes(term)); page=1; if(sortCol!==null) sortRows(); renderPage();});
+  if(dateSort){ sortCol=0; sortAsc=false; sortRows();}
+  renderHead(); renderPage();
+}
+
+/* Fotoğraf modal */
+function openImage(src){ const img=document.getElementById('modalImage'); img.src=src; const bs=new bootstrap.Modal(document.getElementById('imageModal')); bs.show();}
+
+/* Grafik */
+function parseDateFromDDMMYYYY(s){ if(!s) return null; const p=s.split('.'); if(p.length!==3) return null; const d=new Date(+p[2],+p[1]-1,+p[0]); return isNaN(d)?null:d; }
+function weekKeyFromDate(d){ const onejan=new Date(d.getFullYear(),0,1); const week=Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7); return `${d.getFullYear()}-W${week}`; }
+function monthKeyFromDate(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+
+function renderChart(){
+  if(!fullRows || fullRows.length===0) return;
+  const dateInput=document.getElementById('chartDate').value;
+  const btn=document.querySelector('.period-btn.active');
+  const btnPeriod = btn ? btn.dataset.period : null;
+  const selectPeriod=document.getElementById('chartPeriod').value;
+  const period = btnPeriod || selectPeriod || 'daily';
+
+  let formattedSelected = null;
+  if(dateInput){
+    const parts=dateInput.split('-');
+    if(parts.length===3) formattedSelected = `${parts[2]}.${parts[1]}.${parts[0]}`;
+  }
+
+  const counts={}; const labelsSet=new Set();
+  fullRows.forEach(row=>{
+    if(!row) return;
+    const dateStr=(row[19]||'').toString().trim();
+    if(!dateStr) return;
+    if(period==='
