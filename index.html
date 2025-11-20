@@ -30,16 +30,17 @@ img.thumb{width:88px;height:72px;object-fit:cover;border-radius:8px;border:1px s
 .period-btn.active{background:var(--primary);color:#fff;border-color:var(--primary);}
 
 /* Tab geçiş animasyonu */
-#dataTableWrapper, #photoTableWrapper, #chartWrapper {
+.tab-wrapper {
   transition: all 0.5s ease-in-out;
   opacity: 0;
   transform: translateY(20px);
-  display: none;
+  height: 0;
+  overflow: hidden;
 }
-#dataTableWrapper.show, #photoTableWrapper.show, #chartWrapper.show {
+.tab-wrapper.show {
   opacity: 1;
   transform: translateY(0);
-  display: block;
+  height: auto;
 }
 
 @media (max-width:576px){img.thumb{width:64px;height:56px}}
@@ -74,7 +75,7 @@ img.thumb{width:88px;height:72px;object-fit:cover;border-radius:8px;border:1px s
   </div>
 
   <!-- DATA -->
-  <div id="dataTableWrapper">
+  <div id="dataTableWrapper" class="tab-wrapper show">
     <div class="table-card">
       <div class="d-flex align-items-center justify-content-between mb-3">
         <h4 class="section-title mb-0">Veri Tablosu</h4>
@@ -91,7 +92,7 @@ img.thumb{width:88px;height:72px;object-fit:cover;border-radius:8px;border:1px s
   </div>
 
   <!-- PHOTO -->
-  <div id="photoTableWrapper">
+  <div id="photoTableWrapper" class="tab-wrapper">
     <div class="table-card">
       <div class="d-flex align-items-center justify-content-between mb-3">
         <h4 class="section-title mb-0">Fotoğraf Tablosu</h4>
@@ -108,7 +109,7 @@ img.thumb{width:88px;height:72px;object-fit:cover;border-radius:8px;border:1px s
   </div>
 
   <!-- CHART -->
-  <div id="chartWrapper">
+  <div id="chartWrapper" class="tab-wrapper">
     <div class="table-card">
       <div class="d-flex align-items-center justify-content-between mb-2">
         <h4 class="section-title mb-0">Tekrar Sayısı Grafiği (T / U / V)</h4>
@@ -150,13 +151,12 @@ img.thumb{width:88px;height:72px;object-fit:cover;border-radius:8px;border:1px s
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// ----------------- MEVCUT JS KODUN -----------------
-const BACKEND_URL = "https://kaliteform.onrender.com";
-const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBWFSVSD6NvBNqC8me1le_unCCLOKIOIS2DfZFXUTji0MHC7SaWNIy4a0Laob9xOiAJyPnp7LuZ1R-/pub?output=csv";
-const PAGE_SIZE = 10;
-let fullRows=[], dataRows=[], photoRows=[], headerRow=[], errorChart=null;
+// ----------------- AUTH & CSV LOAD -----------------
+const BACKEND_URL="https://kaliteform.onrender.com";
+const sheetUrl="https://docs.google.com/spreadsheets/d/e/2PACX-1vQBWFSVSD6NvBNqC8me1le_unCCLOKIOIS2DfZFXUTji0MHC7SaWNIy4a0Laob9xOiAJyPnp7LuZ1R-/pub?output=csv";
+const PAGE_SIZE=10;
+let fullRows=[],dataRows=[],photoRows=[],headerRow=[],errorChart=null;
 
-/* AUTH */
 function login(){
   const u=document.getElementById('username').value.trim();
   const p=document.getElementById('password').value.trim();
@@ -165,15 +165,14 @@ function login(){
   fetch(BACKEND_URL+"/login",{method:'POST',headers:{"Content-Type":"application/json"},body:JSON.stringify({username:u,password:p})})
   .then(r=>r.json()).then(res=>{
     if(res && res.success){localStorage.setItem('loggedIn','true'); showMain();}
-    else err.textContent = res?.message || 'Giriş başarısız.';
-  }).catch(()=> err.textContent = 'Sunucuya ulaşılamadı.');
+    else err.textContent=res?.message||'Giriş başarısız.';
+  }).catch(()=>err.textContent='Sunucuya ulaşılamadı.');
 }
 
 function logout(){localStorage.removeItem('loggedIn'); location.reload();}
 function showMain(){document.getElementById('loginPage').style.display='none'; document.getElementById('mainPage').style.display='block'; loadCsvAndInit();}
 if(localStorage.getItem('loggedIn')==='true') showMain();
 
-/* CSV LOAD */
 function loadCsvAndInit(){
   fetch(sheetUrl).then(r=>r.text()).then(text=>{
     const parsed=Papa.parse(text,{header:false}).data;
@@ -187,10 +186,6 @@ function loadCsvAndInit(){
     renderChart();
   });
 }
-
-// createTable ve renderChart fonksiyonları aynı şekilde buraya gelir
-// IMAGE MODAL
-function openImage(src){const img=document.getElementById('modalImage'); img.src=src; const bs=new bootstrap.Modal(document.getElementById('imageModal')); bs.show();}
 
 // ----------------- TAB GEÇİŞLERİ -----------------
 function showTab(wrapperId, btnId){
