@@ -78,20 +78,36 @@ document.getElementById('loginBtn').addEventListener('click', async ()=>{
 
 document.getElementById('logoutBtn').addEventListener('click',()=>location.reload());
 
-async function loadData(){
-  try{
-    const res=await fetch(BACKEND_URL+"/health");
-    if(!res.ok) throw new Error("Backend ulaşılmadı");
-  }catch(e){
-    alert("Backend offline");
+async function loadCsvAndInit(){
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/get`);
+    if(!res.ok) throw new Error('Backend fetch failed');
+    const jsonData = await res.json();
+
+    if(!Array.isArray(jsonData)) throw new Error('Geçersiz veri formatı');
+
+    // Google Sheets’ten gelen veriler array of objects şeklinde
+    headerRow = Object.keys(jsonData[0] || {});
+    fullRows = jsonData.map(r => headerRow.map(h => r[h]));
+
+    // Veri ve foto tablosu için slice
+    dataRows = fullRows.map(r => r.slice(3, 7));    // Açıklama, Personel, Foto, KalitePersoneli
+    photoRows = fullRows.map(r => r.slice(0, 3));   // Tarih, Vardiya, Hat
+
+    document.getElementById('dataCount').textContent = dataRows.length;
+    document.getElementById('photoCount').textContent = photoRows.length;
+
+    createTable('dataTable', headerRow.slice(3, 7), dataRows, 'searchInput1', 'pagination1');
+    createTable('photoTable', headerRow.slice(0, 3), photoRows, 'searchInput2', 'pagination2', true, true);
+    renderChart();
+
+  } catch(err) {
+    console.warn('Veri çekilemedi, offline demo yükleniyor:', err);
+    showOfflineBadge(true);
+    // Burada demo CSV’yi tekrar kullanabilirsin
   }
-  const csvText = `Tarih,Vardiya,Hat,Açıklama,Personel,Foto,KalitePersoneli
-01.01.2025,D1,H1,Hata A,Ahmet,,Ali
-02.01.2025,D2,H2,Hata B,Mehmet,,Veli`; // demo CSV
-  const parsed = Papa.parse(csvText,{header:true}).data;
-  rows = parsed;
-  renderTable();
 }
+
 
 function renderTable(){
   const tbody=document.querySelector('#dataTable tbody');
