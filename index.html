@@ -474,7 +474,7 @@ function renderChart(){
             counts[countKey]=(counts[countKey]||0)+1;
         });
 
-        const labels=Array.from(labelsSet).sort();
+        let labels=Array.from(labelsSet).sort();
         const groups={};
         for(const k in counts){
             const [desc,pKey]=k.split('|');
@@ -482,19 +482,50 @@ function renderChart(){
             groups[desc][pKey]=counts[k];
         }
 
-        const palette=["#8e44ad","#9b59b6","#e598ff","#d6a7ff","#7f7fd5","#b388ff","#6a1b9a","#3a0ca3"];
+        // Grupları toplam değerlerine göre büyükten küçüğe sırala
+        const sortedGroups = Object.entries(groups)
+            .map(([desc,dataObj])=>{
+                const total = Object.values(dataObj).reduce((a,b)=>a+b,0);
+                return {desc, dataObj, total};
+            })
+            .sort((a,b)=>b.total - a.total);
+
+        const palette=["#ff595e","#ffca3a","#8ac926","#1982c4","#6a4c93","#ff6f91","#ff9671","#6bf178"];
         const datasets=[];
-        Object.keys(groups).forEach((desc,i)=>{
-            const arr=labels.map(l=>groups[desc][l]||0);
-            datasets.push({label:desc,data:arr,backgroundColor:palette[i%palette.length],borderColor:palette[i%palette.length],borderWidth:1,type:'bar'});
+        sortedGroups.forEach((g,i)=>{
+            const arr = labels.map(l=>g.dataObj[l]||0);
+            datasets.push({
+                label:g.desc,
+                data:arr,
+                backgroundColor:palette[i%palette.length],
+                borderColor:'#fff',
+                borderWidth:1,
+                type:'bar'
+            });
         });
 
         const ctx=document.getElementById('errorChart')?.getContext('2d');
         if(!ctx) return;
         if(errorChart) errorChart.destroy();
-        errorChart=new Chart(ctx,{data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'},tooltip:{mode:'index',intersect:false}},scales:{y:{beginAtZero:true}}}});
+        errorChart=new Chart(ctx,{
+            type:'bar',
+            data:{labels,datasets},
+            options:{
+                responsive:true,
+                maintainAspectRatio:false,
+                plugins:{
+                    legend:{position:'top'},
+                    tooltip:{mode:'index',intersect:false}
+                },
+                scales:{
+                    y:{beginAtZero:true},
+                    x:{ticks:{autoSkip:false}}
+                }
+            }
+        });
     }catch(e){ console.error(e); }
 }
+
 
 function parseDateFromDDMMYYYY(s){ if(!s) return null; const p=s.split('.'); if(p.length!==3) return null; const d=new Date(+p[2],+p[1]-1,+p[0]); return isNaN(d)?null:d; }
 function weekKeyFromDate(d){ const onejan=new Date(d.getFullYear(),0,1); return 'W'+Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7); }
