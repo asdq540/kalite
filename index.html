@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Kalite Kontrol Paneli — Modern</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kalite Kontrol Paneli</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
 <style>
-:root{--primary:#9b59b6;;--bg:#f6f8fa;--card:#ffffff;--thead:#8e44ad;--row1:#ffffff;--row2:#f3f4f6;--border:#d4d7dc;--shadow:0 4px 18px rgba(0,0,0,0.08)}
+:root{--primary:#9b59b6;--bg:#f6f8fa;--card:#ffffff;--thead:#8e44ad;--row1:#ffffff;--row2:#f3f4f6;--border:#d4d7dc;--shadow:0 4px 18px rgba(0,0,0,0.08)}
 body{background:var(--bg);font-family:"Segoe UI",sans-serif;padding:20px}
 .login-container{max-width:420px;margin:90px auto;padding:30px;background:var(--card);border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--border)}
 #mainPage{display:none}
@@ -27,24 +27,9 @@ body{background:var(--bg);font-family:"Segoe UI",sans-serif;padding:20px}
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
   text-align:center;
 }
-.table tbody tr{
-  background:#fff;
-  transition:0.2s ease;
-  box-shadow:0 1px 4px rgba(0,0,0,0.06);
-  border-radius:10px;
-}
-.table tbody tr:hover{
-  background:#e7f5f3 !important;
-  transform: scale(1.01);
-  box-shadow:0 4px 12px rgba(0,0,0,0.12);
-}
-.table tbody td{
-  padding:12px!important;
-  vertical-align:middle;
-  text-align:center;
-  border-top:1px solid var(--border);
-  border-bottom:1px solid var(--border);
-}
+.table tbody tr{background:#fff;transition:0.2s ease;box-shadow:0 1px 4px rgba(0,0,0,0.06);border-radius:10px;}
+.table tbody tr:hover{background:#e7f5f3 !important;transform: scale(1.01);box-shadow:0 4px 12px rgba(0,0,0,0.12);}
+.table tbody td{padding:12px!important;vertical-align:middle;text-align:center;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
 .table tbody tr td:first-child{border-left:1px solid var(--border);border-top-left-radius:10px;border-bottom-left-radius:10px}
 .table tbody tr td:last-child{border-right:1px solid var(--border);border-top-right-radius:10px;border-bottom-right-radius:10px}
 img.thumb{width:88px;height:72px;object-fit:cover;border-radius:8px;border:1px solid #cbd1d8;cursor:pointer}
@@ -212,228 +197,200 @@ img.thumb{width:88px;height:72px;object-fit:cover;border-radius:8px;border:1px s
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-// Robustified JS: better fetch error handling + offline demo fallback
-const BACKEND_URL = "https://kaliteform.onrender.com";
-const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQBWFSVSD6NvBNqC8me1le_unCCLOKIOIS2DfZFXUTji0MHC7SaWNIy4a0Laob9xOiAJyPnp7LuZ1R-/pub?output=csv";
+// ------------------- CONFIG -------------------
+const BACKEND_URL = "http://localhost:5000"; // Backend URL
 const PAGE_SIZE = 10;
-let fullRows = [], dataRows = [], photoRows = [], headerRow = [], errorChart = null;
-let offlineMode = false;
+let fullRows=[], dataRows=[], photoRows=[], headerRow=[], errorChart=null;
 
-const DEMO_CSV = `Tarih,Alan2,Alan3,Alan4,Alan5,Alan6,Alan7,Alan8,Col9,Col10,Col11,Col12,Col13,Col14,Col15,Col16,Col17,Col18,Col19,Col20,Aciklama,Sayac
-01.01.2025,,,,,,,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,01.01.2025,01.01.2025,Hata A,2
-02.01.2025,,,,,,,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,02.01.2025,02.01.2025,Hata B,1`;
-
-function fetchWithTimeout(url, opts = {}, timeout = 8000){
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(()=> reject(new Error('timeout')), timeout);
-    fetch(url, opts).then(res=>{ clearTimeout(timer); resolve(res); }).catch(err=>{ clearTimeout(timer); reject(err); });
-  });
-}
-
-function showOfflineBadge(on){
-  const b = document.getElementById('offlineBadge');
-  if(!b) return;
-  if(on){ b.classList.remove('d-none'); offlineMode=true; }
-  else { b.classList.add('d-none'); offlineMode=false; }
-}
-
+// ------------------- LOGIN -------------------
 async function login(){
-  const u = document.getElementById('username').value.trim();
-  const p = document.getElementById('password').value.trim();
-  const err = document.getElementById('errorMsg'); err.textContent = "";
-  if(!u || !p){ err.textContent='Kullanıcı adı ve şifre boş olamaz.'; return; }
-
+  const u=document.getElementById('username').value.trim();
+  const p=document.getElementById('password').value.trim();
+  const err=document.getElementById('errorMsg'); err.textContent='';
+  if(!u||!p){ err.textContent='Kullanıcı adı ve şifre boş olamaz.'; return; }
   try{
-    const res = await fetchWithTimeout(BACKEND_URL+"/login",{
-      method:'POST',
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({username:u,password:p})
-    },7000);
+    const res=await fetch(BACKEND_URL+"/login",{method:'POST',headers:{"Content-Type":"application/json"},body:JSON.stringify({username:u,password:p})});
     if(!res.ok) throw new Error('login-failed');
-    const data = await res.json();
-    if(data && data.success){ localStorage.setItem('loggedIn','true'); showMain(); }
-    else { err.textContent = data?.message || 'Giriş başarısız.'; }
+    const data=await res.json();
+    if(data.success){ localStorage.setItem('loggedIn','true'); showMain(); }
+    else err.textContent=data.message||'Giriş başarısız.';
   }catch(e){
-    console.warn('Login fetch failed:', e);
-    err.textContent = 'Sunucuya ulaşılamadı. Demo modu açılıyor.';
-    showOfflineBadge(true);
-    localStorage.setItem('loggedIn','true');
-    showMain();
+    console.warn('Login fail',e); err.textContent='Sunucuya ulaşılamadı.';
   }
 }
-
 function logout(){ localStorage.removeItem('loggedIn'); location.reload(); }
 function showMain(){ document.getElementById('loginPage').style.display='none'; document.getElementById('mainPage').style.display='block'; loadCsvAndInit(); }
 
+// ------------------- CSV -------------------
+const DEMO_CSV=`Tarih,Alan2,Alan3,Alan4,Alan5,Alan6,Alan7,Alan8,Col9,Col10,Col11,Col12,Col13,Col14,Col15,Col16,Col17,Col18,Col19,Col20,Aciklama,Sayac
+01.01.2025,,,,,,,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,01.01.2025,01.01.2025,Hata A,2
+02.01.2025,,,,,,,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,02.01.2025,02.01.2025,Hata B,1`;
+
 async function loadCsvAndInit(){
   try{
-    const res = await fetchWithTimeout(sheetUrl, {}, 8000);
-    if(!res.ok) throw new Error('sheet-fetch-failed');
-    const text = await res.text();
+    const res=await fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vQBWFSVSD6NvBNqC8me1le_unCCLOKIOIS2DfZFXUTji0MHC7SaWNIy4a0Laob9xOiAJyPnp7LuZ1R-/pub?output=csv");
+    const text=await res.text();
     processCsvText(text);
-  }catch(err){
-    console.warn('Failed to fetch sheet:', err);
-    showOfflineBadge(true);
-    processCsvText(DEMO_CSV);
-  }
+  }catch(e){ console.warn(e); processCsvText(DEMO_CSV); }
 }
 
 function processCsvText(text){
-  const parsed = Papa.parse(text, {header:false}).data;
-  if(!parsed || parsed.length===0) { headerRow = []; fullRows = []; return; }
-  headerRow = parsed[0];
-  fullRows = parsed.slice(1).filter(r=>r && r.length>0);
-  dataRows = fullRows.map(r=> r.slice(9,17));
-  photoRows = fullRows.map(r=> r.slice(0,7));
-  document.getElementById('dataCount').textContent = dataRows.length;
-  document.getElementById('photoCount').textContent = photoRows.length;
-  createTable('dataTable', headerRow.slice(9,17), dataRows, 'searchInput1', 'pagination1');
-  createTable('photoTable', headerRow.slice(0,7), photoRows, 'searchInput2', 'pagination2', true, true);
+  const parsed=Papa.parse(text,{header:false}).data;
+  if(!parsed||parsed.length===0){ headerRow=[]; fullRows=[]; return; }
+  headerRow=parsed[0]; fullRows=parsed.slice(1).filter(r=>r && r.length>0);
+  dataRows=fullRows.map(r=>r.slice(9,17));
+  photoRows=fullRows.map(r=>r.slice(0,7));
+  document.getElementById('dataCount').textContent=dataRows.length;
+  document.getElementById('photoCount').textContent=photoRows.length;
+  createTable('dataTable', headerRow.slice(9,17), dataRows, 'searchInput1', 'pagination1', true);
+  createTable('photoTable', headerRow.slice(0,7), photoRows, 'searchInput2', 'pagination2', true);
   renderChart();
 }
 
-function createTable(tableId, headers, rows, searchId, paginationId, isPhoto=false, dateSort=false){
-  const table = document.getElementById(tableId);
+// ------------------- TABLE -------------------
+function createTable(tableId, headers, rows, searchId, paginationId, addOps=false){
+  const table=document.getElementById(tableId);
   if(!table) return;
-  const thead = table.querySelector('thead');
-  const tbody = table.querySelector('tbody');
-  const search = document.getElementById(searchId);
-  const pagination = document.getElementById(paginationId);
-  let filtered = [...rows], page = 1, sortCol = null, sortAsc = false;
-
-  function parseDateSafe(s){
-    if(!s||typeof s!=='string') return null;
-    const p = s.split('.'); if(p.length!==3) return null;
-    const d = new Date(+p[2], +p[1]-1, +p[0]); return isNaN(d)?null:d;
-  }
+  const thead=table.querySelector('thead'), tbody=table.querySelector('tbody');
+  const search=document.getElementById(searchId), pagination=document.getElementById(paginationId);
+  let filtered=[...rows], page=1;
 
   function renderHead(){
-    thead.innerHTML = '';
-    const tr = document.createElement('tr');
-    headers.forEach((h,idx)=>{
-      const th = document.createElement('th');
-      th.textContent = h || ('Kolon '+(idx+1));
-      if(dateSort && idx===0){
-        th.style.cursor='pointer';
-        th.title='Tarihe göre sırala (tıkla)';
-        th.addEventListener('click',()=>{ sortCol=idx; sortAsc=!sortAsc; sortRows(); page=1; renderPage(); });
-      }
-      tr.appendChild(th);
+    thead.innerHTML='';
+    const tr=document.createElement('tr');
+    headers.forEach(h=>{
+      const th=document.createElement('th'); th.textContent=h||'Kolon'; tr.appendChild(th);
     });
+    if(addOps){ const th=document.createElement('th'); th.textContent='İşlem'; tr.appendChild(th); }
     thead.appendChild(tr);
   }
 
-  function sortRows(){
-    if(sortCol===null) return;
-    filtered.sort((a,b)=>{
-      const dA=parseDateSafe(a[sortCol]), dB=parseDateSafe(b[sortCol]);
-      if(dA && dB) return sortAsc? dA - dB : dB - dA;
-      const sA=(a[sortCol]||'').toLowerCase(), sB=(b[sortCol]||'').toLowerCase();
-      if(sA<sB) return sortAsc?-1:1;
-      if(sA>sB) return sortAsc?1:-1;
-      return 0;
-    });
-  }
-
   function renderPage(){
-    tbody.innerHTML = '';
-    const totalPages = Math.max(1, Math.ceil(filtered.length/PAGE_SIZE));
+    tbody.innerHTML='';
+    const totalPages=Math.max(1,Math.ceil(filtered.length/PAGE_SIZE));
     if(page>totalPages) page=totalPages;
-    const start = (page-1)*PAGE_SIZE;
-    const slice = filtered.slice(start,start+PAGE_SIZE);
-    slice.forEach(r=>{
+    const start=(page-1)*PAGE_SIZE; const slice=filtered.slice(start,start+PAGE_SIZE);
+    slice.forEach((r,idx)=>{
       const tr=document.createElement('tr');
-      r.forEach((cell,ci)=>{
-        const td=document.createElement('td');
-        if(isPhoto && ci===5 && cell){
-          const img=document.createElement('img'); img.src=cell; img.className='thumb'; img.loading='lazy';
-          img.addEventListener('click',()=>openImage(cell)); td.appendChild(img);
-        } else td.textContent = cell || '';
-        tr.appendChild(td);
+      r.forEach(cell=>{
+        const td=document.createElement('td'); td.textContent=cell||''; tr.appendChild(td);
       });
+      if(addOps){
+        const tdOps=document.createElement('td');
+        const editBtn=document.createElement('button'); editBtn.className='btn btn-sm btn-primary me-1'; editBtn.textContent='Düzenle';
+        editBtn.addEventListener('click',()=>openEditModal(start+idx+2,r));
+        const delBtn=document.createElement('button'); delBtn.className='btn btn-sm btn-danger'; delBtn.textContent='Sil';
+        delBtn.addEventListener('click',()=>deleteRow(start+idx+2));
+        tdOps.appendChild(editBtn); tdOps.appendChild(delBtn); tr.appendChild(tdOps);
+      }
       tbody.appendChild(tr);
     });
-    renderPagination();
+    renderPagination(totalPages);
   }
 
-  function renderPagination(){
+  function renderPagination(totalPages){
     if(!pagination) return;
     pagination.innerHTML='';
-    const totalPages = Math.max(1, Math.ceil(filtered.length/PAGE_SIZE));
-    const liPrev = document.createElement('li'); liPrev.className='page-item '+(page===1?'disabled':'');
-    const btnPrev = document.createElement('button'); btnPrev.className='page-link'; btnPrev.textContent='Geri';
-    btnPrev.addEventListener('click',e=>{e.preventDefault(); if(page>1){ page--; renderPage(); }});
+    const liPrev=document.createElement('li'); liPrev.className='page-item '+(page===1?'disabled':'');
+    const btnPrev=document.createElement('button'); btnPrev.className='page-link'; btnPrev.textContent='Geri';
+    btnPrev.addEventListener('click',()=>{if(page>1){ page--; renderPage(); }});
     liPrev.appendChild(btnPrev); pagination.appendChild(liPrev);
-    const liNext = document.createElement('li'); liNext.className='page-item '+(page===totalPages?'disabled':'');
-    const btnNext = document.createElement('button'); btnNext.className='page-link'; btnNext.textContent='İleri';
-    btnNext.addEventListener('click',e=>{e.preventDefault(); if(page<totalPages){ page++; renderPage(); }});
+    const liNext=document.createElement('li'); liNext.className='page-item '+(page===totalPages?'disabled':'');
+    const btnNext=document.createElement('button'); btnNext.className='page-link'; btnNext.textContent='İleri';
+    btnNext.addEventListener('click',()=>{if(page<totalPages){ page++; renderPage(); }});
     liNext.appendChild(btnNext); pagination.appendChild(liNext);
+       renderPage();
   }
 
   if(search){
     search.addEventListener('input', ()=>{
       const term=(search.value||'').toLowerCase();
-      filtered = rows.filter(r=> r.join(' ').toLowerCase().includes(term));
-      page=1; if(sortCol!==null) sortRows(); renderPage();
+      filtered=rows.filter(r=>r.join(' ').toLowerCase().includes(term));
+      page=1; renderPage();
     });
   }
 
-  if(dateSort){ sortCol=0; sortAsc=false; sortRows(); }
   renderHead(); renderPage();
 }
 
+// ------------------- IMAGE MODAL -------------------
 function openImage(src){
-  const img=document.getElementById('modalImage'); if(!img) return; img.src = src;
-  const bs = new bootstrap.Modal(document.getElementById('imageModal')); bs.show();
+  const img=document.getElementById('modalImage'); if(!img) return;
+  img.src=src;
+  const bs=new bootstrap.Modal(document.getElementById('imageModal')); bs.show();
 }
 
-function parseDateFromDDMMYYYY(s){
-  if(!s) return null; const p=s.split('.'); if(p.length!==3) return null;
-  const d=new Date(+p[2], +p[1]-1, +p[0]); return isNaN(d)?null:d;
+// ------------------- EDIT / DELETE -------------------
+function openEditModal(rowIndex,rowData){
+  const newVal=prompt("Yeni açıklama:", rowData[3]||"");
+  if(newVal!==null){
+    fetch(`${BACKEND_URL}/api/update`,{
+      method:'POST',
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({row: rowIndex, newData:newVal})
+    }).then(r=>r.json()).then(d=>{
+      alert(d.mesaj||"Güncellendi!");
+      location.reload();
+    }).catch(e=>alert("Hata: "+e));
+  }
 }
-function weekKeyFromDate(d){ const onejan=new Date(d.getFullYear(),0,1); return 'W'+Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7); }
-function monthKeyFromDate(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+
+function deleteRow(rowIndex){
+  if(!confirm("Bu satırı silmek istediğinizden emin misiniz?")) return;
+  fetch(`${BACKEND_URL}/api/delete`,{
+    method:'POST',
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({row: rowIndex})
+  }).then(r=>r.json()).then(d=>{
+    alert(d.mesaj||"Silindi!");
+    location.reload();
+  }).catch(e=>alert("Hata: "+e));
+}
+
+// ------------------- CHART -------------------
+function parseDate(s){ const p=s.split('.'); return new Date(+p[2],+p[1]-1,+p[0]); }
 
 function renderChart(){
   try{
-    const dateInput=document.getElementById('chartDate')?.value;
-    const btn=document.querySelector('.period-btn.active');
-    const btnPeriod=btn?btn.dataset.period:null;
-    const selectPeriod=document.getElementById('chartPeriod')?.value;
-    const period=btnPeriod||selectPeriod||'daily';
-    let formattedSelected=null, selectedDateObj=null;
-    if(dateInput){ const parts=dateInput.split('-'); if(parts.length===3){ formattedSelected=`${parts[2]}.${parts[1]}.${parts[0]}`; selectedDateObj=new Date(+parts[0], +parts[1]-1, +parts[2]); } }
-
+    const period=document.querySelector('.period-btn.active')?.dataset.period || 'daily';
+    const selectedDate=document.getElementById('chartDate')?.value;
     const counts={}, labelsSet=new Set();
+
     fullRows.forEach(row=>{
       if(!row) return;
-      const dateStr=(row[19]||'').toString().trim();
+      const dateStr=row[19]||'';
       if(!dateStr) return;
-      const dObj=parseDateFromDDMMYYYY(dateStr);
-      if(!dObj) return;
-      if(period==='daily' && formattedSelected && dateStr!==formattedSelected) return;
-      if(period==='weekly' && selectedDateObj && weekKeyFromDate(selectedDateObj)!==weekKeyFromDate(dObj)) return;
-      if(period==='monthly' && selectedDateObj && monthKeyFromDate(selectedDateObj)!==monthKeyFromDate(dObj)) return;
-      let key=''; if(period==='daily') key=dateStr; else if(period==='weekly') key=weekKeyFromDate(dObj); else key=monthKeyFromDate(dObj);
+      const d=parseDate(dateStr);
+      let key=dateStr;
+      if(period==='weekly') key='W'+Math.ceil((((d-new Date(d.getFullYear(),0,1))/86400000)+new Date(d.getFullYear(),0,1).getDay()+1)/7);
+      if(period==='monthly') key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
       labelsSet.add(key);
-      const desc=(row[20]||'Açıklama Yok').toString().trim();
-      const cnt=parseInt(row[21])||0; counts[`${desc}|${key}`]=(counts[`${desc}|${key}`]||0)+cnt;
+      const desc=row[20]||'Açıklama Yok';
+      const cnt=parseInt(row[21])||0;
+      counts[`${desc}|${key}`]=(counts[`${desc}|${key}`]||0)+cnt;
     });
 
-    const labels=Array.from(labelsSet).sort(); const groups={};
-    for(const k in counts){ const [desc,pKey]=k.split('|'); if(!groups[desc]) groups[desc]={}; groups[desc][pKey]=counts[k]; }
+    const labels=Array.from(labelsSet).sort();
+    const groups={};
+    for(const k in counts){ const [desc,p]=k.split('|'); if(!groups[desc]) groups[desc]={}; groups[desc][p]=counts[k]; }
 
-    const palette=["#4B9CD3","#F4A261","#E76F51","#2A9D8F","#264653","#8AB17D","#F77F00","#3A86FF"];
-    const datasets=[], descs=Object.keys(groups);
-    descs.forEach((desc,i)=>{ const arr=labels.map(l=>groups[desc][l]||0); datasets.push({label:desc,data:arr,backgroundColor:palette[i%palette.length],borderColor:palette[i%palette.length],borderWidth:0,type:'bar'}); });
+    const palette=["#9b59b6","#8e44ad","#F4A261","#E76F51","#2A9D8F"];
+    const datasets=[];
+    Object.keys(groups).forEach((desc,i)=>{
+      const arr=labels.map(l=>groups[desc][l]||0);
+      datasets.push({label:desc,data:arr,backgroundColor:palette[i%palette.length],borderColor:palette[i%palette.length],borderWidth:1,type:'bar'});
+    });
 
-    const ctx=document.getElementById('errorChart')?.getContext('2d'); if(!ctx) return; if(errorChart) errorChart.destroy();
-    errorChart=new Chart(ctx,{data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'},tooltip:{mode:'index',intersect:false}},scales:{y:{beginAtZero:true}}}});
-  }catch(e){ console.error('renderChart error', e); }
+    const ctx=document.getElementById('errorChart')?.getContext('2d');
+    if(!ctx) return;
+    if(errorChart) errorChart.destroy();
+    errorChart=new Chart(ctx,{data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true}}}});
+  }catch(e){ console.error(e); }
 }
 
-document.addEventListener('click',function(e){
-  if(e.target && e.target.classList.contains('period-btn')){
+// ------------------- EVENTS -------------------
+document.addEventListener('click', e=>{
+  if(e.target.classList.contains('period-btn')){
     document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
     e.target.classList.add('active');
     document.getElementById('chartPeriod').value=e.target.dataset.period;
@@ -441,16 +398,16 @@ document.addEventListener('click',function(e){
   }
 });
 
-document.addEventListener('DOMContentLoaded', ()=>{
-  document.getElementById('loginBtn')?.addEventListener('click', login);
-  document.getElementById('logoutBtn')?.addEventListener('click', logout);
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('loginBtn')?.addEventListener('click',login);
+  document.getElementById('logoutBtn')?.addEventListener('click',logout);
+  document.getElementById('refreshChart')?.addEventListener('click',renderChart);
+  document.getElementById('chartDate')?.addEventListener('change',renderChart);
   document.getElementById('chartPeriod')?.addEventListener('change', function(){
     document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
     document.querySelectorAll('.period-btn').forEach(b=>{ if(b.dataset.period===this.value) b.classList.add('active'); });
     renderChart();
   });
-  document.getElementById('chartDate')?.addEventListener('change', renderChart);
-  document.getElementById('refreshChart')?.addEventListener('click', renderChart);
 
   document.getElementById('btnData')?.addEventListener('click',()=>{
     document.getElementById('dataTableWrapper').style.display='block';
@@ -479,6 +436,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
 });
 </script>
 
-
 </body>
 </html>
+
