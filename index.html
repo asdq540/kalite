@@ -233,32 +233,41 @@ function showMain(){ document.getElementById('loginPage').style.display='none'; 
 // ---------------------------
 // VERİ ÇEKME
 // ---------------------------
-async function loadDataFromBackend(){
-  try{
-    const res = await fetch(BACKEND_BASE+'/api/get');
-    if(!res.ok) throw new Error('Backend fetch failed');
-    const jsonData = await res.json();
-    if(!Array.isArray(jsonData)) throw new Error('Geçersiz veri formatı');
 
-    headerRow = Object.keys(jsonData[0]);
-    fullRows = jsonData.map(r=>headerRow.map(h=>r[h]));
+async function loadDataFromBackend() {
+  try {
+    const res = await fetch('/api/get');
+    const json = await res.json();
 
-    // tabloları hazırla
-    dataRows = fullRows.map(r=>r.slice(3,7));  // aciklama, personel, foto, kalitePersoneli
-    photoRows = fullRows.map(r=>r.slice(0,3)); // tarih, vardiya, hat
+    if(!Array.isArray(json) || !json.length) return;
 
-    document.getElementById('dataCount').textContent=dataRows.length;
-    document.getElementById('photoCount').textContent=photoRows.length;
+    const header = Object.keys(json[0]);
+    headerRow = header;
 
-    createEditableTable('dataTable', headerRow.slice(3,7), dataRows, 'searchInput1', 'pagination1');
-    createEditableTable('photoTable', headerRow.slice(0,3), photoRows, 'searchInput2', 'pagination2', true);
-    renderChart();
-  }catch(e){
+    fullRows = json.map(r => header.map(h => r[h] || ''));
+
+    // Veri tablosu: J-Q (index 9-16)
+    dataRows = fullRows.map(r => r.slice(9,17));
+
+    // Fotoğraf tablosu: A-G (index 0-6)
+    photoRows = fullRows.map(r => r.slice(0,7));
+
+    document.getElementById('dataCount').textContent = dataRows.length;
+    document.getElementById('photoCount').textContent = photoRows.length;
+
+    createEditableTable('dataTable', header.slice(9,17), dataRows, 'searchInput1', 'pagination1');
+    createEditableTable('photoTable', header.slice(0,7), photoRows, 'searchInput2', 'pagination2', true);
+
+    renderChart(); // grafik
+  } catch(e) {
     console.error('loadDataFromBackend error', e);
-    document.getElementById('offlineBadge').classList.remove('d-none');
   }
 }
 
+
+
+
+   
 // ---------------------------
 // Editable table
 // ---------------------------
