@@ -119,155 +119,135 @@ img.thumb{width:88px;height:72px;object-fit:cover;border-radius:8px;border:1px s
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-const BACKEND_BASE = 'https://vardiya-backend.onrender.com'; // Backend URL, aynı origin ise boş bırak
-let headerRow = [], fullRows = [], dataRows = [], photoRows = [];
-let dataHeader = [], photoHeader = [];
-let errorChart = null;
+/* FRONTEND SCRIPT - talks to backend endpoints */
+const BACKEND_BASE = ''; // backend URL (same origin)
 const PAGE_SIZE = 10;
 
-// ----------------- LOGIN -----------------
-async function login(){
+let headerRow = [], fullRows = [], dataRows = [], photoRows = [], errorChart = null;
+let dataHeader = [], photoHeader = [];
+
+// LOGIN
+async function login() {
     const u = document.getElementById('username').value.trim();
     const p = document.getElementById('password').value.trim();
     const err = document.getElementById('errorMsg');
     err.textContent = '';
-    if(!u||!p){ err.textContent='Kullanıcı adı ve şifre boş olamaz.'; return; }
-    try{
-        const res = await fetch(BACKEND_BASE+'/login',{
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
+    if (!u || !p) { err.textContent='Kullanıcı adı ve şifre boş olamaz.'; return; }
+
+    try {
+        const res = await fetch(BACKEND_BASE + '/login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({username:u,password:p})
         });
         const data = await res.json();
-        if(data.success){
+        if(res.ok && data.success){
             localStorage.setItem('loggedIn','true');
             showMain();
         } else err.textContent = data.message || 'Giriş başarısız.';
-    }catch(e){
-        err.textContent = 'Sunucuya ulaşılamadı veya hatalı.';
-    }
+    } catch(e){ err.textContent='Sunucuya ulaşılamadı.'; }
 }
 
 function logout(){ localStorage.removeItem('loggedIn'); location.reload(); }
+function showMain(){ document.getElementById('loginPage').style.display='none'; document.getElementById('mainPage').style.display='block'; loadDataFromBackend(); }
 
-function showMain(){
-    document.getElementById('loginPage').style.display='none';
-    document.getElementById('mainPage').style.display='block';
-    loadDataFromBackend();
-}
-
-// ----------------- LOAD DATA -----------------
+// LOAD DATA
 async function loadDataFromBackend(){
-    try{
-        const res = await fetch(BACKEND_BASE+'/api/get');
+    try {
+        const res = await fetch(BACKEND_BASE + '/api/get');
         const json = await res.json();
 
         dataHeader = json.dataHeader || [];
-        dataRows = json.dataRows || [];
         photoHeader = json.photoHeader || [];
+        dataRows = json.dataRows || [];
         photoRows = json.photoRows || [];
 
         document.getElementById('dataCount').textContent = dataRows.length;
         document.getElementById('photoCount').textContent = photoRows.length;
 
-        createTable('dataTable', dataHeader, dataRows);
-        createPhotoTable('photoTable', photoHeader, photoRows);
+        createTable('dataTable', dataHeader, dataRows, 'searchInput1', 'pagination1', false);
+        createTable('photoTable', photoHeader, photoRows, 'searchInput2', 'pagination2', true);
+    } catch(e){ console.error('loadDataFromBackend error', e); }
+}
 
-    }catch(e){
-        console.error('loadDataFromBackend error',e);
+// CREATE TABLE
+function createTable(tableId, headers, rows, searchId, paginationId, isPhoto=false){
+    const table = document.getElementById(tableId);
+    const thead = table.querySelector('thead');
+    const tbody = table.querySelector('tbody');
+    const search = document.getElementById(searchId);
+
+    // HEADERS
+    thead.innerHTML = '';
+    const tr = document.createElement('tr');
+    headers.forEach(h=>{ const th = document.createElement('th'); th.textContent=h||''; tr.appendChild(th); });
+    if(isPhoto){
+        const actionTh = document.createElement('th'); actionTh.textContent='İşlemler'; tr.appendChild(actionTh);
     }
-}
-
-// ----------------- CREATE DATA TABLE -----------------
-function createTable(tableId, headers, rows){
-    const table = document.getElementById(tableId);
-    const thead = table.querySelector('thead');
-    const tbody = table.querySelector('tbody');
-
-    // header
-    thead.innerHTML = '';
-    const tr = document.createElement('tr');
-    headers.forEach(h=>{
-        const th = document.createElement('th');
-        th.textContent = h || '';
-        tr.appendChild(th);
-    });
     thead.appendChild(tr);
 
-    // rows
-    tbody.innerHTML = '';
-    rows.forEach(row=>{
-        const tr = document.createElement('tr');
-        row.forEach(cell=>{
-            const td = document.createElement('td');
-            td.textContent = cell ?? '';
-            tr.appendChild(td);
-        });
-        tbody.appendChild(tr);
-    });
-}
-
-// ----------------- CREATE PHOTO TABLE -----------------
-function createPhotoTable(tableId, headers, rows){
-    const table = document.getElementById(tableId);
-    const thead = table.querySelector('thead');
-    const tbody = table.querySelector('tbody');
-
-    // header
-    thead.innerHTML = '';
-    const tr = document.createElement('tr');
-    headers.forEach(h=>{
-        const th = document.createElement('th');
-        th.textContent = h || '';
-        tr.appendChild(th);
-    });
-    const actionTh = document.createElement('th');
-    actionTh.textContent = 'İşlemler';
-    tr.appendChild(actionTh);
-    thead.appendChild(tr);
-
-    // rows
-    tbody.innerHTML = '';
+    // ROWS
+    tbody.innerHTML='';
     rows.forEach((row,rowIndex)=>{
         const tr = document.createElement('tr');
         row.forEach((cell,colIndex)=>{
             const td = document.createElement('td');
-            if(colIndex===5 && cell){ // fotoğraf kolon 5
+            if(isPhoto && colIndex===5 && cell){
                 const img = document.createElement('img');
-                img.src = cell;
-                img.className = 'thumb';
-                img.alt = 'foto';
-                img.addEventListener('click', ()=>openImage(cell));
+                img.src = cell; img.className='thumb'; img.alt='foto';
+                img.addEventListener('click',()=>openImage(cell));
                 td.appendChild(img);
             } else td.textContent = cell ?? '';
             tr.appendChild(td);
         });
 
-        // action buttons
-        const actionTd = document.createElement('td');
-        const editBtn = document.createElement('button');
-        editBtn.className='btn btn-sm btn-outline-primary me-2';
-        editBtn.textContent='Düzenle';
-        editBtn.addEventListener('click', ()=>openEditModal('photoTable', rowIndex));
-        actionTd.appendChild(editBtn);
+        // ACTION BUTTONS ONLY FOR PHOTO
+        if(isPhoto){
+            const actionTd = document.createElement('td');
 
-        const delBtn = document.createElement('button');
-        delBtn.className='btn btn-sm btn-outline-danger';
-        delBtn.textContent='Sil';
-        delBtn.addEventListener('click', ()=>deletePhotoRow(rowIndex));
-        actionTd.appendChild(delBtn);
+            // Düzenle
+            const editBtn = document.createElement('button');
+            editBtn.className='btn btn-sm btn-outline-primary me-2';
+            editBtn.textContent='Düzenle';
+            editBtn.addEventListener('click',()=>openEditModal(rowIndex));
+            actionTd.appendChild(editBtn);
 
-        tr.appendChild(actionTd);
+            // Sil
+            const delBtn = document.createElement('button');
+            delBtn.className='btn btn-sm btn-outline-danger';
+            delBtn.textContent='Sil';
+            delBtn.addEventListener('click',()=>deleteRow(rowIndex));
+            actionTd.appendChild(delBtn);
+
+            tr.appendChild(actionTd);
+        }
+
         tbody.appendChild(tr);
     });
+
+    // SEARCH
+    if(search){
+        search.oninput=()=>{
+            const term = (search.value||'').toLowerCase();
+            tbody.querySelectorAll('tr').forEach(r=>{
+                const text=r.innerText.toLowerCase();
+                r.style.display = text.includes(term)?'':'none';
+            });
+        };
+    }
 }
 
-// ----------------- PHOTO ROW MODAL -----------------
-function openEditModal(tableId,rowIndex){
-    const fullRow = photoRows[rowIndex] || [];
+// IMAGE MODAL
+function openImage(src){
+    const img = document.getElementById('modalImage'); img.src=src;
+    new bootstrap.Modal(document.getElementById('imageModal')).show();
+}
+
+// EDIT MODAL FOR PHOTO
+function openEditModal(rowIndex){
+    const row = photoRows[rowIndex] || [];
     const header = photoHeader || [];
 
-    // Modal HTML
     let html = `<div class="modal fade" id="rowEditModal" tabindex="-1">
         <div class="modal-dialog modal-lg"><div class="modal-content">
         <div class="modal-header">
@@ -276,44 +256,40 @@ function openEditModal(tableId,rowIndex){
         </div>
         <div class="modal-body"><form id="rowEditForm">`;
 
-    for(let i=0;i<header.length;i++){
-        const label = header[i] || ('Kolon '+(i+1));
-        const val = fullRow[i] ?? '';
-        html += `<label class="form-label">${label}</label>
+    header.forEach((h,i)=>{
+        const val = row[i]||'';
+        html += `<label class="form-label">${h}</label>
                  <input class="form-control mb-2" data-col="${i}" value="${val}">`;
-    }
+    });
 
     html += `</form></div>
         <div class="modal-footer">
             <button type="button" id="saveRowBtn" class="btn btn-primary">Kaydet</button>
         </div></div></div></div>`;
 
-    // DOM’a ekle
     const container = document.getElementById('editModalContainer');
     container.innerHTML = html;
 
-    // Bootstrap Modal oluştur
     const modalEl = document.getElementById('rowEditModal');
     const bs = new bootstrap.Modal(modalEl);
     bs.show();
 
-    // Kaydet butonuna event
     document.getElementById('saveRowBtn').onclick = async ()=>{
         const inputs = document.querySelectorAll('#rowEditForm input');
         const newRow = [];
         inputs.forEach(inp=> newRow[parseInt(inp.dataset.col)] = inp.value.trim());
 
         const payload = {
-            row: rowIndex + 2, // header satırı + index
+            row: rowIndex + 2, // 1.header + 0-index
             yeni: {
                 tarih: newRow[0] || '',
                 vardiya: newRow[1] || '',
                 hat: newRow[2] || '',
                 aciklama: newRow[3] || '',
                 personel: newRow[4] || '',
-                foto_base64: '', 
                 foto_url: newRow[5] || '',
-                kalitePersoneli: newRow[6] || ''
+                kalitePersoneli: newRow[6] || '',
+                foto_base64: ''
             }
         };
 
@@ -323,17 +299,14 @@ function openEditModal(tableId,rowIndex){
                 headers:{'Content-Type':'application/json'},
                 body: JSON.stringify(payload)
             });
-            if(res.ok){
-                bs.hide();
-                await loadDataFromBackend();
-            } else alert('Güncelleme başarısız');
-        }catch(e){ console.error(e); alert('Sunucu hatası'); }
+            if(res.ok){ bs.hide(); loadDataFromBackend(); }
+            else alert('Güncelleme başarısız');
+        } catch(e){ console.error(e); alert('Sunucu hatası'); }
     };
 }
 
-
-// ----------------- DELETE PHOTO -----------------
-async function deletePhotoRow(rowIndex){
+// DELETE ROW PHOTO
+async function deleteRow(rowIndex){
     if(!confirm('Satırı silmek istediğinize emin misiniz?')) return;
     try{
         const res = await fetch(BACKEND_BASE+'/api/sil',{
@@ -341,19 +314,12 @@ async function deletePhotoRow(rowIndex){
             headers:{'Content-Type':'application/json'},
             body: JSON.stringify({row: rowIndex+2})
         });
-        if(res.ok) await loadDataFromBackend();
-    }catch(e){ console.error('deletePhotoRow error',e); }
+        if(res.ok) loadDataFromBackend();
+    } catch(e){ console.error(e); }
 }
 
-// ----------------- IMAGE MODAL -----------------
-function openImage(src){
-    const img = document.getElementById('modalImage');
-    img.src = src;
-    new bootstrap.Modal(document.getElementById('imageModal')).show();
-}
-
-// ----------------- INIT -----------------
-document.addEventListener('DOMContentLoaded', ()=>{
+// INIT EVENTS
+document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('loginBtn').addEventListener('click', login);
     document.getElementById('logoutBtn').addEventListener('click', logout);
 
@@ -379,13 +345,11 @@ document.addEventListener('DOMContentLoaded', ()=>{
         document.getElementById('chartWrapper').style.display='block';
         document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
         document.getElementById('btnChart').classList.add('active');
-        renderChart?.();
     });
 
     if(localStorage.getItem('loggedIn')==='true') showMain();
 });
 </script>
-
 
 </body>
 </html>
