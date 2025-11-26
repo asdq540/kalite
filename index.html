@@ -1,441 +1,186 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Kalite Kontrol Paneli</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
 <style>
-:root{--primary:#9b59b6;--bg:#f6f8fa;--card:#ffffff;--thead:#8e44ad;--row1:#ffffff;--row2:#f3f4f6;--border:#d4d7dc;--shadow:0 4px 18px rgba(0,0,0,0.08)}
-body{background:var(--bg);font-family:"Segoe UI",sans-serif;padding:20px}
-.login-container{max-width:420px;margin:90px auto;padding:30px;background:var(--card);border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--border)}
-#mainPage{display:none}
-.section-title{color:var(--thead);font-weight:700;font-size:22px;margin-bottom:12px}
-.table-card{background:var(--card);padding:18px;border-radius:12px;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:20px}
-.table thead th{
-   background: linear-gradient(135deg, #9b59b6, #8e44ad) !important;
-  color: #fff !important;
-  padding:14px!important;
-  font-size:15px;
-  letter-spacing:0.4px;
-  text-transform:uppercase;
-  border:none!important;
-  position: sticky;
-  top: 0;
-  z-index: 3;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  text-align:center;
-}
-.table tbody tr{background:#fff;transition:0.2s ease;box-shadow:0 1px 4px rgba(0,0,0,0.06);border-radius:10px;}
-.table tbody tr:hover{background:#e7f5f3 !important;transform: scale(1.01);box-shadow:0 4px 12px rgba(0,0,0,0.12);}
-.table tbody td{padding:12px!important;vertical-align:middle;text-align:center;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
-.table tbody tr td:first-child{border-left:1px solid var(--border);border-top-left-radius:10px;border-bottom-left-radius:10px}
-.table tbody tr td:last-child{border-right:1px solid var(--border);border-top-right-radius:10px;border-bottom-right-radius:10px}
-img.thumb{width:88px;height:72px;object-fit:cover;border-radius:8px;border:1px solid #cbd1d8;cursor:pointer}
-.search-input{border-radius:10px;padding:10px;border:1px solid #bcc6d0}
-.pagination .page-link{border-radius:8px}
-#chartContainer{height:520px!important;padding:12px}
-.tab-btn{padding:8px 14px;border-radius:30px;font-weight:600;border:1px solid var(--primary);background:#fff;cursor:pointer}
-.tab-btn.active{background:var(--primary);color:#fff}
-.period-btn{padding:6px 10px;border-radius:8px;border:1px solid #cfd8d6;background:#fff;cursor:pointer}
-.period-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
-@media (max-width: 768px){
-  .table thead th{font-size:12px !important;padding:10px !important;}
-  .table tbody td{font-size:13px;padding:8px !important;white-space:nowrap;}
-  img.thumb{width:60px;height:50px;}
-}
-@media (max-width: 480px){
-  .table tbody td{font-size:12px;padding:6px !important;}
-  img.thumb{width:50px;height:40px;}
-}
-#offlineBadge{position:fixed;right:12px;bottom:12px;z-index:2000}
-.advanced-login{
-  background: linear-gradient(145deg, #ffffff, #e8eef3);
-  padding: 40px;
-  border-radius: 18px;
-  box-shadow: 0 10px 28px rgba(0,0,0,0.12);
-  border: none;
-  position: relative;
-  overflow: hidden;
-}
-.advanced-login:before{
-  content:"";
-  position:absolute;
-  width:160%; height:160%;
-  top:-30%; left:-30%;
-  background: radial-gradient(circle at center, rgba(42,157,143,0.22), transparent 70%);
-  z-index:0;
-  pointer-events: none;
-}
-.login-header{position:relative; z-index:2;}
-.login-title{color:#264653;font-size:26px;font-weight:700;margin-bottom:6px;}
-.login-subtitle{color:#6c7a86;font-size:14px;}
-.login-input{
-  border-radius:12px;
-  padding:12px;
-  border:1px solid #c9d3dd;
-  transition:0.25s;
-}
-.login-input:focus{
-  border-color:var(--primary);
-  box-shadow:0 0 0 3px rgba(42,157,143,0.25);
-}
-.login-btn{
-  background:var(--primary);
-  border:none;
-  padding:12px;
-  font-size:16px;
-  border-radius:14px;
-  font-weight:600;
-  transition:0.25s;
-}
-.login-btn:hover{
-  background:#8e44ad;
-  transform:translateY(-2px);
-  box-shadow:0 6px 16px rgba(0,0,0,0.15);
-}
+:root{--primary:#9b59b6;--bg:#f6f8fa;--card:#fff;--thead:#8e44ad;--border:#d4d7dc;--shadow:0 4px 18px rgba(0,0,0,0.08);}
+body{background:var(--bg);font-family:"Segoe UI",sans-serif;padding:20px;}
+.login-container{max-width:420px;margin:90px auto;padding:30px;background:var(--card);border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--border);}
+#mainPage{display:none;}
+.table-card{background:var(--card);padding:18px;border-radius:12px;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:20px;}
+.table thead th{background: linear-gradient(135deg,#9b59b6,#8e44ad);color:#fff;padding:12px;text-align:center;position:sticky;top:0;}
+.table tbody td{text-align:center;padding:10px;border-top:1px solid var(--border);}
+.btn-edit{background:#2a9d8f;color:#fff;border:none;padding:4px 8px;border-radius:6px;margin:0 2px;}
+.btn-delete{background:#e76f51;color:#fff;border:none;padding:4px 8px;border-radius:6px;margin:0 2px;}
 </style>
 </head>
 <body>
 
 <!-- LOGIN -->
-<div id="loginPage" class="login-container advanced-login">
-  <div class="login-header text-center mb-4">
-    <h2 class="login-title">Kalite Kontrol Paneli</h2>
-    <p class="login-subtitle">Güvenli Giriş</p>
-  </div>
-  <div class="mb-3">
-    <label class="form-label">Kullanıcı Adı</label>
-    <input id="username" class="form-control login-input" placeholder="Kullanıcı adınızı girin">
-  </div>
-  <div class="mb-3">
-    <label class="form-label">Şifre</label>
-    <input id="password" type="password" class="form-control login-input" placeholder="Şifrenizi girin">
-  </div>
-  <div class="d-grid">
-    <button id="loginBtn" class="btn login-btn">Giriş Yap</button>
-  </div>
-  <div id="errorMsg" class="text-danger text-center mt-3"></div>
+<div id="loginPage" class="login-container">
+  <h3 class="text-center mb-3">Kalite Kontrol Paneli</h3>
+  <input id="username" class="form-control mb-2" placeholder="Kullanıcı Adı">
+  <input id="password" type="password" class="form-control mb-2" placeholder="Şifre">
+  <button id="loginBtn" class="btn btn-primary w-100 mb-2">Giriş Yap</button>
+  <div id="errorMsg" class="text-danger text-center"></div>
 </div>
 
 <!-- MAIN -->
-<div id="mainPage" class="container-fluid" style="display:none">
-  <div class="d-flex gap-2 mb-3 align-items-center">
-    <button id="btnData" class="tab-btn active">Veri Tablosu</button>
-    <button id="btnPhoto" class="tab-btn">Fotoğraflar</button>
-    <button id="btnChart" class="tab-btn">Grafik</button>
-    <button id="logoutBtn" class="btn btn-outline-secondary ms-auto">Çıkış</button>
-  </div>
-
-  <!-- DATA -->
-  <div id="dataTableWrapper">
-    <div class="table-card">
-      <div class="d-flex align-items-center justify-content-between mb-3">
-        <h4 class="section-title mb-0">Veri Tablosu</h4>
-        <div class="text-muted small">Satır: <span id="dataCount">0</span></div>
-      </div>
-      <input id="searchInput1" class="search-input mb-3" placeholder="Veri tablosunda ara...">
-      <div class="table-responsive"><table id="dataTable" class="table"><thead></thead><tbody></tbody></table></div>
-      <nav class="mt-2"><ul id="pagination1" class="pagination justify-content-center"></ul></nav>
-    </div>
-  </div>
-
-  <!-- PHOTO -->
-  <div id="photoTableWrapper" style="display:none">
-    <div class="table-card">
-      <div class="d-flex align-items-center justify-content-between mb-3">
-        <h4 class="section-title mb-0">Fotoğraf Tablosu</h4>
-        <div class="text-muted small">Satır: <span id="photoCount">0</span></div>
-      </div>
-      <input id="searchInput2" class="search-input mb-3" placeholder="Fotoğraf tablosunda ara...">
-      <div class="table-responsive"><table id="photoTable" class="table"><thead></thead><tbody></tbody></table></div>
-      <nav class="mt-2"><ul id="pagination2" class="pagination justify-content-center"></ul></nav>
-    </div>
-  </div>
-
-  <!-- CHART -->
-  <div id="chartWrapper" style="display:none">
-    <div class="table-card">
-      <div class="d-flex align-items-center justify-content-between mb-2">
-        <h4 class="section-title mb-0">Tekrar Sayısı Grafiği</h4>
-        <div class="d-flex gap-2 align-items-center">
-          <div class="d-flex gap-2">
-            <button class="period-btn active" data-period="daily">Günlük</button>
-            <button class="period-btn" data-period="weekly">Haftalık</button>
-            <button class="period-btn" data-period="monthly">Aylık</button>
-          </div>
-        </div>
-      </div>
-      <div class="row g-3 mb-3">
-        <div class="col-md-4"><label class="form-label">Tarih (opsiyonel)</label><input type="date" id="chartDate" class="form-control"></div>
-        <div class="col-md-4"><label class="form-label">Periyot</label>
-          <select id="chartPeriod" class="form-select">
-            <option value="daily">Günlük</option>
-            <option value="weekly">Haftalık</option>
-            <option value="monthly">Aylık</option>
-          </select>
-        </div>
-        <div class="col-md-4 d-flex align-items-end"><button id="refreshChart" class="btn btn-outline-primary">Yenile</button></div>
-      </div>
-      <div id="chartContainer"><canvas id="errorChart"></canvas></div>
+<div id="mainPage" class="container-fluid">
+  <button id="logoutBtn" class="btn btn-secondary mb-2">Çıkış</button>
+  <div class="table-card">
+    <h4>Veri Tablosu</h4>
+    <input id="searchInput" class="form-control mb-2" placeholder="Ara...">
+    <div class="table-responsive">
+      <table id="dataTable" class="table">
+        <thead></thead>
+        <tbody></tbody>
+      </table>
     </div>
   </div>
 </div>
 
-<!-- IMAGE MODAL -->
-<div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-xl modal-dialog-centered">
-    <div class="modal-content"><div class="modal-body p-0"><div style="background:#000;display:flex;align-items:center;justify-content:center;"><img id="modalImage" style="max-width:100%;max-height:80vh;"/></div></div></div>
+<!-- MODAL DÜZENLEME -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content p-3">
+      <h5>Düzenle</h5>
+      <input id="editTarih" class="form-control mb-1" placeholder="Tarih">
+      <input id="editVardiya" class="form-control mb-1" placeholder="Vardiya">
+      <input id="editHat" class="form-control mb-1" placeholder="Hat">
+      <input id="editAciklama" class="form-control mb-1" placeholder="Açıklama">
+      <input id="editPersonel" class="form-control mb-1" placeholder="Personel">
+      <input id="editKalite" class="form-control mb-1" placeholder="Kalite Personeli">
+      <input id="editFotoBase64" type="file" class="form-control mb-2" accept="image/*">
+      <button id="saveEditBtn" class="btn btn-success w-100">Kaydet</button>
+    </div>
   </div>
 </div>
 
-<!-- Offline badge -->
-<div id="offlineBadge" class="d-none"><div class="badge bg-warning text-dark">Demo / Offline Mod</div></div>
-
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script>
-// ------------------- CONFIG -------------------
-const BACKEND_URL = "http://localhost:5000"; // Backend URL
-const PAGE_SIZE = 10;
-let fullRows=[], dataRows=[], photoRows=[], headerRow=[], errorChart=null;
+const BACKEND_URL = "http://localhost:5000"; // backend adresin
+let rows = [], currentEditRow = null;
 
-// ------------------- LOGIN -------------------
-async function login(){
+document.getElementById('loginBtn').addEventListener('click', async ()=>{
   const u=document.getElementById('username').value.trim();
   const p=document.getElementById('password').value.trim();
-  const err=document.getElementById('errorMsg'); err.textContent='';
-  if(!u||!p){ err.textContent='Kullanıcı adı ve şifre boş olamaz.'; return; }
+  if(!u||!p){document.getElementById('errorMsg').textContent="Boş bırakılamaz";return;}
+  document.getElementById('loginPage').style.display='none';
+  document.getElementById('mainPage').style.display='block';
+  await loadData();
+});
+
+document.getElementById('logoutBtn').addEventListener('click',()=>location.reload());
+
+async function loadData(){
   try{
-    const res=await fetch(BACKEND_URL+"/login",{method:'POST',headers:{"Content-Type":"application/json"},body:JSON.stringify({username:u,password:p})});
-    if(!res.ok) throw new Error('login-failed');
-    const data=await res.json();
-    if(data.success){ localStorage.setItem('loggedIn','true'); showMain(); }
-    else err.textContent=data.message||'Giriş başarısız.';
+    const res=await fetch(BACKEND_URL+"/health");
+    if(!res.ok) throw new Error("Backend ulaşılmadı");
   }catch(e){
-    console.warn('Login fail',e); err.textContent='Sunucuya ulaşılamadı.';
+    alert("Backend offline");
   }
-}
-function logout(){ localStorage.removeItem('loggedIn'); location.reload(); }
-function showMain(){ document.getElementById('loginPage').style.display='none'; document.getElementById('mainPage').style.display='block'; loadCsvAndInit(); }
-
-// ------------------- CSV -------------------
-const DEMO_CSV=`Tarih,Alan2,Alan3,Alan4,Alan5,Alan6,Alan7,Alan8,Col9,Col10,Col11,Col12,Col13,Col14,Col15,Col16,Col17,Col18,Col19,Col20,Aciklama,Sayac
-01.01.2025,,,,,,,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,01.01.2025,01.01.2025,Hata A,2
-02.01.2025,,,,,,,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,02.01.2025,02.01.2025,Hata B,1`;
-
-async function loadCsvAndInit(){
-  try{
-    const res=await fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vQBWFSVSD6NvBNqC8me1le_unCCLOKIOIS2DfZFXUTji0MHC7SaWNIy4a0Laob9xOiAJyPnp7LuZ1R-/pub?output=csv");
-    const text=await res.text();
-    processCsvText(text);
-  }catch(e){ console.warn(e); processCsvText(DEMO_CSV); }
+  const csvText = `Tarih,Vardiya,Hat,Açıklama,Personel,Foto,KalitePersoneli
+01.01.2025,D1,H1,Hata A,Ahmet,,Ali
+02.01.2025,D2,H2,Hata B,Mehmet,,Veli`; // demo CSV
+  const parsed = Papa.parse(csvText,{header:true}).data;
+  rows = parsed;
+  renderTable();
 }
 
-function processCsvText(text){
-  const parsed=Papa.parse(text,{header:false}).data;
-  if(!parsed||parsed.length===0){ headerRow=[]; fullRows=[]; return; }
-  headerRow=parsed[0]; fullRows=parsed.slice(1).filter(r=>r && r.length>0);
-  dataRows=fullRows.map(r=>r.slice(9,17));
-  photoRows=fullRows.map(r=>r.slice(0,7));
-  document.getElementById('dataCount').textContent=dataRows.length;
-  document.getElementById('photoCount').textContent=photoRows.length;
-  createTable('dataTable', headerRow.slice(9,17), dataRows, 'searchInput1', 'pagination1', true);
-  createTable('photoTable', headerRow.slice(0,7), photoRows, 'searchInput2', 'pagination2', true);
-  renderChart();
-}
-
-// ------------------- TABLE -------------------
-function createTable(tableId, headers, rows, searchId, paginationId, addOps=false){
-  const table=document.getElementById(tableId);
-  if(!table) return;
-  const thead=table.querySelector('thead'), tbody=table.querySelector('tbody');
-  const search=document.getElementById(searchId), pagination=document.getElementById(paginationId);
-  let filtered=[...rows], page=1;
-
-  function renderHead(){
-    thead.innerHTML='';
+function renderTable(){
+  const tbody=document.querySelector('#dataTable tbody');
+  tbody.innerHTML='';
+  rows.forEach((r,i)=>{
     const tr=document.createElement('tr');
-    headers.forEach(h=>{
-      const th=document.createElement('th'); th.textContent=h||'Kolon'; tr.appendChild(th);
+    Object.keys(r).forEach(k=>{
+      const td=document.createElement('td');
+      td.textContent=r[k];
+      tr.appendChild(td);
     });
-    if(addOps){ const th=document.createElement('th'); th.textContent='İşlem'; tr.appendChild(th); }
-    thead.appendChild(tr);
-  }
+    // Düzenle butonu
+    const tdEdit=document.createElement('td');
+    const btnEdit=document.createElement('button'); btnEdit.textContent='Düzenle';
+    btnEdit.className='btn-edit'; btnEdit.addEventListener('click',()=>openEditModal(i));
+    tdEdit.appendChild(btnEdit); tr.appendChild(tdEdit);
+    // Sil butonu
+    const tdDel=document.createElement('td');
+    const btnDel=document.createElement('button'); btnDel.textContent='Sil';
+    btnDel.className='btn-delete'; btnDel.addEventListener('click',()=>deleteRow(i));
+    tdDel.appendChild(btnDel); tr.appendChild(tdDel);
 
-  function renderPage(){
-    tbody.innerHTML='';
-    const totalPages=Math.max(1,Math.ceil(filtered.length/PAGE_SIZE));
-    if(page>totalPages) page=totalPages;
-    const start=(page-1)*PAGE_SIZE; const slice=filtered.slice(start,start+PAGE_SIZE);
-    slice.forEach((r,idx)=>{
-      const tr=document.createElement('tr');
-      r.forEach(cell=>{
-        const td=document.createElement('td'); td.textContent=cell||''; tr.appendChild(td);
-      });
-      if(addOps){
-        const tdOps=document.createElement('td');
-        const editBtn=document.createElement('button'); editBtn.className='btn btn-sm btn-primary me-1'; editBtn.textContent='Düzenle';
-        editBtn.addEventListener('click',()=>openEditModal(start+idx+2,r));
-        const delBtn=document.createElement('button'); delBtn.className='btn btn-sm btn-danger'; delBtn.textContent='Sil';
-        delBtn.addEventListener('click',()=>deleteRow(start+idx+2));
-        tdOps.appendChild(editBtn); tdOps.appendChild(delBtn); tr.appendChild(tdOps);
-      }
-      tbody.appendChild(tr);
-    });
-    renderPagination(totalPages);
-  }
-
-  function renderPagination(totalPages){
-    if(!pagination) return;
-    pagination.innerHTML='';
-    const liPrev=document.createElement('li'); liPrev.className='page-item '+(page===1?'disabled':'');
-    const btnPrev=document.createElement('button'); btnPrev.className='page-link'; btnPrev.textContent='Geri';
-    btnPrev.addEventListener('click',()=>{if(page>1){ page--; renderPage(); }});
-    liPrev.appendChild(btnPrev); pagination.appendChild(liPrev);
-    const liNext=document.createElement('li'); liNext.className='page-item '+(page===totalPages?'disabled':'');
-    const btnNext=document.createElement('button'); btnNext.className='page-link'; btnNext.textContent='İleri';
-    btnNext.addEventListener('click',()=>{if(page<totalPages){ page++; renderPage(); }});
-    liNext.appendChild(btnNext); pagination.appendChild(liNext);
-       renderPage();
-  }
-
-  if(search){
-    search.addEventListener('input', ()=>{
-      const term=(search.value||'').toLowerCase();
-      filtered=rows.filter(r=>r.join(' ').toLowerCase().includes(term));
-      page=1; renderPage();
-    });
-  }
-
-  renderHead(); renderPage();
+    tbody.appendChild(tr);
+  });
+  // Başlık
+  const thead=document.querySelector('#dataTable thead');
+  thead.innerHTML='';
+  const trHead=document.createElement('tr');
+  Object.keys(rows[0]).forEach(k=>{const th=document.createElement('th'); th.textContent=k; trHead.appendChild(th);});
+  trHead.appendChild(document.createElement('th')); // Düzenle
+  trHead.appendChild(document.createElement('th')); // Sil
+  thead.appendChild(trHead);
 }
 
-// ------------------- IMAGE MODAL -------------------
-function openImage(src){
-  const img=document.getElementById('modalImage'); if(!img) return;
-  img.src=src;
-  const bs=new bootstrap.Modal(document.getElementById('imageModal')); bs.show();
+function openEditModal(index){
+  currentEditRow=index;
+  const r=rows[index];
+  document.getElementById('editTarih').value=r.Tarih;
+  document.getElementById('editVardiya').value=r.Vardiya;
+  document.getElementById('editHat').value=r.Hat;
+  document.getElementById('editAciklama').value=r.Açıklama;
+  document.getElementById('editPersonel').value=r.Personel;
+  document.getElementById('editKalite').value=r.KalitePersoneli;
+  const modal=new bootstrap.Modal(document.getElementById('editModal'));
+  modal.show();
 }
 
-// ------------------- EDIT / DELETE -------------------
-function openEditModal(rowIndex,rowData){
-  const newVal=prompt("Yeni açıklama:", rowData[3]||"");
-  if(newVal!==null){
-    fetch(`${BACKEND_URL}/api/update`,{
-      method:'POST',
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({row: rowIndex, newData:newVal})
-    }).then(r=>r.json()).then(d=>{
-      alert(d.mesaj||"Güncellendi!");
-      location.reload();
-    }).catch(e=>alert("Hata: "+e));
+document.getElementById('saveEditBtn').addEventListener('click', async ()=>{
+  const r = {
+    tarih: document.getElementById('editTarih').value,
+    vardiya: document.getElementById('editVardiya').value,
+    hat: document.getElementById('editHat').value,
+    aciklama: document.getElementById('editAciklama').value,
+    personel: document.getElementById('editPersonel').value,
+    kalitePersoneli: document.getElementById('editKalite').value
+  };
+  const fileInput=document.getElementById('editFotoBase64');
+  if(fileInput.files.length>0){
+    const file = fileInput.files[0];
+    r.foto_base64 = await toBase64(file);
   }
-}
-
-function deleteRow(rowIndex){
-  if(!confirm("Bu satırı silmek istediğinizden emin misiniz?")) return;
-  fetch(`${BACKEND_URL}/api/delete`,{
-    method:'POST',
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({row: rowIndex})
-  }).then(r=>r.json()).then(d=>{
-    alert(d.mesaj||"Silindi!");
-    location.reload();
-  }).catch(e=>alert("Hata: "+e));
-}
-
-// ------------------- CHART -------------------
-function parseDate(s){ const p=s.split('.'); return new Date(+p[2],+p[1]-1,+p[0]); }
-
-function renderChart(){
   try{
-    const period=document.querySelector('.period-btn.active')?.dataset.period || 'daily';
-    const selectedDate=document.getElementById('chartDate')?.value;
-    const counts={}, labelsSet=new Set();
-
-    fullRows.forEach(row=>{
-      if(!row) return;
-      const dateStr=row[19]||'';
-      if(!dateStr) return;
-      const d=parseDate(dateStr);
-      let key=dateStr;
-      if(period==='weekly') key='W'+Math.ceil((((d-new Date(d.getFullYear(),0,1))/86400000)+new Date(d.getFullYear(),0,1).getDay()+1)/7);
-      if(period==='monthly') key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-      labelsSet.add(key);
-      const desc=row[20]||'Açıklama Yok';
-      const cnt=parseInt(row[21])||0;
-      counts[`${desc}|${key}`]=(counts[`${desc}|${key}`]||0)+cnt;
+    const res = await fetch(BACKEND_URL+"/api/duzenle",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({row:currentEditRow+2,yeni:r})
     });
+    const data = await res.json();
+    if(res.ok){ alert(data.mesaj); rows[currentEditRow]=r; renderTable(); }
+    else alert(data.hata);
+    bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+  }catch(e){ alert("Hata: "+e); }
+});
 
-    const labels=Array.from(labelsSet).sort();
-    const groups={};
-    for(const k in counts){ const [desc,p]=k.split('|'); if(!groups[desc]) groups[desc]={}; groups[desc][p]=counts[k]; }
+function toBase64(file){return new Promise((res,rej)=>{const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=err=>rej(err); r.readAsDataURL(file); });}
 
-    const palette=["#9b59b6","#8e44ad","#F4A261","#E76F51","#2A9D8F"];
-    const datasets=[];
-    Object.keys(groups).forEach((desc,i)=>{
-      const arr=labels.map(l=>groups[desc][l]||0);
-      datasets.push({label:desc,data:arr,backgroundColor:palette[i%palette.length],borderColor:palette[i%palette.length],borderWidth:1,type:'bar'});
+async function deleteRow(index){
+  if(!confirm("Satırı silmek istediğinizden emin misiniz?")) return;
+  try{
+    const res = await fetch(BACKEND_URL+"/api/sil",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({row:index+2})
     });
-
-    const ctx=document.getElementById('errorChart')?.getContext('2d');
-    if(!ctx) return;
-    if(errorChart) errorChart.destroy();
-    errorChart=new Chart(ctx,{data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true}}}});
-  }catch(e){ console.error(e); }
+    const data = await res.json();
+    if(res.ok){ alert(data.mesaj); rows.splice(index,1); renderTable(); }
+    else alert(data.hata);
+  }catch(e){ alert("Hata: "+e); }
 }
-
-// ------------------- EVENTS -------------------
-document.addEventListener('click', e=>{
-  if(e.target.classList.contains('period-btn')){
-    document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
-    e.target.classList.add('active');
-    document.getElementById('chartPeriod').value=e.target.dataset.period;
-    renderChart();
-  }
-});
-
-document.addEventListener('DOMContentLoaded',()=>{
-  document.getElementById('loginBtn')?.addEventListener('click',login);
-  document.getElementById('logoutBtn')?.addEventListener('click',logout);
-  document.getElementById('refreshChart')?.addEventListener('click',renderChart);
-  document.getElementById('chartDate')?.addEventListener('change',renderChart);
-  document.getElementById('chartPeriod')?.addEventListener('change', function(){
-    document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
-    document.querySelectorAll('.period-btn').forEach(b=>{ if(b.dataset.period===this.value) b.classList.add('active'); });
-    renderChart();
-  });
-
-  document.getElementById('btnData')?.addEventListener('click',()=>{
-    document.getElementById('dataTableWrapper').style.display='block';
-    document.getElementById('photoTableWrapper').style.display='none';
-    document.getElementById('chartWrapper').style.display='none';
-    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-    document.getElementById('btnData').classList.add('active');
-  });
-  document.getElementById('btnPhoto')?.addEventListener('click',()=>{
-    document.getElementById('dataTableWrapper').style.display='none';
-    document.getElementById('photoTableWrapper').style.display='block';
-    document.getElementById('chartWrapper').style.display='none';
-    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-    document.getElementById('btnPhoto').classList.add('active');
-  });
-  document.getElementById('btnChart')?.addEventListener('click',()=>{
-    document.getElementById('dataTableWrapper').style.display='none';
-    document.getElementById('photoTableWrapper').style.display='none';
-    document.getElementById('chartWrapper').style.display='block';
-    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-    document.getElementById('btnChart').classList.add('active');
-    renderChart();
-  });
-
-  if(localStorage.getItem('loggedIn')==='true') showMain();
-});
 </script>
-
 </body>
 </html>
-
