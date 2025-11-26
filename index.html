@@ -637,14 +637,15 @@ function renderChart(){
     try{
         const dateInput=document.getElementById('chartDate')?.value;
         const periodSelect=document.getElementById('chartPeriod')?.value || 'daily';
-        const sortSelect=document.getElementById('chartSortBy')?.value || 'desc';
+        const groupBySelect=document.getElementById('chartSortBy')?.value || 'aciklama';
+
         let selectedDate=null;
         if(dateInput){
             const parts=dateInput.split('-');
             if(parts.length===3) selectedDate=new Date(+parts[0],+parts[1]-1,+parts[2]);
         }
 
-        // Filter
+        // Filtre
         let filtered = photoRows.filter(row=>{
             if(!row) return false;
             const dateStr=row[0]||'';
@@ -660,52 +661,46 @@ function renderChart(){
             return true;
         });
 
-        // Sort
-        filtered.sort((a,b)=>{
-            if(sortSelect==='desc') return (b[3]||'').localeCompare(a[3]||''); 
-            if(sortSelect==='personel') return (b[4]||'').localeCompare(a[4]||''); 
-            if(sortSelect==='hat') return (b[2]||'').localeCompare(a[2]||''); 
-            if(sortSelect==='vardiya') return (b[1]||'').localeCompare(a[1]||''); 
-            if(sortSelect==='tarih'){ 
-                const da=parseDateFromDDMMYYYY(a[0]), db=parseDateFromDDMMYYYY(b[0]); 
-                return db-da; 
-            }
-            return 0;
-        });
-
-        const counts={}, labelsSet=new Set();
+        // Gruplama
+        const groups = {};
         filtered.forEach(row=>{
-            const dateStr=row[0]||'', desc=row[3]||'Açıklama Yok';
-            const d=parseDateFromDDMMYYYY(dateStr);
             let key='';
-            if(periodSelect==='daily') key=formatDate(d);
-            else if(periodSelect==='weekly') key=weekKeyFromDate(d);
-            else if(periodSelect==='monthly') key=monthKeyFromDate(d);
-
-            labelsSet.add(key);
-            const countKey=`${desc}|${key}`;
-            counts[countKey]=(counts[countKey]||0)+1;
+            switch(groupBySelect){
+                case 'aciklama': key=row[3]||'Açıklama Yok'; break;
+                case 'personel': key=row[4]||'Bilinmiyor'; break;
+                case 'hat': key=row[2]||'Bilinmiyor'; break;
+                case 'vardiya': key=row[1]||'Bilinmiyor'; break;
+                case 'tarih': key=row[0]||'Bilinmiyor'; break;
+            }
+            groups[key] = (groups[key]||0) + 1;
         });
 
-        const labels=Array.from(labelsSet).sort();
-        const groups={};
-        for(const k in counts){
-            const [desc,pKey]=k.split('|');
-            if(!groups[desc]) groups[desc]={};
-            groups[desc][pKey]=counts[k];
-        }
+        // Sıralama büyükten küçüğe
+        const sortedKeys = Object.keys(groups).sort((a,b)=>groups[b]-groups[a]);
 
+        // Dataset oluştur
+        const labels = sortedKeys;
+        const data = sortedKeys.map(k=>groups[k]);
         const palette=["#32ff7e","#7efff5","#0ff3ff","#3af1a0","#2ed573","#1dd1a1","#10ac84","#54a0ff"];
-        const datasets=[];
-        Object.keys(groups).forEach((desc,i)=>{
-            const arr=labels.map(l=>groups[desc][l]||0);
-            datasets.push({label:desc,data:arr,backgroundColor:palette[i%palette.length],borderColor:palette[i%palette.length],borderWidth:1,type:'bar'});
-        });
+        const datasets=[{
+            label: 'Tekrar Sayısı',
+            data: data,
+            backgroundColor: palette.slice(0,data.length),
+            borderColor: palette.slice(0,data.length),
+            borderWidth:1,
+            type:'bar'
+        }];
 
         const ctx=document.getElementById('errorChart')?.getContext('2d');
         if(!ctx) return;
         if(errorChart) errorChart.destroy();
-        errorChart=new Chart(ctx,{data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'},tooltip:{mode:'index',intersect:false}},scales:{y:{beginAtZero:true}}}});
+        errorChart=new Chart(ctx,{
+            data:{labels,datasets},
+            options:{responsive:true,maintainAspectRatio:false,
+                plugins:{legend:{position:'top'},tooltip:{mode:'index',intersect:false}},
+                scales:{y:{beginAtZero:true}}
+            }
+        });
     }catch(e){ console.error(e); }
 }
 
