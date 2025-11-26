@@ -234,27 +234,26 @@ function showMain(){ document.getElementById('loginPage').style.display='none'; 
 // VERİ ÇEKME
 // ---------------------------
 
-async function loadDataFromBackend() {
-  try {
-    const res = await fetch('/api/get');
-    const fullRows = await res.json();
+async function loadDataFromBackend(){
+  try{
+    const res = await fetch(BACKEND_BASE + '/api/get');
+    const json = await res.json();
 
-    // veri tablosu: J-Q (index 9-16)
-    const dataRows = fullRows.map(r => r.slice(9, 17));
+    dataRows = json.data || [];
+    photoRows = json.photos || [];
 
-    // fotoğraf tablosu: A-G (index 0-6)
-    const photoRows = fullRows.map(r => r.slice(0, 7));
+    document.getElementById('dataCount').textContent = dataRows.length;
+    document.getElementById('photoCount').textContent = photoRows.length;
 
-    console.log('dataRows', dataRows);
-    console.log('photoRows', photoRows);
+    createEditableTable('dataTable', headerRow.slice(9,17), dataRows, 'searchInput1', 'pagination1');
+    createEditableTable('photoTable', headerRow.slice(0,7), photoRows, 'searchInput2', 'pagination2', true);
 
-    createEditableTable('dataTable', /* headers */ ['Tarih','Vardiya','Hat','Açıklama','Personel','Foto','Kalite'], dataRows, 'searchInput1', 'pagination1');
-    createEditableTable('photoTable', /* headers */ ['Tarih','Vardiya','Hat','Açıklama','Personel','Foto','Kalite'], photoRows, 'searchInput2', 'pagination2', true);
-
-  } catch (e) {
-    console.error('loadDataFromBackend error', e);
+    renderChart();
+  }catch(e){
+    console.error('loadDataFromBackend error',e);
   }
 }
+
 
 
 
