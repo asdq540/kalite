@@ -381,12 +381,12 @@ img.thumb{
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-const BACKEND_BASE = 'https://vardiya-backend.onrender.com';
+const BACKEND_BASE = 'https://vardiya-backend.onrender.com'; 
 const PAGE_SIZE = 20;
-let headerRow = [], fullRows = [], dataRows = [], photoRows = [], errorChart = null;
-let currentPageData = 1, currentPagePhoto = 1;
+let headerRow = [], dataRows = [], photoRows = [], errorChart = null;
+let currentPhotoPage = 1;
 
-// ---------------- LOGIN ----------------
+// login
 async function login() {
     const u = document.getElementById('username').value.trim();
     const p = document.getElementById('password').value.trim();
@@ -416,7 +416,6 @@ function showMain(){
     loadDataFromBackend(); 
 }
 
-// ---------------- DATA LOAD ----------------
 async function loadDataFromBackend(){
     try{
         const res = await fetch(BACKEND_BASE + '/api/get');
@@ -425,124 +424,155 @@ async function loadDataFromBackend(){
         headerRow = json.dataHeader || [];
         dataRows = json.dataRows || [];
         photoRows = json.photoRows || [];
-
+        
         document.getElementById('dataCount').textContent = dataRows.length;
         document.getElementById('photoCount').textContent = photoRows.length;
 
-        currentPageData = 1;
-        currentPagePhoto = 1;
+        createEditableTable('dataTable', headerRow, dataRows, 'searchInput1', 'pagination1', false);
+        createEditableTable('photoTable', json.photoHeader, photoRows, 'searchInput2', 'pagination2', true);
 
-        renderDataTable();
-        renderPhotoTable();
         renderChart();
     } catch(e){ console.error('loadDataFromBackend error', e); }
 }
 
-// ---------------- TABLE GENERATOR ----------------
-function renderDataTable(){
-    const start = (currentPageData-1)*PAGE_SIZE;
-    const end = start+PAGE_SIZE;
-    const slice = dataRows.slice(start,end);
-    createTable('dataTable', headerRow, slice, false);
-    createPagination('pagination1', dataRows.length, currentPageData, p=>{ currentPageData=p; renderDataTable(); });
-}
-
-function renderPhotoTable(){
-    const start = (currentPagePhoto-1)*PAGE_SIZE;
-    const end = start+PAGE_SIZE;
-    const slice = photoRows.slice(start,end);
-    createTable('photoTable', headerRow, slice, true);
-    createPagination('pagination2', photoRows.length, currentPagePhoto, p=>{ currentPagePhoto=p; renderPhotoTable(); });
-}
-
-function createTable(tableId, headers, rows, isPhoto=false){
+// TABLE GENERATOR
+function createEditableTable(tableId, headers, rows, searchId, paginationId, isPhoto=false){
     const table = document.getElementById(tableId);
     const thead = table.querySelector('thead');
     const tbody = table.querySelector('tbody');
+    const search = document.getElementById(searchId);
 
-    // HEAD
     thead.innerHTML = '';
     const tr = document.createElement('tr');
     headers.forEach(h=>{ const th=document.createElement('th'); th.textContent=h||''; tr.appendChild(th); });
-    if(isPhoto){ const th=document.createElement('th'); th.textContent='İşlemler'; tr.appendChild(th); }
+    if(isPhoto){
+        const actionTh=document.createElement('th'); actionTh.textContent='İşlemler'; tr.appendChild(actionTh);
+    }
     thead.appendChild(tr);
 
-    // BODY
-    tbody.innerHTML='';
-    rows.forEach((row,rowIndex)=>{
-        const tr=document.createElement('tr');
-        row.forEach((cell,colIndex)=>{
-            const td=document.createElement('td');
-            if(isPhoto && colIndex===5 && cell){
-                const img=document.createElement('img');
-                img.src=cell; img.className='thumb'; img.alt='foto';
-                img.addEventListener('click',()=>openImage(cell));
-                td.appendChild(img);
-            } else td.textContent=cell||'';
-            tr.appendChild(td);
-        });
+    let filteredRows = [...rows]; // filtre sonrası gösterilecek veri
+    let currentPage = isPhoto ? currentPhotoPage : 1;
 
-        if(isPhoto){
-            const actionTd=document.createElement('td');
-            const editBtn=document.createElement('button');
-            editBtn.className='btn btn-sm btn-outline-primary me-2';
-            editBtn.textContent='Düzenle';
-            editBtn.addEventListener('click',()=>openEditModal(rowIndex + (currentPagePhoto-1)*PAGE_SIZE));
-            actionTd.appendChild(editBtn);
+    function renderPage(){
+        tbody.innerHTML='';
+        const start = (currentPage-1)*PAGE_SIZE;
+        const end = Math.min(start+PAGE_SIZE, filteredRows.length);
+        for(let i=start;i<end;i++){
+            const row = filteredRows[i];
+            const tr=document.createElement('tr');
+            row.forEach((cell,colIndex)=>{
+                const td=document.createElement('td');
+                if(isPhoto && colIndex===5 && cell){
+                    const img=document.createElement('img');
+                    img.src=cell; img.className='thumb'; img.alt='foto';
+                    img.addEventListener('click',()=>openImage(cell));
+                    td.appendChild(img);
+                } else td.textContent=cell||'';
+                tr.appendChild(td);
+            });
 
-            const delBtn=document.createElement('button');
-            delBtn.className='btn btn-sm btn-outline-danger';
-            delBtn.textContent='Sil';
-            delBtn.addEventListener('click',()=>deleteRow(rowIndex + (currentPagePhoto-1)*PAGE_SIZE));
-            actionTd.appendChild(delBtn);
+            if(isPhoto){
+                const actionTd=document.createElement('td');
+                const editBtn=document.createElement('button');
+                editBtn.className='btn btn-sm btn-outline-primary me-2';
+                editBtn.textContent='Düzenle';
+                editBtn.addEventListener('click',()=>openEditModal(i));
+                actionTd.appendChild(editBtn);
 
-            tr.appendChild(actionTd);
+                const delBtn=document.createElement('button');
+                delBtn.className='btn btn-sm btn-outline-danger';
+                delBtn.textContent='Sil';
+                delBtn.addEventListener('click',()=>deleteRow(i));
+                actionTd.appendChild(delBtn);
+
+                tr.appendChild(actionTd);
+            }
+
+            tbody.appendChild(tr);
         }
 
-        tbody.appendChild(tr);
-    });
-}
+        // Pagination controls
+        const paginationUl = document.getElementById(paginationId);
+        paginationUl.innerHTML='';
+        const totalPages = Math.ceil(filteredRows.length / PAGE_SIZE);
+        const maxPagesToShow = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow/2));
+        let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+        if(endPage-startPage<maxPagesToShow-1){ startPage = Math.max(1, endPage-maxPagesToShow+1); }
 
-// ---------------- PAGINATION ----------------
-function createPagination(paginationId,total,currentPage,onPageClick){
-    const wrapper=document.getElementById(paginationId);
-    wrapper.innerHTML='';
+        // Prev
+        const prevLi=document.createElement('li'); prevLi.className='page-item';
+        const prevLink=document.createElement('a'); prevLink.className='page-link'; prevLink.href='#'; prevLink.textContent='«';
+        if(currentPage===1) prevLi.classList.add('disabled');
+        prevLink.addEventListener('click',(e)=>{ e.preventDefault(); if(currentPage>1){ currentPage--; if(isPhoto) currentPhotoPage=currentPage; renderPage(); } });
+        prevLi.appendChild(prevLink); paginationUl.appendChild(prevLi);
 
-    const totalPages=Math.ceil(total/PAGE_SIZE);
-    if(totalPages<=1) return;
+        // Page numbers
+        for(let p=startPage;p<=endPage;p++){
+            const li=document.createElement('li'); li.className='page-item'+(p===currentPage?' active':'');
+            const link=document.createElement('a'); link.className='page-link'; link.href='#'; link.textContent=p;
+            link.addEventListener('click',(e)=>{ e.preventDefault(); currentPage=p; if(isPhoto) currentPhotoPage=p; renderPage(); });
+            li.appendChild(link);
+            paginationUl.appendChild(li);
+        }
 
-    const maxPagesToShow=5;
-    let startPage=Math.max(1,currentPage-Math.floor(maxPagesToShow/2));
-    let endPage=startPage+maxPagesToShow-1;
-    if(endPage>totalPages){ endPage=totalPages; startPage=Math.max(1,endPage-maxPagesToShow+1); }
-
-    const ul=document.createElement('ul');
-    ul.className='pagination justify-content-center flex-wrap';
-
-    const prevLi=document.createElement('li'); prevLi.className='page-item '+(currentPage===1?'disabled':'');
-    const prevBtn=document.createElement('button'); prevBtn.className='page-link'; prevBtn.textContent='‹'; prevBtn.onclick=()=>onPageClick(currentPage-1);
-    prevLi.appendChild(prevBtn); ul.appendChild(prevLi);
-
-    for(let i=startPage;i<=endPage;i++){
-        const li=document.createElement('li'); li.className='page-item '+(i===currentPage?'active':'');
-        const btn=document.createElement('button'); btn.className='page-link'; btn.textContent=i; btn.onclick=()=>onPageClick(i);
-        li.appendChild(btn); ul.appendChild(li);
+        // Next
+        const nextLi=document.createElement('li'); nextLi.className='page-item';
+        const nextLink=document.createElement('a'); nextLink.className='page-link'; nextLink.href='#'; nextLink.textContent='»';
+        if(currentPage===totalPages) nextLi.classList.add('disabled');
+        nextLink.addEventListener('click',(e)=>{ e.preventDefault(); if(currentPage<totalPages){ currentPage++; if(isPhoto) currentPhotoPage=currentPage; renderPage(); } });
+        nextLi.appendChild(nextLink); paginationUl.appendChild(nextLi);
     }
 
-    const nextLi=document.createElement('li'); nextLi.className='page-item '+(currentPage===totalPages?'disabled':'');
-    const nextBtn=document.createElement('button'); nextBtn.className='page-link'; nextBtn.textContent='›'; nextBtn.onclick=()=>onPageClick(currentPage+1);
-    nextLi.appendChild(nextBtn); ul.appendChild(nextLi);
+    renderPage();
 
-    wrapper.appendChild(ul);
+    // SEARCH & DATEPICKER (fotoğraf tablosu için)
+    if(isPhoto){
+        const searchDate = document.getElementById('searchDate');
+
+        function applyFilter(){
+            const term = (search.value||'').toLowerCase();
+            filteredRows = rows.filter(row=>{
+                return row.some(cell => (cell||'').toString().toLowerCase().includes(term));
+            });
+            currentPage = 1;
+            renderPage();
+        }
+
+        search.addEventListener('input', applyFilter);
+
+        if(searchDate){
+            searchDate.addEventListener('change',()=>{
+                const dateValue = searchDate.value;
+                if(!dateValue) return;
+                const parts = dateValue.split('-');
+                const formatted = `${parts[2]}.${parts[1]}.${parts[0]}`;
+                search.value = formatted;
+                applyFilter();
+            });
+        }
+    } else {
+        // normal arama (data tablosu)
+        if(search){
+            search.oninput = ()=>{
+                const term=(search.value||'').toLowerCase();
+                filteredRows = rows.filter(row=>{
+                    return row.some(cell => (cell||'').toString().toLowerCase().includes(term));
+                });
+                currentPage = 1;
+                renderPage();
+            };
+        }
+    }
 }
 
-// ---------------- IMAGE MODAL ----------------
+// IMAGE MODAL
 function openImage(src){
     document.getElementById('modalImage').src=src;
     new bootstrap.Modal(document.getElementById('imageModal')).show();
 }
 
-// ---------------- EDIT & DELETE ----------------
+// FOTOĞRAF TABLOSU DÜZENLEME
 function openEditModal(rowIndex){
     const row = photoRows[rowIndex];
     const modalHtml=`<div class="modal fade" id="rowEditModal" tabindex="-1">
@@ -583,6 +613,7 @@ function openEditModal(rowIndex){
     };
 }
 
+// FOTOĞRAF TABLOSU SİLME
 async function deleteRow(rowIndex){
     if(!confirm('Satırı silmek istediğinize emin misiniz?')) return;
     try{
@@ -595,161 +626,41 @@ async function deleteRow(rowIndex){
     }catch(e){ console.error(e); }
 }
 
-// ---------------- PHOTO SEARCH & DATEPICKER ----------------
-function initPhotoSearch(){
-    const search = document.getElementById('searchInput2');
-    const datePicker = document.createElement('input');
-    datePicker.type='date';
-    datePicker.className='form-control ms-2';
-    datePicker.style.width='200px';
-    search.parentNode.insertBefore(datePicker, search.nextSibling);
-
-    datePicker.addEventListener('change',()=>{
-        if(!datePicker.value) return;
-        const d=datePicker.value.split('-');
-        if(d.length===3){
-            const val=`${d[2]}.${d[1]}.${d[0]}`;
-            search.value=val;
-            filterPhotoTable(val);
-        }
-    });
-
-    search.addEventListener('input',()=>filterPhotoTable(search.value));
-}
-
-function filterPhotoTable(term){
-    term=term.toLowerCase();
-    photoRows.forEach((row,i)=>{
-        const tr=document.getElementById('photoTable').querySelectorAll('tbody tr')[i % PAGE_SIZE];
-        if(!tr) return;
-        const text=row.join(' ').toLowerCase();
-        tr.style.display=text.includes(term)?'':'none';
-    });
-}
-
-// ---------------- CHART ----------------
-function parseDateFromDDMMYYYY(s){ if(!s) return null; const p=s.split('.'); if(p.length!==3) return null; const d=new Date(+p[2],+p[1]-1,+p[0]); return isNaN(d)?null:d; }
-function weekKeyFromDate(d){ const onejan=new Date(d.getFullYear(),0,1); return 'W'+Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7); }
-function monthKeyFromDate(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
-function formatDate(d){ return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; }
-
-function renderChart(){
-    try{
-        const dateInput=document.getElementById('chartDate')?.value;
-        const periodSelect=document.getElementById('chartPeriod')?.value || 'daily';
-        const groupBySelect=document.getElementById('chartGroupBy')?.value || 'aciklama';
-
-        // HTML date picker yyyy-mm-dd => gg.aa.yyyy
-        let selectedDateStr = null;
-        if(dateInput) selectedDateStr = dateInput.split('-').reverse().join('.'); // "yyyy-mm-dd" -> "dd.mm.yyyy"
-
-        // Filtreleme
-        const filtered = photoRows.filter(row=>{
-            if(!row || !row[0]) return false;
-            const rowDateStr = row[0]; // gg.aa.yyyy
-            const d = parseDateFromDDMMYYYY(rowDateStr);
-            if(!d) return false;
-
-            if(selectedDateStr){
-                if(periodSelect==='daily' && rowDateStr !== selectedDateStr) return false;
-                if(periodSelect==='weekly' && weekKeyFromDate(d) !== weekKeyFromDate(parseDateFromDDMMYYYY(selectedDateStr))) return false;
-                if(periodSelect==='monthly' && monthKeyFromDate(d) !== monthKeyFromDate(parseDateFromDDMMYYYY(selectedDateStr))) return false;
-            }
-            return true;
-        });
-
-        // Gruplama
-        const groups = {};
-        filtered.forEach(row=>{
-            let key='';
-            switch(groupBySelect){
-                case 'aciklama': key=row[3]||'Açıklama Yok'; break;
-                case 'personel': key=row[4]||'Bilinmiyor'; break;
-                case 'hat': key=row[2]||'Bilinmiyor'; break;
-                case 'vardiya': key=row[1]||'Bilinmiyor'; break;
-                case 'tarih': key=row[0]||'Bilinmiyor'; break;
-            }
-            groups[key] = (groups[key]||0)+1;
-        });
-
-        // Büyükten küçüğe sıralama
-        const sortedKeys = Object.keys(groups).sort((a,b)=>groups[b]-groups[a]);
-        const labels = sortedKeys;
-        const data = sortedKeys.map(k=>groups[k]);
-
-        const palette=["#32ff7e","#7efff5","#0ff3ff","#3af1a0","#2ed573","#1dd1a1","#10ac84","#54a0ff","#fffa65","#ff6b6b"];
-        const datasets=[{
-            label: 'Tekrar Sayısı',
-            data: data,
-            backgroundColor: palette.slice(0,data.length),
-            borderColor: palette.slice(0,data.length),
-            borderWidth:1,
-            datalabels:{anchor:'end',align:'top',color:'#fff',font:{weight:'bold'},formatter: v=>v}
-        }];
-
-        const ctx=document.getElementById('errorChart')?.getContext('2d');
-        if(!ctx) return;
-        if(errorChart) errorChart.destroy();
-        errorChart=new Chart(ctx,{
-            type:'bar',
-            data:{labels,datasets},
-            options:{
-                responsive:true,
-                maintainAspectRatio:false,
-                plugins:{
-                    legend:{display:false},
-                    tooltip:{mode:'index',intersect:false},
-                    datalabels:{anchor:'end',align:'top',color:'#fff',font:{weight:'bold'},formatter: v=>v}
-                },
-                scales:{y:{beginAtZero:true}}
-            },
-            plugins:[ChartDataLabels]
-        });
-
-    }catch(e){ console.error(e); }
-}
-
-
-
-// ---------------- PAGE LOAD ----------------
+// PAGE & PERIOD BUTTONS
 document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('loginBtn')?.addEventListener('click',login);
     document.getElementById('logoutBtn')?.addEventListener('click',logout);
 
-    document.getElementById('btnData')?.addEventListener('click',()=>{
-        document.getElementById('dataTableWrapper').style.display='block';
-        document.getElementById('photoTableWrapper').style.display='none';
-        document.getElementById('chartWrapper').style.display='none';
-        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-        document.getElementById('btnData').classList.add('active');
+    document.getElementById('btnData')?.addEventListener('click',()=>{ 
+        document.getElementById('dataTableWrapper').style.display='block'; 
+        document.getElementById('photoTableWrapper').style.display='none'; 
+        document.getElementById('chartWrapper').style.display='none'; 
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); 
+        document.getElementById('btnData').classList.add('active'); 
     });
-    document.getElementById('btnPhoto')?.addEventListener('click',()=>{
-        document.getElementById('dataTableWrapper').style.display='none';
-        document.getElementById('photoTableWrapper').style.display='block';
-        document.getElementById('chartWrapper').style.display='none';
-        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-        document.getElementById('btnPhoto').classList.add('active');
+    document.getElementById('btnPhoto')?.addEventListener('click',()=>{ 
+        document.getElementById('dataTableWrapper').style.display='none'; 
+        document.getElementById('photoTableWrapper').style.display='block'; 
+        document.getElementById('chartWrapper').style.display='none'; 
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); 
+        document.getElementById('btnPhoto').classList.add('active'); 
     });
-    document.getElementById('btnChart')?.addEventListener('click',()=>{
-        document.getElementById('dataTableWrapper').style.display='none';
-        document.getElementById('photoTableWrapper').style.display='none';
-        document.getElementById('chartWrapper').style.display='block';
-        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-        document.getElementById('btnChart').classList.add('active');
-        renderChart();
+    document.getElementById('btnChart')?.addEventListener('click',()=>{ 
+        document.getElementById('dataTableWrapper').style.display='none'; 
+        document.getElementById('photoTableWrapper').style.display='none'; 
+        document.getElementById('chartWrapper').style.display='block'; 
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); 
+        document.getElementById('btnChart').classList.add('active'); 
+        renderChart(); 
     });
 
-    
-        document.getElementById('chartDate')?.addEventListener('change', renderChart);
-        document.getElementById('chartPeriod')?.addEventListener('change', renderChart);
-        document.getElementById('chartGroupBy')?.addEventListener('change', renderChart);
-        document.getElementById('refreshChart')?.addEventListener('click', renderChart);
-
-    initPhotoSearch();
+    document.getElementById('chartDate')?.addEventListener('change',renderChart);
+    document.getElementById('chartPeriod')?.addEventListener('change',renderChart);
 
     if(localStorage.getItem('loggedIn')==='true') showMain();
 });
 </script>
+
 
 </body>
 </html>
