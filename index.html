@@ -360,6 +360,44 @@ function showSection(section){
     if(section==='photo') document.getElementById('btnPhoto').classList.add('active');
     if(section==='chart') document.getElementById('btnChart').classList.add('active');
 }
+    function drawChart() {
+    if (!photoRows.length) return;
+
+    // Örnek: "aciklama" sütunundaki tekrar sayısını sayıyoruz
+    const aciklamaIndex = 3; // fotoHeader içindeki aciklama sütunu
+    const counts = {};
+    photoRows.forEach(row => {
+        const val = row[aciklamaIndex] || 'Boş';
+        counts[val] = (counts[val] || 0) + 1;
+    });
+
+    const labels = Object.keys(counts);
+    const data = Object.values(counts);
+
+    const ctx = document.getElementById('errorChart').getContext('2d');
+
+    if (errorChart) errorChart.destroy(); // varsa eski grafiği temizle
+
+    errorChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Tekrar Sayısı',
+                data: data,
+                backgroundColor: 'rgba(155,89,182,0.6)',
+                borderColor: 'rgba(155,89,182,1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: true } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+}
+
 </script>
 
 </body>
