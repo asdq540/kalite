@@ -7,49 +7,268 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
 <style>
-:root{--primary:#9b59b6;--bg:#f6f8fa;--card:#ffffff;--thead:#8e44ad;--row1:#ffffff;--row2:#f3f4f6;--border:#d4d7dc;--shadow:0 4px 18px rgba(0,0,0,0.08)}
-body{background:var(--bg);font-family:"Segoe UI",sans-serif;padding:20px}
-.login-container{max-width:420px;margin:90px auto;padding:30px;background:var(--card);border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--border)}
+:root{
+    --primary:#9b59b6;
+    --bg:#f6f8fa;
+    --card:#ffffff;
+    --thead:#8e44ad;
+    --row1:#ffffff;
+    --row2:#f3f4f6;
+    --border:#d4d7dc;
+    --shadow:0 4px 18px rgba(0,0,0,0.08);
+
+    /* ⭐ Neon ek renkler */
+    --neon1:#ff00ea;
+    --neon2:#00f6ff;
+    --dark-bg:#0d0d0f;
+}
+
+/* ------------------------------------------------------
+   🟣 GENEL TEMA
+------------------------------------------------------ */
+body{
+    background:var(--bg);
+    font-family:"Segoe UI",sans-serif;
+    padding:20px;
+}
+
+.login-container{
+    max-width:420px;
+    margin:90px auto;
+    padding:30px;
+    background:var(--card);
+    border-radius:14px;
+    box-shadow:var(--shadow);
+    border:1px solid var(--border);
+}
+
 #mainPage{display:none}
-.section-title{color:var(--thead);font-weight:700;font-size:22px;margin-bottom:12px}
-.table-card{background:var(--card);padding:18px;border-radius:12px;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:20px}
-.table thead th{ background: linear-gradient(135deg, #9b59b6, #8e44ad) !important; color: #fff !important; padding:14px!important; font-size:15px; letter-spacing:0.4px; text-transform:uppercase; border:none!important; position: sticky; top: 0; z-index: 3; box-shadow: 0 2px 6px rgba(0,0,0,0.15); text-align:center; }
-.table tbody tr{ background:#fff; transition:0.2s ease; box-shadow:0 1px 4px rgba(0,0,0,0.06); border-radius:10px; }
-.table tbody tr:hover{ background:#f7eefb !important; transform: scale(1.01); box-shadow:0 4px 12px rgba(0,0,0,0.12); }
-.table tbody td{ padding:12px!important; vertical-align:middle; text-align:center; border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
-.table tbody tr td:first-child{border-left:1px solid var(--border);border-top-left-radius:10px;border-bottom-left-radius:10px}
-.table tbody tr td:last-child{border-right:1px solid var(--border);border-top-right-radius:10px;border-bottom-right-radius:10px}
-img.thumb{width:88px;height:72px;object-fit:cover;border-radius:8px;border:1px solid #cbd1d8;cursor:pointer}
-.search-input{border-radius:10px;padding:10px;border:1px solid #bcc6d0}
-.pagination .page-link{border-radius:8px}
-#chartContainer{height:520px!important;padding:12px}
-.tab-btn{padding:8px 14px;border-radius:30px;font-weight:600;border:1px solid var(--primary);background:#fff;cursor:pointer}
-.tab-btn.active{background:var(--primary);color:#fff}
-.period-btn{padding:6px 10px;border-radius:8px;border:1px solid #cfd8d6;background:#fff;cursor:pointer}
-.period-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
-@media (max-width: 768px){ .table thead th{font-size:12px !important;padding:10px !important;} .table tbody td{font-size:13px;padding:8px !important;white-space:nowrap;} img.thumb{width:60px;height:50px;} }
-@media (max-width: 480px){ .table tbody td{font-size:12px;padding:6px !important;} img.thumb{width:50px;height:40px;} }
-#offlineBadge{position:fixed;right:12px;bottom:12px;z-index:2000}
-.advanced-login{ background: linear-gradient(145deg, #ffffff, #f3eafc); padding: 40px; border-radius: 18px; box-shadow: 0 10px 28px rgba(0,0,0,0.12); border: none; position: relative; overflow: hidden; }
-.advanced-login:before{ content:""; position:absolute; width:160%; height:160%; top:-30%; left:-30%; background: radial-gradient(circle at center, rgba(155,89,182,0.12), transparent 70%); z-index:0; pointer-events: none; }
-.login-header{position:relative; z-index:2;}
-.login-title{color:#4b2356;font-size:26px;font-weight:700;margin-bottom:6px;}
-.login-subtitle{color:#6c7a86;font-size:14px;}
-.login-input{ border-radius:12px; padding:12px; border:1px solid #c9d3dd; transition:0.25s; }
-.login-input:focus{ border-color:var(--primary); box-shadow:0 0 0 3px rgba(155,89,182,0.15); }
-.login-btn{ background:var(--primary); border:none; padding:12px; font-size:16px; border-radius:14px; font-weight:600; transition:0.25s; }
-.login-btn:hover{ background:#8e44ad; transform:translateY(-2px); box-shadow:0 6px 16px rgba(0,0,0,0.15); }
+
+.section-title{
+    color:var(--thead);
+    font-weight:700;
+    font-size:22px;
+    margin-bottom:12px;
+}
+
+/* ------------------------------------------------------
+   🟣 NEON TABLE CARD
+------------------------------------------------------ */
+.table-card{
+    background:rgba(20,20,30,0.85);
+    padding:22px;
+    border-radius:14px;
+    box-shadow:0 0 16px rgba(155,89,182,0.25);
+    border:2px solid rgba(155,89,182,0.35);
+    backdrop-filter:blur(8px);
+    animation:fadeIn 0.5s ease;
+    margin-bottom:20px;
+}
+
+/* ------------------------------------------------------
+   🟣 TABLO BAŞLIĞI - NEON GRADIENT
+------------------------------------------------------ */
+.table thead th{
+    background: linear-gradient(135deg, var(--neon1), var(--neon2)) !important;
+    color:#fff !important;
+    padding:14px!important;
+    font-size:15px;
+    text-transform:uppercase;
+    border:none!important;
+    position:sticky;
+    top:0;
+    z-index:3;
+    box-shadow:0 2px 8px rgba(0,0,0,0.4);
+    text-align:center;
+    letter-spacing:0.5px;
+}
+
+/* ------------------------------------------------------
+   🟣 TABLO SATIRLARI - HAFİF GLOW
+------------------------------------------------------ */
+.table tbody tr{
+    background:rgba(255,255,255,0.05);
+    transition:0.25s ease;
+    border-radius:10px;
+}
+
+.table tbody tr:hover{
+    background:rgba(155,89,182,0.15) !important;
+    transform:scale(1.02);
+    box-shadow:0 0 14px rgba(155,89,182,0.45);
+}
+
+/* Hücreler */
+.table tbody td{
+    padding:12px!important;
+    vertical-align:middle;
+    text-align:center;
+    color:#f1eaff;
+    border-top:1px solid rgba(255,255,255,0.06);
+    border-bottom:1px solid rgba(255,255,255,0.06);
+}
+
+/* Sol & sağ köşe radius */
+.table tbody tr td:first-child{
+    border-left:1px solid rgba(255,255,255,0.06);
+    border-top-left-radius:10px;
+    border-bottom-left-radius:10px;
+}
+.table tbody tr td:last-child{
+    border-right:1px solid rgba(255,255,255,0.06);
+    border-top-right-radius:10px;
+    border-bottom-right-radius:10px;
+}
+
+/* ------------------------------------------------------
+   🟣 NEON PAGINATION
+------------------------------------------------------ */
+.pagination .page-link{
+    background:transparent;
+    border:1px solid var(--neon2);
+    color:var(--neon2);
+    border-radius:10px!important;
+    margin:3px;
+    transition:0.25s ease;
+}
+
+.pagination .page-link:hover{
+    background:var(--neon2);
+    color:#000;
+    box-shadow:0 0 12px var(--neon2);
+    transform:scale(1.12);
+}
+
+.pagination .page-item.active .page-link{
+    background:linear-gradient(90deg,var(--neon1),var(--neon2));
+    border:none;
+    color:#000;
+    box-shadow:0 0 18px var(--neon1);
+}
+
+/* İlk/son buton */
+.pagination .page-item:first-child .page-link,
+.pagination .page-item:last-child .page-link{
+    border-color:var(--neon1);
+    color:var(--neon1);
+}
+.pagination .page-item:first-child .page-link:hover,
+.pagination .page-item:last-child .page-link:hover{
+    background:var(--neon1);
+    color:#000;
+    box-shadow:0 0 12px var(--neon1);
+}
+
+/* ------------------------------------------------------
+   🟣 RESİM - HAFİF NEON BORDER
+------------------------------------------------------ */
+img.thumb{
+    width:88px;
+    height:72px;
+    object-fit:cover;
+    border-radius:8px;
+    border:2px solid rgba(155,89,182,0.4);
+    transition:0.25s ease;
+    cursor:pointer;
+}
+img.thumb:hover{
+    border-color:var(--neon2);
+    box-shadow:0 0 12px var(--neon2);
+}
+
+/* ------------------------------------------------------
+   🟣 SEARCH INPUT
+------------------------------------------------------ */
+.search-input{
+    border-radius:10px;
+    padding:10px;
+    border:2px solid rgba(155,89,182,0.4);
+    background:rgba(255,255,255,0.1);
+    color:#fff;
+}
+.search-input:focus{
+    border-color:var(--neon2);
+    box-shadow:0 0 10px var(--neon2);
+}
+
+/* ------------------------------------------------------
+   🟣 TAB / BUTONLAR
+------------------------------------------------------ */
+.tab-btn{
+    padding:8px 14px;
+    border-radius:30px;
+    font-weight:600;
+    border:2px solid var(--neon1);
+    background:#0d0d0f;
+    color:var(--neon1);
+    transition:0.25s ease;
+}
+.tab-btn.active{
+    background:linear-gradient(90deg,var(--neon1),var(--neon2));
+    color:#000;
+    box-shadow:0 0 15px var(--neon1);
+}
+
+/* ------------------------------------------------------
+   🟣 CHART CONTAINER
+------------------------------------------------------ */
+#chartContainer{
+    height:520px!important;
+    padding:12px;
+    background:rgba(20,20,30,0.9);
+    border-radius:14px;
+    box-shadow:0 0 16px rgba(155,89,182,0.25);
+    border:2px solid rgba(155,89,182,0.35);
+}
+
+/* ------------------------------------------------------
+   🟣 RESPONSIVE
+------------------------------------------------------ */
+@media (max-width: 768px){
+    .table thead th{
+        font-size:12px !important;
+        padding:10px !important;
+    }
+    .table tbody td{
+        font-size:13px;
+        padding:8px !important;
+        white-space:nowrap;
+    }
+    img.thumb{
+        width:60px;
+        height:50px;
+    }
+}
+@media (max-width: 480px){
+    .table tbody td{
+        font-size:12px;
+        padding:6px !important;
+    }
+    img.thumb{
+        width:50px;
+        height:40px;
+    }
+}
+
+/* ------------------------------------------------------
+   🟣 ANİMASYON
+------------------------------------------------------ */
+@keyframes fadeIn{
+    from { opacity:0; transform:translateY(12px); }
+    to   { opacity:1; transform:translateY(0); }
+}
 
 /* PAGINATION RESPONSIVE */
-.pagination-wrapper {
-    display: flex;
-    justify-content: center;
-    overflow-x: auto;
-    padding: 0.5rem 0;
+.pagination-wrapper{
+    display:flex;
+    justify-content:center;
+    overflow-x:auto;
+    padding:0.5rem 0;
 }
-.pagination-wrapper ul {
-    flex-wrap: nowrap;
+.pagination-wrapper ul{
+    flex-wrap:nowrap;
 }
+
 </style>
 </head>
 <body>
