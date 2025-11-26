@@ -39,9 +39,21 @@ img.thumb{width:88px;height:72px;object-fit:cover;border-radius:8px;border:1px s
 .login-input:focus{ border-color:var(--primary); box-shadow:0 0 0 3px rgba(155,89,182,0.15); }
 .login-btn{ background:var(--primary); border:none; padding:12px; font-size:16px; border-radius:14px; font-weight:600; transition:0.25s; }
 .login-btn:hover{ background:#8e44ad; transform:translateY(-2px); box-shadow:0 6px 16px rgba(0,0,0,0.15); }
+
+/* PAGINATION RESPONSIVE */
+.pagination-wrapper {
+    display: flex;
+    justify-content: center;
+    overflow-x: auto;
+    padding: 0.5rem 0;
+}
+.pagination-wrapper ul {
+    flex-wrap: nowrap;
+}
 </style>
 </head>
 <body>
+
 <!-- LOGIN -->
 <div id="loginPage" class="login-container advanced-login">
     <div class="login-header text-center mb-4">
@@ -80,7 +92,7 @@ img.thumb{width:88px;height:72px;object-fit:cover;border-radius:8px;border:1px s
             </div>
             <input id="searchInput1" class="search-input mb-3" placeholder="Veri tablosunda ara...">
             <div class="table-responsive"><table id="dataTable" class="table"><thead></thead><tbody></tbody></table></div>
-            <nav class="mt-2"><ul id="pagination1" class="pagination justify-content-center"></ul></nav>
+            <div class="pagination-wrapper"><ul id="pagination1" class="pagination"></ul></div>
         </div>
     </div>
 
@@ -93,7 +105,7 @@ img.thumb{width:88px;height:72px;object-fit:cover;border-radius:8px;border:1px s
             </div>
             <input id="searchInput2" class="search-input mb-3" placeholder="Fotoğraf tablosunda ara...">
             <div class="table-responsive"><table id="photoTable" class="table"><thead></thead><tbody></tbody></table></div>
-            <nav class="mt-2"><ul id="pagination2" class="pagination justify-content-center"></ul></nav>
+            <div class="pagination-wrapper"><ul id="pagination2" class="pagination"></ul></div>
         </div>
     </div>
 
@@ -102,10 +114,6 @@ img.thumb{width:88px;height:72px;object-fit:cover;border-radius:8px;border:1px s
         <div class="table-card">
             <div class="d-flex align-items-center justify-content-between mb-2">
                 <h4 class="section-title mb-0">Tekrar Sayısı Grafiği</h4>
-                <div class="d-flex gap-2 align-items-center">
-                    <div class="d-flex gap-2">
-                    </div>
-                </div>
             </div>
             <div class="row g-3 mb-3">
                 <div class="col-md-4"><label class="form-label">Tarih (opsiyonel)</label><input type="date" id="chartDate" class="form-control"></div>
@@ -146,11 +154,10 @@ img.thumb{width:88px;height:72px;object-fit:cover;border-radius:8px;border:1px s
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 const BACKEND_BASE = 'https://vardiya-backend.onrender.com';
-const PAGE_SIZE = 20; // Bir sayfada gösterilecek satır sayısı
-
+const PAGE_SIZE = 20;
 let headerRow = [], fullRows = [], dataRows = [], photoRows = [], errorChart = null;
 
-// ----------------- LOGIN -----------------
+// ---------------- LOGIN ----------------
 async function login() {
     const u = document.getElementById('username').value.trim();
     const p = document.getElementById('password').value.trim();
@@ -180,7 +187,7 @@ function showMain(){
     loadDataFromBackend(); 
 }
 
-// ----------------- DATA LOAD -----------------
+// ---------------- DATA LOAD ----------------
 async function loadDataFromBackend(){
     try{
         const res = await fetch(BACKEND_BASE + '/api/get');
@@ -200,7 +207,7 @@ async function loadDataFromBackend(){
     } catch(e){ console.error('loadDataFromBackend error', e); }
 }
 
-// ----------------- TABLE WITH PAGINATION -----------------
+// ---------------- TABLE WITH PAGINATION ----------------
 function createEditableTable(tableId, headers, rows, searchId, paginationId, isPhoto=false){
     const table = document.getElementById(tableId);
     const thead = table.querySelector('thead');
@@ -208,7 +215,6 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
     const search = document.getElementById(searchId);
     const pagination = document.getElementById(paginationId);
 
-    // HEADER
     thead.innerHTML = '';
     const trHead = document.createElement('tr');
     headers.forEach(h=>{
@@ -223,42 +229,40 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
     }
     thead.appendChild(trHead);
 
-    // PAGINATION STATE
     let filteredRows = [...rows];
     let currentPage = 1;
 
     function renderTable(){
         tbody.innerHTML = '';
-        const start = (currentPage-1) * PAGE_SIZE;
-        const pageRows = filteredRows.slice(start, start + PAGE_SIZE);
+        const start = (currentPage-1)*PAGE_SIZE;
+        const pageRows = filteredRows.slice(start, start+PAGE_SIZE);
 
         pageRows.forEach((row,rowIndex)=>{
-            const tr = document.createElement('tr');
+            const tr=document.createElement('tr');
             row.forEach((cell,colIndex)=>{
-                const td = document.createElement('td');
+                const td=document.createElement('td');
                 if(isPhoto && colIndex===5 && cell){
-                    const img = document.createElement('img');
-                    img.src = cell; img.className = 'thumb';
-                    img.alt = 'foto';
-                    img.addEventListener('click', ()=>openImage(cell));
+                    const img=document.createElement('img');
+                    img.src=cell; img.className='thumb';
+                    img.alt='foto';
+                    img.addEventListener('click',()=>openImage(cell));
                     td.appendChild(img);
-                } else td.textContent = cell || '';
+                } else td.textContent=cell||'';
                 tr.appendChild(td);
             });
 
             if(isPhoto){
-                const actionTd = document.createElement('td');
-
-                const editBtn = document.createElement('button');
-                editBtn.className = 'btn btn-sm btn-outline-primary me-2';
-                editBtn.textContent = 'Düzenle';
-                editBtn.addEventListener('click', ()=>openEditModal((currentPage-1)*PAGE_SIZE + rowIndex));
+                const actionTd=document.createElement('td');
+                const editBtn=document.createElement('button');
+                editBtn.className='btn btn-sm btn-outline-primary me-2';
+                editBtn.textContent='Düzenle';
+                editBtn.addEventListener('click',()=>openEditModal((currentPage-1)*PAGE_SIZE + rowIndex));
                 actionTd.appendChild(editBtn);
 
-                const delBtn = document.createElement('button');
-                delBtn.className = 'btn btn-sm btn-outline-danger';
-                delBtn.textContent = 'Sil';
-                delBtn.addEventListener('click', ()=>deleteRow((currentPage-1)*PAGE_SIZE + rowIndex));
+                const delBtn=document.createElement('button');
+                delBtn.className='btn btn-sm btn-outline-danger';
+                delBtn.textContent='Sil';
+                delBtn.addEventListener('click',()=>deleteRow((currentPage-1)*PAGE_SIZE + rowIndex));
                 actionTd.appendChild(delBtn);
 
                 tr.appendChild(actionTd);
@@ -274,29 +278,54 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
         if(!pagination) return;
         pagination.innerHTML = '';
         const totalPages = Math.ceil(filteredRows.length / PAGE_SIZE);
+
+        // Back button
+        const prevLi = document.createElement('li');
+        prevLi.className = 'page-item ' + (currentPage===1?'disabled':'');
+        const prevA = document.createElement('a');
+        prevA.className = 'page-link';
+        prevA.href='#';
+        prevA.textContent='«';
+        prevA.addEventListener('click', e=>{
+            e.preventDefault();
+            if(currentPage>1){ currentPage--; renderTable(); }
+        });
+        prevLi.appendChild(prevA);
+        pagination.appendChild(prevLi);
+
+        // Page numbers
         for(let i=1;i<=totalPages;i++){
             const li = document.createElement('li');
-            li.className = 'page-item ' + (i===currentPage ? 'active' : '');
-            const a = document.createElement('a');
-            a.className = 'page-link';
-            a.href = '#';
-            a.textContent = i;
-            a.addEventListener('click', e=>{
-                e.preventDefault();
-                currentPage = i;
-                renderTable();
-            });
+            li.className='page-item '+(i===currentPage?'active':'');
+            const a=document.createElement('a');
+            a.className='page-link';
+            a.href='#';
+            a.textContent=i;
+            a.addEventListener('click', e=>{ e.preventDefault(); currentPage=i; renderTable(); });
             li.appendChild(a);
             pagination.appendChild(li);
         }
+
+        // Next button
+        const nextLi = document.createElement('li');
+        nextLi.className='page-item ' + (currentPage===totalPages?'disabled':'');
+        const nextA = document.createElement('a');
+        nextA.className='page-link';
+        nextA.href='#';
+        nextA.textContent='»';
+        nextA.addEventListener('click', e=>{
+            e.preventDefault();
+            if(currentPage<totalPages){ currentPage++; renderTable(); }
+        });
+        nextLi.appendChild(nextA);
+        pagination.appendChild(nextLi);
     }
 
-    // SEARCH FILTER
     if(search){
-        search.oninput = () => {
-            const term = (search.value || '').toLowerCase();
-            filteredRows = rows.filter(r => r.join(' ').toLowerCase().includes(term));
-            currentPage = 1;
+        search.oninput = ()=>{
+            const term = (search.value||'').toLowerCase();
+            filteredRows = rows.filter(r=>r.join(' ').toLowerCase().includes(term));
+            currentPage=1;
             renderTable();
         };
     }
@@ -304,13 +333,13 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
     renderTable();
 }
 
-// ----------------- IMAGE MODAL -----------------
+// ---------------- IMAGE MODAL ----------------
 function openImage(src){
     document.getElementById('modalImage').src=src;
     new bootstrap.Modal(document.getElementById('imageModal')).show();
 }
 
-// ----------------- PHOTO EDIT -----------------
+// ---------------- EDIT / DELETE ----------------
 function openEditModal(rowIndex){
     const row = photoRows[rowIndex];
     const modalHtml=`<div class="modal fade" id="rowEditModal" tabindex="-1">
@@ -351,7 +380,6 @@ function openEditModal(rowIndex){
     };
 }
 
-// ----------------- PHOTO DELETE -----------------
 async function deleteRow(rowIndex){
     if(!confirm('Satırı silmek istediğinize emin misiniz?')) return;
     try{
@@ -364,7 +392,7 @@ async function deleteRow(rowIndex){
     }catch(e){ console.error(e); }
 }
 
-// ----------------- CHART -----------------
+// ---------------- CHART ----------------
 function renderChart(){
     try{
         const dateInput=document.getElementById('chartDate')?.value;
@@ -428,7 +456,7 @@ function weekKeyFromDate(d){ const onejan=new Date(d.getFullYear(),0,1); return 
 function monthKeyFromDate(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
 function formatDate(d){ return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; }
 
-// ----------------- PAGE & PERIOD BUTTONS -----------------
+// ---------------- EVENT LISTENERS ----------------
 document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('loginBtn')?.addEventListener('click',login);
     document.getElementById('logoutBtn')?.addEventListener('click',logout);
@@ -453,7 +481,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         document.getElementById('chartWrapper').style.display='block'; 
         document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); 
         document.getElementById('btnChart').classList.add('active'); 
-        renderChart(); 
+        renderChart();
     });
 
     document.getElementById('chartDate')?.addEventListener('change',renderChart);
@@ -462,6 +490,5 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(localStorage.getItem('loggedIn')==='true') showMain();
 });
 </script>
-
 </body>
 </html>
