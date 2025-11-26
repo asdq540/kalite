@@ -145,11 +145,12 @@ img.thumb{width:88px;height:72px;object-fit:cover;border-radius:8px;border:1px s
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-const BACKEND_BASE = 'https://vardiya-backend.onrender.com'; // Backend aynı origin
-const PAGE_SIZE = 10;
+const BACKEND_BASE = 'https://vardiya-backend.onrender.com';
+const PAGE_SIZE = 20; // Bir sayfada gösterilecek satır sayısı
+
 let headerRow = [], fullRows = [], dataRows = [], photoRows = [], errorChart = null;
 
-// login
+// ----------------- LOGIN -----------------
 async function login() {
     const u = document.getElementById('username').value.trim();
     const p = document.getElementById('password').value.trim();
@@ -173,8 +174,13 @@ async function login() {
 }
 
 function logout(){ localStorage.removeItem('loggedIn'); location.reload(); }
-function showMain(){ document.getElementById('loginPage').style.display='none'; document.getElementById('mainPage').style.display='block'; loadDataFromBackend(); }
+function showMain(){ 
+    document.getElementById('loginPage').style.display='none'; 
+    document.getElementById('mainPage').style.display='block'; 
+    loadDataFromBackend(); 
+}
 
+// ----------------- DATA LOAD -----------------
 async function loadDataFromBackend(){
     try{
         const res = await fetch(BACKEND_BASE + '/api/get');
@@ -194,68 +200,117 @@ async function loadDataFromBackend(){
     } catch(e){ console.error('loadDataFromBackend error', e); }
 }
 
-// TABLE GENERATOR
+// ----------------- TABLE WITH PAGINATION -----------------
 function createEditableTable(tableId, headers, rows, searchId, paginationId, isPhoto=false){
     const table = document.getElementById(tableId);
     const thead = table.querySelector('thead');
     const tbody = table.querySelector('tbody');
     const search = document.getElementById(searchId);
+    const pagination = document.getElementById(paginationId);
 
+    // HEADER
     thead.innerHTML = '';
-    const tr = document.createElement('tr');
-    headers.forEach(h=>{ const th=document.createElement('th'); th.textContent=h||''; tr.appendChild(th); });
+    const trHead = document.createElement('tr');
+    headers.forEach(h=>{
+        const th = document.createElement('th');
+        th.textContent = h || '';
+        trHead.appendChild(th);
+    });
     if(isPhoto){
-        const actionTh=document.createElement('th'); actionTh.textContent='İşlemler'; tr.appendChild(actionTh);
+        const actionTh = document.createElement('th');
+        actionTh.textContent = 'İşlemler';
+        trHead.appendChild(actionTh);
     }
-    thead.appendChild(tr);
+    thead.appendChild(trHead);
 
-    tbody.innerHTML='';
-    rows.forEach((row,rowIndex)=>{
-        const tr=document.createElement('tr');
-        row.forEach((cell,colIndex)=>{
-            const td=document.createElement('td');
-            if(isPhoto && colIndex===5 && cell){
-                const img=document.createElement('img');
-                img.src=cell; img.className='thumb'; img.alt='foto';
-                img.addEventListener('click',()=>openImage(cell));
-                td.appendChild(img);
-            } else td.textContent=cell||'';
-            tr.appendChild(td);
+    // PAGINATION STATE
+    let filteredRows = [...rows];
+    let currentPage = 1;
+
+    function renderTable(){
+        tbody.innerHTML = '';
+        const start = (currentPage-1) * PAGE_SIZE;
+        const pageRows = filteredRows.slice(start, start + PAGE_SIZE);
+
+        pageRows.forEach((row,rowIndex)=>{
+            const tr = document.createElement('tr');
+            row.forEach((cell,colIndex)=>{
+                const td = document.createElement('td');
+                if(isPhoto && colIndex===5 && cell){
+                    const img = document.createElement('img');
+                    img.src = cell; img.className = 'thumb';
+                    img.alt = 'foto';
+                    img.addEventListener('click', ()=>openImage(cell));
+                    td.appendChild(img);
+                } else td.textContent = cell || '';
+                tr.appendChild(td);
+            });
+
+            if(isPhoto){
+                const actionTd = document.createElement('td');
+
+                const editBtn = document.createElement('button');
+                editBtn.className = 'btn btn-sm btn-outline-primary me-2';
+                editBtn.textContent = 'Düzenle';
+                editBtn.addEventListener('click', ()=>openEditModal((currentPage-1)*PAGE_SIZE + rowIndex));
+                actionTd.appendChild(editBtn);
+
+                const delBtn = document.createElement('button');
+                delBtn.className = 'btn btn-sm btn-outline-danger';
+                delBtn.textContent = 'Sil';
+                delBtn.addEventListener('click', ()=>deleteRow((currentPage-1)*PAGE_SIZE + rowIndex));
+                actionTd.appendChild(delBtn);
+
+                tr.appendChild(actionTd);
+            }
+
+            tbody.appendChild(tr);
         });
 
-        // Düzenle ve sil sadece foto tablosunda
-        if(isPhoto){
-            const actionTd=document.createElement('td');
-            const editBtn=document.createElement('button');
-            editBtn.className='btn btn-sm btn-outline-primary me-2';
-            editBtn.textContent='Düzenle';
-            editBtn.addEventListener('click',()=>openEditModal(rowIndex));
-            actionTd.appendChild(editBtn);
-
-            const delBtn=document.createElement('button');
-            delBtn.className='btn btn-sm btn-outline-danger';
-            delBtn.textContent='Sil';
-            delBtn.addEventListener('click',()=>deleteRow(rowIndex));
-            actionTd.appendChild(delBtn);
-
-            tr.appendChild(actionTd);
-        }
-
-        tbody.appendChild(tr);
-    });
-
-    if(search){
-        search.oninput=()=>{ const term=(search.value||'').toLowerCase(); tbody.querySelectorAll('tr').forEach(r=>{ const text=r.innerText.toLowerCase(); r.style.display=text.includes(term)?'':'none'; }); };
+        renderPagination();
     }
+
+    function renderPagination(){
+        if(!pagination) return;
+        pagination.innerHTML = '';
+        const totalPages = Math.ceil(filteredRows.length / PAGE_SIZE);
+        for(let i=1;i<=totalPages;i++){
+            const li = document.createElement('li');
+            li.className = 'page-item ' + (i===currentPage ? 'active' : '');
+            const a = document.createElement('a');
+            a.className = 'page-link';
+            a.href = '#';
+            a.textContent = i;
+            a.addEventListener('click', e=>{
+                e.preventDefault();
+                currentPage = i;
+                renderTable();
+            });
+            li.appendChild(a);
+            pagination.appendChild(li);
+        }
+    }
+
+    // SEARCH FILTER
+    if(search){
+        search.oninput = () => {
+            const term = (search.value || '').toLowerCase();
+            filteredRows = rows.filter(r => r.join(' ').toLowerCase().includes(term));
+            currentPage = 1;
+            renderTable();
+        };
+    }
+
+    renderTable();
 }
 
-// IMAGE MODAL
+// ----------------- IMAGE MODAL -----------------
 function openImage(src){
     document.getElementById('modalImage').src=src;
     new bootstrap.Modal(document.getElementById('imageModal')).show();
 }
 
-// FOTOĞRAF TABLOSU DÜZENLEME
+// ----------------- PHOTO EDIT -----------------
 function openEditModal(rowIndex){
     const row = photoRows[rowIndex];
     const modalHtml=`<div class="modal fade" id="rowEditModal" tabindex="-1">
@@ -296,7 +351,7 @@ function openEditModal(rowIndex){
     };
 }
 
-// FOTOĞRAF TABLOSU SİLME
+// ----------------- PHOTO DELETE -----------------
 async function deleteRow(rowIndex){
     if(!confirm('Satırı silmek istediğinize emin misiniz?')) return;
     try{
@@ -309,7 +364,7 @@ async function deleteRow(rowIndex){
     }catch(e){ console.error(e); }
 }
 
-// GRAFİK
+// ----------------- CHART -----------------
 function renderChart(){
     try{
         const dateInput=document.getElementById('chartDate')?.value;
@@ -373,14 +428,33 @@ function weekKeyFromDate(d){ const onejan=new Date(d.getFullYear(),0,1); return 
 function monthKeyFromDate(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
 function formatDate(d){ return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; }
 
-// PAGE & PERIOD BUTTONS
+// ----------------- PAGE & PERIOD BUTTONS -----------------
 document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('loginBtn')?.addEventListener('click',login);
     document.getElementById('logoutBtn')?.addEventListener('click',logout);
 
-    document.getElementById('btnData')?.addEventListener('click',()=>{ document.getElementById('dataTableWrapper').style.display='block'; document.getElementById('photoTableWrapper').style.display='none'; document.getElementById('chartWrapper').style.display='none'; document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); document.getElementById('btnData').classList.add('active'); });
-    document.getElementById('btnPhoto')?.addEventListener('click',()=>{ document.getElementById('dataTableWrapper').style.display='none'; document.getElementById('photoTableWrapper').style.display='block'; document.getElementById('chartWrapper').style.display='none'; document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); document.getElementById('btnPhoto').classList.add('active'); });
-    document.getElementById('btnChart')?.addEventListener('click',()=>{ document.getElementById('dataTableWrapper').style.display='none'; document.getElementById('photoTableWrapper').style.display='none'; document.getElementById('chartWrapper').style.display='block'; document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); document.getElementById('btnChart').classList.add('active'); renderChart(); });
+    document.getElementById('btnData')?.addEventListener('click',()=>{
+        document.getElementById('dataTableWrapper').style.display='block'; 
+        document.getElementById('photoTableWrapper').style.display='none'; 
+        document.getElementById('chartWrapper').style.display='none'; 
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); 
+        document.getElementById('btnData').classList.add('active'); 
+    });
+    document.getElementById('btnPhoto')?.addEventListener('click',()=>{
+        document.getElementById('dataTableWrapper').style.display='none'; 
+        document.getElementById('photoTableWrapper').style.display='block'; 
+        document.getElementById('chartWrapper').style.display='none'; 
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); 
+        document.getElementById('btnPhoto').classList.add('active'); 
+    });
+    document.getElementById('btnChart')?.addEventListener('click',()=>{
+        document.getElementById('dataTableWrapper').style.display='none'; 
+        document.getElementById('photoTableWrapper').style.display='none'; 
+        document.getElementById('chartWrapper').style.display='block'; 
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); 
+        document.getElementById('btnChart').classList.add('active'); 
+        renderChart(); 
+    });
 
     document.getElementById('chartDate')?.addEventListener('change',renderChart);
     document.getElementById('chartPeriod')?.addEventListener('change',renderChart);
