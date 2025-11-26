@@ -7,229 +7,217 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
 <style>
-/* --- SENİN MEVCUT CSS'İN --- */
 :root{--primary:#9b59b6;--bg:#f6f8fa;--card:#ffffff;--thead:#8e44ad;--row1:#ffffff;--row2:#f3f4f6;--border:#d4d7dc;--shadow:0 4px 18px rgba(0,0,0,0.08)}
 body{background:var(--bg);font-family:"Segoe UI",sans-serif;padding:20px}
-/* Tüm CSS’niz buraya kopyalanabilir (önceki kod) */
+.login-container{max-width:420px;margin:90px auto;padding:30px;background:var(--card);border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--border)}
+#mainPage{display:none}
+.section-title{color:var(--thead);font-weight:700;font-size:22px;margin-bottom:12px}
+.table-card{background:var(--card);padding:18px;border-radius:12px;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:20px}
+.table thead th{ background: linear-gradient(135deg, #9b59b6, #8e44ad) !important; color: #fff !important; padding:14px!important; font-size:15px; letter-spacing:0.4px; text-transform:uppercase; border:none!important; position: sticky; top: 0; z-index: 3; box-shadow: 0 2px 6px rgba(0,0,0,0.15); text-align:center; }
+.table tbody tr{ background:#fff; transition:0.2s ease; box-shadow:0 1px 4px rgba(0,0,0,0.06); border-radius:10px; }
+.table tbody tr:hover{ background:#f7eefb !important; transform: scale(1.01); box-shadow:0 4px 12px rgba(0,0,0,0.12); }
+.table tbody td{ padding:12px!important; vertical-align:middle; text-align:center; border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+.table tbody tr td:first-child{border-left:1px solid var(--border);border-top-left-radius:10px;border-bottom-left-radius:10px}
+.table tbody tr td:last-child{border-right:1px solid var(--border);border-top-right-radius:10px;border-bottom-right-radius:10px}
+img.thumb{width:88px;height:72px;object-fit:cover;border-radius:8px;border:1px solid #cbd1d8;cursor:pointer}
+.search-input{border-radius:10px;padding:10px;border:1px solid #bcc6d0}
+.pagination .page-link{border-radius:8px}
+#chartContainer{height:520px!important;padding:12px}
+.tab-btn{padding:8px 14px;border-radius:30px;font-weight:600;border:1px solid var(--primary);background:#fff;cursor:pointer}
+.tab-btn.active{background:var(--primary);color:#fff}
+.period-btn{padding:6px 10px;border-radius:8px;border:1px solid #cfd8d6;background:#fff;cursor:pointer}
+.period-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+@media (max-width: 768px){ .table thead th{font-size:12px !important;padding:10px !important;} .table tbody td{font-size:13px;padding:8px !important;white-space:nowrap;} img.thumb{width:60px;height:50px;} }
+@media (max-width: 480px){ .table tbody td{font-size:12px;padding:6px !important;} img.thumb{width:50px;height:40px;} }
+#offlineBadge{position:fixed;right:12px;bottom:12px;z-index:2000}
+.advanced-login{ background: linear-gradient(145deg, #ffffff, #f3eafc); padding: 40px; border-radius: 18px; box-shadow: 0 10px 28px rgba(0,0,0,0.12); border: none; position: relative; overflow: hidden; }
+.advanced-login:before{ content:""; position:absolute; width:160%; height:160%; top:-30%; left:-30%; background: radial-gradient(circle at center, rgba(155,89,182,0.12), transparent 70%); z-index:0; pointer-events: none; }
+.login-header{position:relative; z-index:2;}
+.login-title{color:#4b2356;font-size:26px;font-weight:700;margin-bottom:6px;}
+.login-subtitle{color:#6c7a86;font-size:14px;}
+.login-input{ border-radius:12px; padding:12px; border:1px solid #c9d3dd; transition:0.25s; }
+.login-input:focus{ border-color:var(--primary); box-shadow:0 0 0 3px rgba(155,89,182,0.15); }
+.login-btn{ background:var(--primary); border:none; padding:12px; font-size:16px; border-radius:14px; font-weight:600; transition:0.25s; }
+.login-btn:hover{ background:#8e44ad; transform:translateY(-2px); box-shadow:0 6px 16px rgba(0,0,0,0.15); }
 </style>
 </head>
 <body>
 
 <!-- LOGIN -->
 <div id="loginPage" class="login-container advanced-login">
-  <div class="login-header text-center mb-4">
-    <h2 class="login-title">Kalite Kontrol Paneli</h2>
-    <p class="login-subtitle">Güvenli Giriş</p>
-  </div>
-  <div class="mb-3">
-    <label class="form-label">Kullanıcı Adı</label>
-    <input id="username" class="form-control login-input" placeholder="Kullanıcı adınızı girin">
-  </div>
-  <div class="mb-3">
-    <label class="form-label">Şifre</label>
-    <input id="password" type="password" class="form-control login-input" placeholder="Şifrenizi girin">
-  </div>
-  <div class="d-grid">
-    <button id="loginBtn" class="btn login-btn">Giriş Yap</button>
-  </div>
-  <div id="errorMsg" class="text-danger text-center mt-3"></div>
+    <div class="login-header text-center mb-4">
+        <h2 class="login-title">Kalite Kontrol Paneli</h2>
+        <p class="login-subtitle">Güvenli Giriş</p>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Kullanıcı Adı</label>
+        <input id="username" class="form-control login-input" placeholder="Kullanıcı adınızı girin" value="">
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Şifre</label>
+        <input id="password" type="password" class="form-control login-input" placeholder="Şifrenizi girin" value="">
+    </div>
+    <div class="d-grid">
+        <button id="loginBtn" class="btn login-btn">Giriş Yap</button>
+    </div>
+    <div id="errorMsg" class="text-danger text-center mt-3"></div>
 </div>
 
 <!-- MAIN -->
 <div id="mainPage" class="container-fluid" style="display:none">
-  <div class="d-flex gap-2 mb-3 align-items-center">
-    <button id="btnData" class="tab-btn active">Veri Tablosu</button>
-    <button id="btnPhoto" class="tab-btn">Fotoğraflar</button>
-    <button id="btnChart" class="tab-btn">Grafik</button>
-    <button id="logoutBtn" class="btn btn-outline-secondary ms-auto">Çıkış</button>
-  </div>
-
-  <!-- DATA -->
-  <div id="dataTableWrapper">
-    <div class="table-card">
-      <div class="d-flex align-items-center justify-content-between mb-3">
-        <h4 class="section-title mb-0">Veri Tablosu</h4>
-        <div class="text-muted small">Satır: <span id="dataCount">0</span></div>
-      </div>
-      <input id="searchInput1" class="search-input mb-3" placeholder="Veri tablosunda ara...">
-      <div class="table-responsive"><table id="dataTable" class="table"><thead></thead><tbody></tbody></table></div>
+    <div class="d-flex gap-2 mb-3 align-items-center">
+        <button id="btnData" class="tab-btn active">Veri Tablosu</button>
+        <button id="btnPhoto" class="tab-btn">Fotoğraflar</button>
+        <button id="btnChart" class="tab-btn">Grafik</button>
+        <button id="logoutBtn" class="btn btn-outline-secondary ms-auto">Çıkış</button>
     </div>
-  </div>
 
-  <!-- PHOTO -->
-  <div id="photoTableWrapper" style="display:none">
-    <div class="table-card">
-      <div class="d-flex align-items-center justify-content-between mb-3">
-        <h4 class="section-title mb-0">Fotoğraf Tablosu</h4>
-        <div class="text-muted small">Satır: <span id="photoCount">0</span></div>
-      </div>
-      <input id="searchInput2" class="search-input mb-3" placeholder="Fotoğraf tablosunda ara...">
-      <div class="table-responsive"><table id="photoTable" class="table"><thead></thead><tbody></tbody></table></div>
+    <!-- DATA -->
+    <div id="dataTableWrapper">
+        <div class="table-card">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h4 class="section-title mb-0">Veri Tablosu</h4>
+                <div class="text-muted small">Satır: <span id="dataCount">0</span></div>
+            </div>
+            <input id="searchInput1" class="search-input mb-3" placeholder="Veri tablosunda ara...">
+            <div class="table-responsive"><table id="dataTable" class="table"><thead></thead><tbody></tbody></table></div>
+            <nav class="mt-2"><ul id="pagination1" class="pagination justify-content-center"></ul></nav>
+        </div>
     </div>
-  </div>
+
+    <!-- PHOTO -->
+    <div id="photoTableWrapper" style="display:none">
+        <div class="table-card">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h4 class="section-title mb-0">Fotoğraf Tablosu</h4>
+                <div class="text-muted small">Satır: <span id="photoCount">0</span></div>
+            </div>
+            <input id="searchInput2" class="search-input mb-3" placeholder="Fotoğraf tablosunda ara...">
+            <div class="table-responsive"><table id="photoTable" class="table"><thead></thead><tbody></tbody></table></div>
+            <nav class="mt-2"><ul id="pagination2" class="pagination justify-content-center"></ul></nav>
+        </div>
+    </div>
+
+    <!-- CHART -->
+    <div id="chartWrapper" style="display:none">
+        <div class="table-card">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <h4 class="section-title mb-0">Tekrar Sayısı Grafiği</h4>
+            </div>
+            <div id="chartContainer"><canvas id="errorChart"></canvas></div>
+        </div>
+    </div>
 </div>
 
-<div id="editModalContainer"></div>
+<!-- IMAGE MODAL -->
 <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-xl modal-dialog-centered">
-    <div class="modal-content"><div class="modal-body p-0"><div style="background:#000;display:flex;align-items:center;justify-content:center;"><img id="modalImage" style="max-width:100%;max-height:80vh;"/></div></div></div>
-  </div>
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content"><div class="modal-body p-0"><div style="background:#000;display:flex;align-items:center;justify-content:center;"><img id="modalImage" style="max-width:100%;max-height:80vh;"/></div></div></div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
-/* FRONTEND SCRIPT - ENV UYUMLU LOGIN & DATA */
-const BACKEND_BASE = 'https://vardiya-backend.onrender.com';
-const PAGE_SIZE = 10;
+/* FRONTEND SCRIPT - backend uyumlu ve CSS/HTML korunuyor */
+const BACKEND_BASE = 'https://vardiya-backend.onrender.com'; // Backend URL
+let headerRow=[], fullRows=[], dataRows=[], photoRows=[], errorChart=null;
 
-let dataHeader = [], dataRows = [], photoHeader = [], photoRows = [];
-
-// ---------- LOGIN ----------
-async function login() {
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value.trim();
-    const errorMsg = document.getElementById('errorMsg');
-    errorMsg.textContent = '';
-
-    if (!username || !password) {
-        errorMsg.textContent = 'Kullanıcı adı ve şifre boş olamaz.';
-        return;
-    }
-
-    try {
-        const res = await fetch(BACKEND_BASE + '/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
+async function login(){
+    const u=document.getElementById('username').value.trim();
+    const p=document.getElementById('password').value.trim();
+    const err=document.getElementById('errorMsg'); err.textContent='';
+    if(!u||!p){ err.textContent='Kullanıcı adı ve şifre boş olamaz.'; return; }
+    try{
+        const res=await fetch(BACKEND_BASE+'/login',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({username:u,password:p})
         });
-
-        const data = await res.json();
-        if (res.ok && data.success) {
-            localStorage.setItem('loggedIn', 'true');
-            showMain();
-        } else {
-            errorMsg.textContent = data.message || 'Giriş başarısız.';
-        }
-    } catch (err) {
-        console.error('login error', err);
-        errorMsg.textContent = 'Sunucuya ulaşılamadı.';
-    }
+        const data=await res.json();
+        if(res.ok && data.success){ localStorage.setItem('loggedIn','true'); showMain(); }
+        else err.textContent = data?.message || 'Giriş başarısız.';
+    }catch(e){ err.textContent='Sunucuya ulaşılamadı veya hatalı.'; }
 }
 
-function logout() {
-    localStorage.removeItem('loggedIn');
-    location.reload();
+function logout(){ localStorage.removeItem('loggedIn'); location.reload(); }
+function showMain(){ document.getElementById('loginPage').style.display='none'; document.getElementById('mainPage').style.display='block'; loadData(); }
+
+async function loadData(){
+    try{
+        const res=await fetch(BACKEND_BASE+'/api/get');
+        const json=await res.json();
+        dataRows=json.dataRows||[];
+        photoRows=json.photoRows||[];
+        document.getElementById('dataCount').textContent=dataRows.length;
+        document.getElementById('photoCount').textContent=photoRows.length;
+        createTable('dataTable',json.dataHeader||[],dataRows,'searchInput1');
+        createTable('photoTable',json.photoHeader||[],photoRows,'searchInput2',true);
+        renderChart();
+    }catch(e){ console.error('loadData',e); }
 }
 
-function showMain() {
-    document.getElementById('loginPage').style.display = 'none';
-    document.getElementById('mainPage').style.display = 'block';
-    loadDataFromBackend();
-}
-
-// ---------- LOAD DATA ----------
-async function loadDataFromBackend() {
-    try {
-        const res = await fetch(BACKEND_BASE + '/api/get');
-        const json = await res.json();
-
-        dataHeader = json.dataHeader || [];
-        dataRows = json.dataRows || [];
-        photoHeader = json.photoHeader || [];
-        photoRows = json.photoRows || [];
-
-        document.getElementById('dataCount').textContent = dataRows.length;
-        document.getElementById('photoCount').textContent = photoRows.length;
-
-        createTable('dataTable', dataHeader, dataRows, 'searchInput1');
-        createTable('photoTable', photoHeader, photoRows, 'searchInput2', true);
-
-    } catch (err) {
-        console.error('loadDataFromBackend error', err);
-    }
-}
-
-// ---------- CREATE TABLE ----------
-function createTable(tableId, headers, rows, searchId, isPhoto = false) {
-    const table = document.getElementById(tableId);
-    const thead = table.querySelector('thead');
-    const tbody = table.querySelector('tbody');
-
-    // Header
-    thead.innerHTML = '';
-    const tr = document.createElement('tr');
-    headers.forEach(h => {
-        const th = document.createElement('th');
-        th.textContent = h || '';
-        tr.appendChild(th);
-    });
-    const actionTh = document.createElement('th');
-    actionTh.textContent = 'İşlemler';
-    tr.appendChild(actionTh);
+function createTable(tableId, headers, rows, searchId, isPhoto=false){
+    const table=document.getElementById(tableId);
+    const thead=table.querySelector('thead');
+    const tbody=table.querySelector('tbody');
+    const search=document.getElementById(searchId);
+    thead.innerHTML=''; const tr=document.createElement('tr');
+    headers.forEach(h=>{ const th=document.createElement('th'); th.textContent=h||''; tr.appendChild(th); });
+    const thAction=document.createElement('th'); thAction.textContent='İşlemler'; tr.appendChild(thAction);
     thead.appendChild(tr);
-
-    // Body
-    tbody.innerHTML = '';
-    rows.forEach((row, rowIndex) => {
-        const tr = document.createElement('tr');
-        row.forEach((cell, colIndex) => {
-            const td = document.createElement('td');
-            if (isPhoto && colIndex === 5 && cell) {
-                const img = document.createElement('img');
-                img.src = cell;
-                img.className = 'thumb';
-                img.alt = 'foto';
-                img.addEventListener('click', () => openImage(cell));
+    tbody.innerHTML='';
+    rows.forEach((row,rowIndex)=>{
+        const tr=document.createElement('tr');
+        row.forEach((cell,colIndex)=>{
+            const td=document.createElement('td');
+            if(isPhoto && colIndex===5 && cell){
+                const img=document.createElement('img'); img.src=cell; img.className='thumb'; img.alt='foto'; img.addEventListener('click',()=>openImage(cell));
                 td.appendChild(img);
-            } else {
-                td.textContent = cell ?? '';
-            }
+            } else td.textContent=cell||'';
             tr.appendChild(td);
         });
-
-        // Actions
-        const actionTd = document.createElement('td');
-        const editBtn = document.createElement('button');
-        editBtn.className = 'btn btn-sm btn-outline-primary me-2';
-        editBtn.textContent = 'Düzenle';
-        editBtn.onclick = () => alert('Düzenleme modalı eklenecek'); // isteğe bağlı modal
-        const delBtn = document.createElement('button');
-        delBtn.className = 'btn btn-sm btn-outline-danger';
-        delBtn.textContent = 'Sil';
-        delBtn.onclick = () => alert('Silme fonksiyonu eklenecek'); // isteğe bağlı
-        actionTd.appendChild(editBtn);
-        actionTd.appendChild(delBtn);
+        const actionTd=document.createElement('td');
+        const editBtn=document.createElement('button'); editBtn.className='btn btn-sm btn-outline-primary me-2'; editBtn.textContent='Düzenle'; editBtn.addEventListener('click',()=>alert('Düzenleme modalı eklenecek'));
+        const delBtn=document.createElement('button'); delBtn.className='btn btn-sm btn-outline-danger'; delBtn.textContent='Sil'; delBtn.addEventListener('click',()=>alert('Silme backend ile yapılacak'));
+        actionTd.appendChild(editBtn); actionTd.appendChild(delBtn);
         tr.appendChild(actionTd);
-
         tbody.appendChild(tr);
     });
-
-    // Search
-    const search = document.getElementById(searchId);
-    if (search) {
-        search.oninput = () => {
-            const term = (search.value || '').toLowerCase();
-            tbody.querySelectorAll('tr').forEach(r => {
-                const text = r.innerText.toLowerCase();
-                r.style.display = text.includes(term) ? '' : 'none';
-            });
-        };
-    }
+    if(search) search.oninput=()=>{ const term=(search.value||'').toLowerCase(); tbody.querySelectorAll('tr').forEach(r=>{ const text=r.innerText.toLowerCase(); r.style.display=text.includes(term)?'':'none'; }); }
 }
 
-// ---------- IMAGE MODAL ----------
-function openImage(src) {
-    const img = document.getElementById('modalImage');
-    img.src = src;
-    new bootstrap.Modal(document.getElementById('imageModal')).show();
-}
+function openImage(src){ document.getElementById('modalImage').src=src; new bootstrap.Modal(document.getElementById('imageModal')).show(); }
+function renderChart(){ /* chart kodun buraya eklenebilir */ }
 
-// ---------- INIT ----------
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('loginBtn').addEventListener('click', login);
-    document.getElementById('logoutBtn').addEventListener('click', logout);
+// tab switching
+document.addEventListener('DOMContentLoaded',()=>{
+    document.getElementById('loginBtn').addEventListener('click',login);
+    document.getElementById('logoutBtn').addEventListener('click',logout);
+    document.getElementById('btnData')?.addEventListener('click',()=>{
+        document.getElementById('dataTableWrapper').style.display='block';
+        document.getElementById('photoTableWrapper').style.display='none';
+        document.getElementById('chartWrapper').style.display='none';
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+        document.getElementById('btnData').classList.add('active');
+    });
+    document.getElementById('btnPhoto')?.addEventListener('click',()=>{
+        document.getElementById('dataTableWrapper').style.display='none';
+        document.getElementById('photoTableWrapper').style.display='block';
+        document.getElementById('chartWrapper').style.display='none';
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+        document.getElementById('btnPhoto').classList.add('active');
+    });
+    document.getElementById('btnChart')?.addEventListener('click',()=>{
+        document.getElementById('dataTableWrapper').style.display='none';
+        document.getElementById('photoTableWrapper').style.display='none';
+        document.getElementById('chartWrapper').style.display='block';
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+        document.getElementById('btnChart').classList.add('active');
+        renderChart();
+    });
 
-    if (localStorage.getItem('loggedIn') === 'true') showMain();
+    if(localStorage.getItem('loggedIn')==='true') showMain();
 });
 </script>
 
