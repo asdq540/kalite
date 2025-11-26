@@ -317,8 +317,11 @@ img.thumb{
                 <h4 class="section-title mb-0">Fotoğraf Tablosu</h4>
                 <div class="text-muted small">Satır: <span id="photoCount">0</span></div>
             </div>
-            <input id="searchInput2" class="search-input mb-3" placeholder="Fotoğraf tablosunda ara...">
-            <input type="date" id="searchDate" class="form-control" style="max-width:150px;">
+            <div class="d-flex gap-2 mb-3">
+    <input id="searchInput2" class="search-input" placeholder="Fotoğraf tablosunda ara...">
+    <input type="date" id="searchDate" class="form-control" style="max-width:150px;">
+    </div>
+
             <div class="table-responsive"><table id="photoTable" class="table"><thead></thead><tbody></tbody></table></div>
             <div class="pagination-wrapper"><ul id="pagination2" class="pagination"></ul></div>
         </div>
@@ -380,7 +383,7 @@ img.thumb{
 <script>
 const BACKEND_BASE = 'https://vardiya-backend.onrender.com'; 
 const PAGE_SIZE = 20;
-let headerRow = [], fullRows = [], dataRows = [], photoRows = [], errorChart = null;
+let headerRow = [], dataRows = [], photoRows = [], errorChart = null;
 let currentPhotoPage = 1;
 
 // login
@@ -529,28 +532,24 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
             const term=(search.value||'').toLowerCase();
             tbody.querySelectorAll('tr').forEach(r=>{
                 const text=r.innerText.toLowerCase();
-                r.style.display=text.includes(term)?'':'none';
+                r.style.display=text.includes(term)?'' : 'none';
             });
         };
     }
 
-    // DATEPICKER (sadece foto tablosu)
+    // DATEPICKER (fotoğraf tablosu için)
     if(isPhoto){
-        const searchDate = document.createElement('input');
-        searchDate.type='date';
-        searchDate.id='searchDate';
-        searchDate.className='form-control';
-        searchDate.style.maxWidth='150px';
-        search.parentElement.appendChild(searchDate);
-
-        searchDate.addEventListener('change',()=>{
-            const dateValue = searchDate.value; // yyyy-mm-dd
-            if(!dateValue) return;
-            const parts=dateValue.split('-');
-            const formatted = `${parts[2]}.${parts[1]}.${parts[0]}`;
-            search.value=formatted;
-            search.dispatchEvent(new Event('input'));
-        });
+        const searchDate = document.getElementById('searchDate');
+        if(searchDate){
+            searchDate.addEventListener('change',()=>{
+                const dateValue = searchDate.value;
+                if(!dateValue) return;
+                const parts = dateValue.split('-'); // yyyy-mm-dd
+                const formatted = `${parts[2]}.${parts[1]}.${parts[0]}`;
+                search.value = formatted;
+                search.dispatchEvent(new Event('input'));
+            });
+        }
     }
 }
 
@@ -616,7 +615,7 @@ async function deleteRow(rowIndex){
 
 // GRAFİK
 function renderChart(){
-    // ... Mevcut chart kodu ...
+    // mevcut chart kodun burada...
 }
 
 // PAGE & PERIOD BUTTONS
@@ -653,6 +652,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(localStorage.getItem('loggedIn')==='true') showMain();
 });
 </script>
+
 
 </body>
 </html>
