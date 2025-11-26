@@ -661,8 +661,10 @@ function renderChart(){
             return true;
         });
 
-        // Gruplama
-        const groups = {};
+        // Gruplama: her grup için tarih/periyot bazlı sayılar
+        const counts = {};
+        const labelsSet = new Set();
+
         filtered.forEach(row=>{
             let key='';
             switch(groupBySelect){
@@ -672,24 +674,41 @@ function renderChart(){
                 case 'vardiya': key=row[1]||'Bilinmiyor'; break;
                 case 'tarih': key=row[0]||'Bilinmiyor'; break;
             }
-            groups[key] = (groups[key]||0) + 1;
+
+            let dateKey = '';
+            const d=parseDateFromDDMMYYYY(row[0]);
+            if(periodSelect==='daily') dateKey=formatDate(d);
+            else if(periodSelect==='weekly') dateKey=weekKeyFromDate(d);
+            else if(periodSelect==='monthly') dateKey=monthKeyFromDate(d);
+
+            labelsSet.add(dateKey);
+            const countKey=`${key}|${dateKey}`;
+            counts[countKey]=(counts[countKey]||0)+1;
         });
 
-        // Büyükten küçüğe sıralama
-        const sortedKeys = Object.keys(groups).sort((a,b)=>groups[b]-groups[a]);
+        const labels=Array.from(labelsSet).sort();
+        const groups={};
+
+        for(const k in counts){
+            const [groupName,dateKey]=k.split('|');
+            if(!groups[groupName]) groups[groupName]={};
+            groups[groupName][dateKey]=counts[k];
+        }
 
         // Dataset oluşturma
-        const labels = sortedKeys;
-        const data = sortedKeys.map(k=>groups[k]);
-        const palette=["#32ff7e","#7efff5","#0ff3ff","#3af1a0","#2ed573","#1dd1a1","#10ac84","#54a0ff"];
-        const datasets=[{
-            label: 'Tekrar Sayısı',
-            data: data,
-            backgroundColor: palette.slice(0,data.length),
-            borderColor: palette.slice(0,data.length),
-            borderWidth:1,
-            type:'bar'
-        }];
+        const palette=["#32ff7e","#7efff5","#0ff3ff","#3af1a0","#2ed573","#1dd1a1","#10ac84","#54a0ff","#fffa65","#ff6b6b"];
+        const datasets=[];
+        Object.keys(groups).forEach((groupName,i)=>{
+            const arr = labels.map(l=>groups[groupName][l]||0);
+            datasets.push({
+                label: groupName,
+                data: arr,
+                backgroundColor: palette[i%palette.length],
+                borderColor: palette[i%palette.length],
+                borderWidth:1,
+                type:'bar'
+            });
+        });
 
         const ctx=document.getElementById('errorChart')?.getContext('2d');
         if(!ctx) return;
@@ -704,6 +723,7 @@ function renderChart(){
 
     }catch(e){ console.error(e); }
 }
+
 
 
 
