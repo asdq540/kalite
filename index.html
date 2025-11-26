@@ -124,6 +124,16 @@ img.thumb{width:88px;height:72px;object-fit:cover;border-radius:8px;border:1px s
                         <option value="monthly">Aylık</option>
                     </select>
                 </div>
+                <div class="col-md-4">
+    <label class="form-label">Gruplama Kriteri</label>
+    <select id="chartGroupBy" class="form-select">
+        <option value="3">Açıklama</option>
+        <option value="4">Sorumlu Personel</option>
+        <option value="1">Vardiya</option>
+        <option value="2">Hat</option>
+    </select>
+</div>
+
                 <div class="col-md-4 d-flex align-items-end"><button id="refreshChart" class="btn btn-outline-primary">Yenile</button></div>
             </div>
             <div id="chartContainer"><canvas id="errorChart"></canvas></div>
@@ -440,20 +450,22 @@ async function deleteRow(rowIndex){
 // ---------------- CHART ----------------
 function renderChart(){
     try{
-        const dateInput=document.getElementById('chartDate')?.value;
-        const periodSelect=document.getElementById('chartPeriod')?.value || 'daily';
-        let selectedDate=null;
+        const dateInput = document.getElementById('chartDate')?.value;
+        const periodSelect = document.getElementById('chartPeriod')?.value || 'daily';
+        const groupByCol = parseInt(document.getElementById('chartGroupBy')?.value || 3); // varsayılan açıklama
+        let selectedDate = null;
         if(dateInput){
             const parts=dateInput.split('-');
             if(parts.length===3) selectedDate=new Date(+parts[0],+parts[1]-1,+parts[2]);
         }
 
-        const counts={};
-        const labelsSet=new Set();
+        const counts = {};
+        const labelsSet = new Set();
+
         photoRows.forEach(row=>{
             if(!row) return;
-            const dateStr=row[0]||'';
-            const desc=row[3]||'Açıklama Yok';
+            const dateStr = row[0]||'';
+            const groupValue = row[groupByCol] || 'Bilinmiyor';
             if(!dateStr) return;
             const d=parseDateFromDDMMYYYY(dateStr);
             if(!d) return;
@@ -470,24 +482,21 @@ function renderChart(){
             else if(periodSelect==='monthly') key=monthKeyFromDate(d);
 
             labelsSet.add(key);
-            const countKey=`${desc}|${key}`;
+            const countKey=`${groupValue}|${key}`;
             counts[countKey]=(counts[countKey]||0)+1;
         });
 
         let labels=Array.from(labelsSet).sort();
         const groups={};
         for(const k in counts){
-            const [desc,pKey]=k.split('|');
-            if(!groups[desc]) groups[desc]={};
-            groups[desc][pKey]=counts[k];
+            const [groupValue,pKey]=k.split('|');
+            if(!groups[groupValue]) groups[groupValue]={};
+            groups[groupValue][pKey]=counts[k];
         }
 
-        // Grupları toplam değerlerine göre büyükten küçüğe sırala
+        // Toplam değere göre büyükten küçüğe sırala
         const sortedGroups = Object.entries(groups)
-            .map(([desc,dataObj])=>{
-                const total = Object.values(dataObj).reduce((a,b)=>a+b,0);
-                return {desc, dataObj, total};
-            })
+            .map(([desc,dataObj])=>({desc, dataObj, total:Object.values(dataObj).reduce((a,b)=>a+b,0)}))
             .sort((a,b)=>b.total - a.total);
 
         const palette=["#ff595e","#ffca3a","#8ac926","#1982c4","#6a4c93","#ff6f91","#ff9671","#6bf178"];
@@ -523,8 +532,10 @@ function renderChart(){
                 }
             }
         });
+
     }catch(e){ console.error(e); }
 }
+
 
 
 function parseDateFromDDMMYYYY(s){ if(!s) return null; const p=s.split('.'); if(p.length!==3) return null; const d=new Date(+p[2],+p[1]-1,+p[0]); return isNaN(d)?null:d; }
