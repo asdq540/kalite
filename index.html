@@ -274,52 +274,97 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
         renderPagination();
     }
 
-    function renderPagination(){
-        if(!pagination) return;
-        pagination.innerHTML = '';
-        const totalPages = Math.ceil(filteredRows.length / PAGE_SIZE);
+   function renderPagination(){
+    if(!pagination) return;
+    pagination.innerHTML = '';
+    const totalPages = Math.ceil(filteredRows.length / PAGE_SIZE);
+    const maxPagesToShow = 5; // Maksimum gösterilecek sayfa numarası
+    let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow/2));
+    let endPage = startPage + maxPagesToShow - 1;
 
-        // Back button
-        const prevLi = document.createElement('li');
-        prevLi.className = 'page-item ' + (currentPage===1?'disabled':'');
-        const prevA = document.createElement('a');
-        prevA.className = 'page-link';
-        prevA.href='#';
-        prevA.textContent='«';
-        prevA.addEventListener('click', e=>{
-            e.preventDefault();
-            if(currentPage>1){ currentPage--; renderTable(); }
-        });
-        prevLi.appendChild(prevA);
-        pagination.appendChild(prevLi);
-
-        // Page numbers
-        for(let i=1;i<=totalPages;i++){
-            const li = document.createElement('li');
-            li.className='page-item '+(i===currentPage?'active':'');
-            const a=document.createElement('a');
-            a.className='page-link';
-            a.href='#';
-            a.textContent=i;
-            a.addEventListener('click', e=>{ e.preventDefault(); currentPage=i; renderTable(); });
-            li.appendChild(a);
-            pagination.appendChild(li);
-        }
-
-        // Next button
-        const nextLi = document.createElement('li');
-        nextLi.className='page-item ' + (currentPage===totalPages?'disabled':'');
-        const nextA = document.createElement('a');
-        nextA.className='page-link';
-        nextA.href='#';
-        nextA.textContent='»';
-        nextA.addEventListener('click', e=>{
-            e.preventDefault();
-            if(currentPage<totalPages){ currentPage++; renderTable(); }
-        });
-        nextLi.appendChild(nextA);
-        pagination.appendChild(nextLi);
+    if(endPage > totalPages){
+        endPage = totalPages;
+        startPage = Math.max(1, endPage - maxPagesToShow + 1);
     }
+
+    // Back button
+    const prevLi = document.createElement('li');
+    prevLi.className = 'page-item ' + (currentPage===1?'disabled':'');
+    const prevA = document.createElement('a');
+    prevA.className = 'page-link';
+    prevA.href='#';
+    prevA.textContent='«';
+    prevA.addEventListener('click', e=>{
+        e.preventDefault();
+        if(currentPage>1){ currentPage--; renderTable(); }
+    });
+    prevLi.appendChild(prevA);
+    pagination.appendChild(prevLi);
+
+    // İlk sayfa ve "..." kontrolü
+    if(startPage > 1){
+        const li = document.createElement('li');
+        li.className='page-item';
+        const a=document.createElement('a');
+        a.className='page-link';
+        a.href='#';
+        a.textContent=1;
+        a.addEventListener('click', e=>{ e.preventDefault(); currentPage=1; renderTable(); });
+        li.appendChild(a);
+        pagination.appendChild(li);
+
+        const dots = document.createElement('li');
+        dots.className='page-item disabled';
+        dots.innerHTML='<span class="page-link">...</span>';
+        pagination.appendChild(dots);
+    }
+
+    // Sayfa numaraları
+    for(let i=startPage;i<=endPage;i++){
+        const li = document.createElement('li');
+        li.className='page-item '+(i===currentPage?'active':'');
+        const a=document.createElement('a');
+        a.className='page-link';
+        a.href='#';
+        a.textContent=i;
+        a.addEventListener('click', e=>{ e.preventDefault(); currentPage=i; renderTable(); });
+        li.appendChild(a);
+        pagination.appendChild(li);
+    }
+
+    // Son sayfa ve "..." kontrolü
+    if(endPage < totalPages){
+        const dots = document.createElement('li');
+        dots.className='page-item disabled';
+        dots.innerHTML='<span class="page-link">...</span>';
+        pagination.appendChild(dots);
+
+        const li = document.createElement('li');
+        li.className='page-item';
+        const a=document.createElement('a');
+        a.className='page-link';
+        a.href='#';
+        a.textContent=totalPages;
+        a.addEventListener('click', e=>{ e.preventDefault(); currentPage=totalPages; renderTable(); });
+        li.appendChild(a);
+        pagination.appendChild(li);
+    }
+
+    // Next button
+    const nextLi = document.createElement('li');
+    nextLi.className='page-item ' + (currentPage===totalPages?'disabled':'');
+    const nextA = document.createElement('a');
+    nextA.className = 'page-link';
+    nextA.href='#';
+    nextA.textContent='»';
+    nextA.addEventListener('click', e=>{
+        e.preventDefault();
+        if(currentPage<totalPages){ currentPage++; renderTable(); }
+    });
+    nextLi.appendChild(nextA);
+    pagination.appendChild(nextLi);
+}
+
 
     if(search){
         search.oninput = ()=>{
