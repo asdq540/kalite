@@ -78,52 +78,58 @@ body{background:var(--bg);font-family:"Segoe UI",sans-serif;padding:20px}
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-const BACKEND_BASE = ''; // same origin
+/* FRONTEND SCRIPT - ENV UYUMLU LOGIN & DATA */
+const BACKEND_BASE = ''; // aynı origin (deploy edilen backend URL'si buraya eklenebilir)
 const PAGE_SIZE = 10;
 
-let dataHeader = [], dataRows = [], photoHeader = [], photoRows = [], fullRows = [];
+let dataHeader = [], dataRows = [], photoHeader = [], photoRows = [];
 
-// login
-async function login(){
-    const u = document.getElementById('username').value.trim();
-    const p = document.getElementById('password').value.trim();
-    const err = document.getElementById('errorMsg');
-    err.textContent='';
+// ---------- LOGIN ----------
+async function login() {
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const errorMsg = document.getElementById('errorMsg');
+    errorMsg.textContent = '';
 
-    if(!u||!p){ err.textContent='Kullanıcı adı ve şifre boş olamaz.'; return; }
+    if (!username || !password) {
+        errorMsg.textContent = 'Kullanıcı adı ve şifre boş olamaz.';
+        return;
+    }
 
-    try{
-        const res = await fetch(BACKEND_BASE + '/login',{
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({username:u,password:p})
+    try {
+        const res = await fetch(BACKEND_BASE + '/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
         });
+
         const data = await res.json();
-        if(res.ok && data.success){
-            localStorage.setItem('loggedIn','true');
+        if (res.ok && data.success) {
+            localStorage.setItem('loggedIn', 'true');
             showMain();
-        }else{
-            err.textContent = data?.message || 'Giriş başarısız.';
+        } else {
+            errorMsg.textContent = data.message || 'Giriş başarısız.';
         }
-    }catch(e){
-        err.textContent = 'Sunucuya ulaşılamadı veya hatalı.';
+    } catch (err) {
+        console.error('login error', err);
+        errorMsg.textContent = 'Sunucuya ulaşılamadı.';
     }
 }
 
-function logout(){
+function logout() {
     localStorage.removeItem('loggedIn');
     location.reload();
 }
 
-function showMain(){
-    document.getElementById('loginPage').style.display='none';
-    document.getElementById('mainPage').style.display='block';
+function showMain() {
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('mainPage').style.display = 'block';
     loadDataFromBackend();
 }
 
-// load data
-async function loadDataFromBackend(){
-    try{
+// ---------- LOAD DATA ----------
+async function loadDataFromBackend() {
+    try {
         const res = await fetch(BACKEND_BASE + '/api/get');
         const json = await res.json();
 
@@ -132,86 +138,78 @@ async function loadDataFromBackend(){
         photoHeader = json.photoHeader || [];
         photoRows = json.photoRows || [];
 
-        // fullRows sadece backend’den gelen tüm satırlar (header dahil değil)
-        fullRows = [];
-        const maxLen = Math.max(dataRows.length, photoRows.length);
-        for(let i=0;i<maxLen;i++){
-            fullRows[i] = (photoRows[i] || []).concat(Array(9).fill('')).concat(dataRows[i] || []);
-        }
-
         document.getElementById('dataCount').textContent = dataRows.length;
         document.getElementById('photoCount').textContent = photoRows.length;
 
-        createEditableTable('dataTable', dataHeader, dataRows, 'searchInput1', 'pagination1');
-        createEditableTable('photoTable', photoHeader, photoRows, 'searchInput2', 'pagination2', true);
-    }catch(e){
-        console.error('loadDataFromBackend error', e);
+        createTable('dataTable', dataHeader, dataRows, 'searchInput1');
+        createTable('photoTable', photoHeader, photoRows, 'searchInput2', true);
+
+    } catch (err) {
+        console.error('loadDataFromBackend error', err);
     }
 }
 
-// editable table
-function createEditableTable(tableId, headers, rows, searchId, paginationId, isPhoto=false){
+// ---------- CREATE TABLE ----------
+function createTable(tableId, headers, rows, searchId, isPhoto = false) {
     const table = document.getElementById(tableId);
     const thead = table.querySelector('thead');
     const tbody = table.querySelector('tbody');
-    const search = document.getElementById(searchId);
 
-    // header
+    // Header
     thead.innerHTML = '';
     const tr = document.createElement('tr');
-    headers.forEach(h=>{
+    headers.forEach(h => {
         const th = document.createElement('th');
         th.textContent = h || '';
         tr.appendChild(th);
     });
     const actionTh = document.createElement('th');
-    actionTh.textContent='İşlemler';
+    actionTh.textContent = 'İşlemler';
     tr.appendChild(actionTh);
     thead.appendChild(tr);
 
-    // rows
+    // Body
     tbody.innerHTML = '';
-    rows.forEach((row,rowIndex)=>{
+    rows.forEach((row, rowIndex) => {
         const tr = document.createElement('tr');
-        row.forEach((cell,colIndex)=>{
+        row.forEach((cell, colIndex) => {
             const td = document.createElement('td');
-            if(isPhoto && colIndex===5 && cell){
+            if (isPhoto && colIndex === 5 && cell) {
                 const img = document.createElement('img');
                 img.src = cell;
-                img.className='thumb';
-                img.alt='foto';
-                img.addEventListener('click', ()=> openImage(cell));
+                img.className = 'thumb';
+                img.alt = 'foto';
+                img.addEventListener('click', () => openImage(cell));
                 td.appendChild(img);
-            }else td.textContent = cell ?? '';
-
-            td.addEventListener('dblclick', ()=> activateInline(td, tableId, rowIndex, colIndex));
+            } else {
+                td.textContent = cell ?? '';
+            }
             tr.appendChild(td);
         });
 
-        // action column
+        // Actions
         const actionTd = document.createElement('td');
         const editBtn = document.createElement('button');
-        editBtn.className='btn btn-sm btn-outline-primary me-2';
-        editBtn.textContent='Düzenle';
-        editBtn.addEventListener('click', ()=> openEditModal(tableId, rowIndex));
-        actionTd.appendChild(editBtn);
-
+        editBtn.className = 'btn btn-sm btn-outline-primary me-2';
+        editBtn.textContent = 'Düzenle';
+        editBtn.onclick = () => alert('Düzenleme modalı eklenecek'); // isteğe bağlı modal
         const delBtn = document.createElement('button');
-        delBtn.className='btn btn-sm btn-outline-danger';
-        delBtn.textContent='Sil';
-        delBtn.addEventListener('click', ()=> deleteRow(tableId, rowIndex));
+        delBtn.className = 'btn btn-sm btn-outline-danger';
+        delBtn.textContent = 'Sil';
+        delBtn.onclick = () => alert('Silme fonksiyonu eklenecek'); // isteğe bağlı
+        actionTd.appendChild(editBtn);
         actionTd.appendChild(delBtn);
-
         tr.appendChild(actionTd);
+
         tbody.appendChild(tr);
     });
 
-    // search
-    if(search){
-        search.oninput = ()=>{
-            const term = (search.value||'').toLowerCase();
-            const trs = tbody.querySelectorAll('tr');
-            trs.forEach(r=>{
+    // Search
+    const search = document.getElementById(searchId);
+    if (search) {
+        search.oninput = () => {
+            const term = (search.value || '').toLowerCase();
+            tbody.querySelectorAll('tr').forEach(r => {
                 const text = r.innerText.toLowerCase();
                 r.style.display = text.includes(term) ? '' : 'none';
             });
@@ -219,100 +217,19 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
     }
 }
 
-// inline edit
-function activateInline(td, tableId, rowIndex, colIndex){
-    const previous = td.textContent;
-    td.innerHTML = `<input class="form-control form-control-sm" value="${previous}">`;
-    const input = td.querySelector('input');
-    input.focus();
-
-    function cancel(){ td.textContent = previous; }
-    input.addEventListener('keydown', async (e)=>{
-        if(e.key==='Enter'){
-            const val = input.value.trim();
-            td.textContent = val;
-            const rowNum = rowIndex + 2; // Google Sheet satır numarası
-            let absoluteCol = tableId==='dataTable'? colIndex+9 : colIndex;
-            try{
-                await fetch(BACKEND_BASE + '/api/duzenle',{
-                    method:'POST',
-                    headers:{'Content-Type':'application/json'},
-                    body:JSON.stringify({
-                        row: rowNum,
-                        yeni: { 
-                            // tüm alanları dolu göndermek gerekiyor backend update
-                            tarih: fullRows[rowIndex][0],
-                            vardiya: fullRows[rowIndex][1],
-                            hat: fullRows[rowIndex][2],
-                            aciklama: fullRows[rowIndex][3],
-                            personel: fullRows[rowIndex][4],
-                            foto_url: fullRows[rowIndex][5],
-                            kalitePersoneli: fullRows[rowIndex][6],
-                            [tableId==='dataTable'? dataHeader[colIndex]: photoHeader[colIndex]]: val
-                        }
-                    })
-                });
-                loadDataFromBackend();
-            }catch(err){ console.error(err); }
-        }
-        if(e.key==='Escape') cancel();
-    });
-    input.addEventListener('blur', ()=> td.textContent = previous);
-}
-
-// modal edit
-function openEditModal(tableId, rowIndex){
-    // TODO: benzer şekilde modal edit açıp backend’e /api/duzenle gönder
-}
-
-// delete
-async function deleteRow(tableId,rowIndex){
-    if(!confirm('Satırı silmek istediğinize emin misiniz?')) return;
-    try{
-        const res = await fetch(BACKEND_BASE+'/api/sil',{
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({ row: rowIndex+2 })
-        });
-        if(res.ok) loadDataFromBackend();
-    }catch(e){ console.error(e); }
-}
-
-// image modal
-function openImage(src){
+// ---------- IMAGE MODAL ----------
+function openImage(src) {
     const img = document.getElementById('modalImage');
     img.src = src;
     new bootstrap.Modal(document.getElementById('imageModal')).show();
 }
 
-// init
-document.addEventListener('DOMContentLoaded', ()=>{
+// ---------- INIT ----------
+document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('loginBtn').addEventListener('click', login);
     document.getElementById('logoutBtn').addEventListener('click', logout);
 
-    document.getElementById('btnData')?.addEventListener('click', ()=>{
-        document.getElementById('dataTableWrapper').style.display='block';
-        document.getElementById('photoTableWrapper').style.display='none';
-        document.getElementById('chartWrapper').style.display='none';
-        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-        document.getElementById('btnData').classList.add('active');
-    });
-    document.getElementById('btnPhoto')?.addEventListener('click', ()=>{
-        document.getElementById('dataTableWrapper').style.display='none';
-        document.getElementById('photoTableWrapper').style.display='block';
-        document.getElementById('chartWrapper').style.display='none';
-        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-        document.getElementById('btnPhoto').classList.add('active');
-    });
-    document.getElementById('btnChart')?.addEventListener('click', ()=>{
-        document.getElementById('dataTableWrapper').style.display='none';
-        document.getElementById('photoTableWrapper').style.display='none';
-        document.getElementById('chartWrapper').style.display='block';
-        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-        document.getElementById('btnChart').classList.add('active');
-    });
-
-    if(localStorage.getItem('loggedIn')==='true') showMain();
+    if (localStorage.getItem('loggedIn') === 'true') showMain();
 });
 </script>
 
