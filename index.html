@@ -637,7 +637,7 @@ function renderChart(){
     try{
         const dateInput=document.getElementById('chartDate')?.value;
         const periodSelect=document.getElementById('chartPeriod')?.value || 'daily';
-        const groupBySelect=document.getElementById('chartSortBy')?.value || 'aciklama';
+        const groupBySelect=document.getElementById('chartGroupBy')?.value || 'aciklama';
 
         let selectedDate=null;
         if(dateInput){
@@ -645,7 +645,7 @@ function renderChart(){
             if(parts.length===3) selectedDate=new Date(+parts[0],+parts[1]-1,+parts[2]);
         }
 
-        // Filtre
+        // Filtreleme
         let filtered = photoRows.filter(row=>{
             if(!row) return false;
             const dateStr=row[0]||'';
@@ -675,10 +675,10 @@ function renderChart(){
             groups[key] = (groups[key]||0) + 1;
         });
 
-        // Sıralama büyükten küçüğe
+        // Büyükten küçüğe sıralama
         const sortedKeys = Object.keys(groups).sort((a,b)=>groups[b]-groups[a]);
 
-        // Dataset oluştur
+        // Dataset oluşturma
         const labels = sortedKeys;
         const data = sortedKeys.map(k=>groups[k]);
         const palette=["#32ff7e","#7efff5","#0ff3ff","#3af1a0","#2ed573","#1dd1a1","#10ac84","#54a0ff"];
@@ -701,8 +701,12 @@ function renderChart(){
                 scales:{y:{beginAtZero:true}}
             }
         });
+
     }catch(e){ console.error(e); }
 }
+
+
+
 
 // ---------------- PAGE LOAD ----------------
 document.addEventListener('DOMContentLoaded',()=>{
@@ -732,9 +736,11 @@ document.addEventListener('DOMContentLoaded',()=>{
         renderChart();
     });
 
-    document.getElementById('chartDate')?.addEventListener('change',renderChart);
-    document.getElementById('chartPeriod')?.addEventListener('change',renderChart);
-    document.getElementById('chartSortBy')?.addEventListener('change',renderChart);
+    
+        document.getElementById('chartDate')?.addEventListener('change', renderChart);
+        document.getElementById('chartPeriod')?.addEventListener('change', renderChart);
+        document.getElementById('chartGroupBy')?.addEventListener('change', renderChart);
+        document.getElementById('refreshChart')?.addEventListener('click', renderChart);
 
     initPhotoSearch();
 
