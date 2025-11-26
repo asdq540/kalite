@@ -3,200 +3,516 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Kalite Kontrol Paneli</title>
+<title>Kalite Kontrol Paneli — Modern</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
 <style>
-:root{--primary:#9b59b6;--bg:#f6f8fa;--card:#fff;--thead:#8e44ad;--border:#d4d7dc;--shadow:0 4px 18px rgba(0,0,0,0.08);}
-body{background:var(--bg);font-family:"Segoe UI",sans-serif;padding:20px;}
-.login-container{max-width:420px;margin:90px auto;padding:30px;background:var(--card);border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--border);}
-#mainPage{display:none;}
-.table-card{background:var(--card);padding:18px;border-radius:12px;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:20px;}
-.table thead th{background: linear-gradient(135deg,#9b59b6,#8e44ad);color:#fff;padding:12px;text-align:center;position:sticky;top:0;}
-.table tbody td{text-align:center;padding:10px;border-top:1px solid var(--border);}
-.btn-edit{background:#2a9d8f;color:#fff;border:none;padding:4px 8px;border-radius:6px;margin:0 2px;}
-.btn-delete{background:#e76f51;color:#fff;border:none;padding:4px 8px;border-radius:6px;margin:0 2px;}
+:root{--primary:#9b59b6;--bg:#f6f8fa;--card:#ffffff;--thead:#8e44ad;--row1:#ffffff;--row2:#f3f4f6;--border:#d4d7dc;--shadow:0 4px 18px rgba(0,0,0,0.08)}
+body{background:var(--bg);font-family:"Segoe UI",sans-serif;padding:20px}
+.login-container{max-width:420px;margin:90px auto;padding:30px;background:var(--card);border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--border)}
+#mainPage{display:none}
+.section-title{color:var(--thead);font-weight:700;font-size:22px;margin-bottom:12px}
+.table-card{background:var(--card);padding:18px;border-radius:12px;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:20px}
+.table thead th{
+   background: linear-gradient(135deg, #9b59b6, #8e44ad) !important;
+  color: #fff !important;
+  padding:14px!important;
+  font-size:15px;
+  letter-spacing:0.4px;
+  text-transform:uppercase;
+  border:none!important;
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  text-align:center;
+}
+.table tbody tr{
+  background:#fff;
+  transition:0.2s ease;
+  box-shadow:0 1px 4px rgba(0,0,0,0.06);
+  border-radius:10px;
+}
+.table tbody tr:hover{
+  background:#f7eefb !important;
+  transform: scale(1.01);
+  box-shadow:0 4px 12px rgba(0,0,0,0.12);
+}
+.table tbody td{
+  padding:12px!important;
+  vertical-align:middle;
+  text-align:center;
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+}
+.table tbody tr td:first-child{border-left:1px solid var(--border);border-top-left-radius:10px;border-bottom-left-radius:10px}
+.table tbody tr td:last-child{border-right:1px solid var(--border);border-top-right-radius:10px;border-bottom-right-radius:10px}
+img.thumb{width:88px;height:72px;object-fit:cover;border-radius:8px;border:1px solid #cbd1d8;cursor:pointer}
+.search-input{border-radius:10px;padding:10px;border:1px solid #bcc6d0}
+.pagination .page-link{border-radius:8px}
+#chartContainer{height:520px!important;padding:12px}
+.tab-btn{padding:8px 14px;border-radius:30px;font-weight:600;border:1px solid var(--primary);background:#fff;cursor:pointer}
+.tab-btn.active{background:var(--primary);color:#fff}
+.period-btn{padding:6px 10px;border-radius:8px;border:1px solid #cfd8d6;background:#fff;cursor:pointer}
+.period-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+@media (max-width: 768px){
+  .table thead th{font-size:12px !important;padding:10px !important;}
+  .table tbody td{font-size:13px;padding:8px !important;white-space:nowrap;}
+  img.thumb{width:60px;height:50px;}
+}
+@media (max-width: 480px){
+  .table tbody td{font-size:12px;padding:6px !important;}
+  img.thumb{width:50px;height:40px;}
+}
+#offlineBadge{position:fixed;right:12px;bottom:12px;z-index:2000}
+.advanced-login{
+  background: linear-gradient(145deg, #ffffff, #f3eafc);
+  padding: 40px;
+  border-radius: 18px;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.12);
+  border: none;
+  position: relative;
+  overflow: hidden;
+}
+.advanced-login:before{
+  content:"";
+  position:absolute;
+  width:160%; height:160%;
+  top:-30%; left:-30%;
+  background: radial-gradient(circle at center, rgba(155,89,182,0.12), transparent 70%);
+  z-index:0;
+  pointer-events: none;
+}
+.login-header{position:relative; z-index:2;}
+.login-title{color:#4b2356;font-size:26px;font-weight:700;margin-bottom:6px;}
+.login-subtitle{color:#6c7a86;font-size:14px;}
+.login-input{
+  border-radius:12px;
+  padding:12px;
+  border:1px solid #c9d3dd;
+  transition:0.25s;
+}
+.login-input:focus{
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(155,89,182,0.15);
+}
+.login-btn{
+  background:var(--primary);
+  border:none;
+  padding:12px;
+  font-size:16px;
+  border-radius:14px;
+  font-weight:600;
+  transition:0.25s;
+}
+.login-btn:hover{
+  background:#8e44ad;
+  transform:translateY(-2px);
+  box-shadow:0 6px 16px rgba(0,0,0,0.15);
+}
 </style>
 </head>
 <body>
 
 <!-- LOGIN -->
-<div id="loginPage" class="login-container">
-  <h3 class="text-center mb-3">Kalite Kontrol Paneli</h3>
-  <input id="username" class="form-control mb-2" placeholder="Kullanıcı Adı">
-  <input id="password" type="password" class="form-control mb-2" placeholder="Şifre">
-  <button id="loginBtn" class="btn btn-primary w-100 mb-2">Giriş Yap</button>
-  <div id="errorMsg" class="text-danger text-center"></div>
+<div id="loginPage" class="login-container advanced-login">
+  <div class="login-header text-center mb-4">
+    <h2 class="login-title">Kalite Kontrol Paneli</h2>
+    <p class="login-subtitle">Güvenli Giriş</p>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Kullanıcı Adı</label>
+    <input id="username" class="form-control login-input" placeholder="Kullanıcı adınızı girin" value="">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Şifre</label>
+    <input id="password" type="password" class="form-control login-input" placeholder="Şifrenizi girin" value="">
+  </div>
+  <div class="d-grid">
+    <button id="loginBtn" class="btn login-btn">Giriş Yap</button>
+  </div>
+  <div id="errorMsg" class="text-danger text-center mt-3"></div>
 </div>
 
 <!-- MAIN -->
-<div id="mainPage" class="container-fluid">
-  <button id="logoutBtn" class="btn btn-secondary mb-2">Çıkış</button>
-  <div class="table-card">
-    <h4>Veri Tablosu</h4>
-    <input id="searchInput" class="form-control mb-2" placeholder="Ara...">
-    <div class="table-responsive">
-      <table id="dataTable" class="table">
-        <thead></thead>
-        <tbody></tbody>
-      </table>
+<div id="mainPage" class="container-fluid" style="display:none">
+  <div class="d-flex gap-2 mb-3 align-items-center">
+    <button id="btnData" class="tab-btn active">Veri Tablosu</button>
+    <button id="btnPhoto" class="tab-btn">Fotoğraflar</button>
+    <button id="btnChart" class="tab-btn">Grafik</button>
+    <button id="logoutBtn" class="btn btn-outline-secondary ms-auto">Çıkış</button>
+  </div>
+
+  <!-- DATA -->
+  <div id="dataTableWrapper">
+    <div class="table-card">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h4 class="section-title mb-0">Veri Tablosu</h4>
+        <div class="text-muted small">Satır: <span id="dataCount">0</span></div>
+      </div>
+      <input id="searchInput1" class="search-input mb-3" placeholder="Veri tablosunda ara...">
+      <div class="table-responsive"><table id="dataTable" class="table"><thead></thead><tbody></tbody></table></div>
+      <nav class="mt-2"><ul id="pagination1" class="pagination justify-content-center"></ul></nav>
+    </div>
+  </div>
+
+  <!-- PHOTO -->
+  <div id="photoTableWrapper" style="display:none">
+    <div class="table-card">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h4 class="section-title mb-0">Fotoğraf Tablosu</h4>
+        <div class="text-muted small">Satır: <span id="photoCount">0</span></div>
+      </div>
+      <input id="searchInput2" class="search-input mb-3" placeholder="Fotoğraf tablosunda ara...">
+      <div class="table-responsive"><table id="photoTable" class="table"><thead></thead><tbody></tbody></table></div>
+      <nav class="mt-2"><ul id="pagination2" class="pagination justify-content-center"></ul></nav>
+    </div>
+  </div>
+
+  <!-- CHART -->
+  <div id="chartWrapper" style="display:none">
+    <div class="table-card">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <h4 class="section-title mb-0">Tekrar Sayısı Grafiği</h4>
+        <div class="d-flex gap-2 align-items-center">
+          <div class="d-flex gap-2">
+            <button class="period-btn active" data-period="daily">Günlük</button>
+            <button class="period-btn" data-period="weekly">Haftalık</button>
+            <button class="period-btn" data-period="monthly">Aylık</button>
+          </div>
+        </div>
+      </div>
+      <div class="row g-3 mb-3">
+        <div class="col-md-4"><label class="form-label">Tarih (opsiyonel)</label><input type="date" id="chartDate" class="form-control"></div>
+        <div class="col-md-4"><label class="form-label">Periyot</label>
+          <select id="chartPeriod" class="form-select">
+            <option value="daily">Günlük</option>
+            <option value="weekly">Haftalık</option>
+            <option value="monthly">Aylık</option>
+          </select>
+        </div>
+        <div class="col-md-4 d-flex align-items-end"><button id="refreshChart" class="btn btn-outline-primary">Yenile</button></div>
+      </div>
+      <div id="chartContainer"><canvas id="errorChart"></canvas></div>
     </div>
   </div>
 </div>
 
-<!-- MODAL DÜZENLEME -->
-<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content p-3">
-      <h5>Düzenle</h5>
-      <input id="editTarih" class="form-control mb-1" placeholder="Tarih">
-      <input id="editVardiya" class="form-control mb-1" placeholder="Vardiya">
-      <input id="editHat" class="form-control mb-1" placeholder="Hat">
-      <input id="editAciklama" class="form-control mb-1" placeholder="Açıklama">
-      <input id="editPersonel" class="form-control mb-1" placeholder="Personel">
-      <input id="editKalite" class="form-control mb-1" placeholder="Kalite Personeli">
-      <input id="editFotoBase64" type="file" class="form-control mb-2" accept="image/*">
-      <button id="saveEditBtn" class="btn btn-success w-100">Kaydet</button>
-    </div>
+<!-- IMAGE MODAL -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content"><div class="modal-body p-0"><div style="background:#000;display:flex;align-items:center;justify-content:center;"><img id="modalImage" style="max-width:100%;max-height:80vh;"/></div></div></div>
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- EDIT MODAL (created dynamically when needed) -->
+<div id="editModalContainer"></div>
+
+<!-- Offline badge -->
+<div id="offlineBadge" class="d-none"><div class="badge bg-warning text-dark">Demo / Offline Mod</div></div>
+
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
-const BACKEND_URL = "https://vardiya-backend.onrender.com"; // backend adresin
-let rows = [], currentEditRow = null;
+/* FRONTEND SCRIPT - talks to backend endpoints */
+const BACKEND_BASE = ''; // same origin
+const PAGE_SIZE = 10;
+let headerRow = [], fullRows = [], dataRows = [], photoRows = [], errorChart = null;
 
-document.getElementById('loginBtn').addEventListener('click', async ()=>{
-  const u=document.getElementById('username').value.trim();
-  const p=document.getElementById('password').value.trim();
-  if(!u||!p){document.getElementById('errorMsg').textContent="Boş bırakılamaz";return;}
-  document.getElementById('loginPage').style.display='none';
-  document.getElementById('mainPage').style.display='block';
-  await loadData();
-});
+// login
+async function login(){
+  const u = document.getElementById('username').value.trim();
+  const p = document.getElementById('password').value.trim();
+  const err = document.getElementById('errorMsg'); err.textContent='';
+  if(!u||!p){ err.textContent='Kullanıcı adı ve şifre boş olamaz.'; return; }
+  try{
+    const res = await fetch(BACKEND_BASE + '/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
+    if(!res.ok) throw new Error('login-failed');
+    const data = await res.json();
+    if(data && data.success){ localStorage.setItem('loggedIn','true'); showMain(); }
+    else err.textContent = data?.message || 'Giriş başarısız.';
+  }catch(e){
+    err.textContent = 'Sunucuya ulaşılamadı veya hatalı. Lütfen kullanıcı bilgilerini kontrol edin.';
+  }
+}
 
-document.getElementById('logoutBtn').addEventListener('click',()=>location.reload());
+function logout(){ localStorage.removeItem('loggedIn'); location.reload(); }
+function showMain(){ document.getElementById('loginPage').style.display='none'; document.getElementById('mainPage').style.display='block'; loadDataFromBackend(); }
 
-async function loadCsvAndInit(){
-  try {
-    const res = await fetch(`${BACKEND_URL}/api/get`);
-    if(!res.ok) throw new Error('Backend fetch failed');
-    const jsonData = await res.json();
-
-    if(!Array.isArray(jsonData)) throw new Error('Geçersiz veri formatı');
-
-    // Google Sheets’ten gelen veriler array of objects şeklinde
-    headerRow = Object.keys(jsonData[0] || {});
-    fullRows = jsonData.map(r => headerRow.map(h => r[h]));
-
-    // Veri ve foto tablosu için slice
-    dataRows = fullRows.map(r => r.slice(3, 7));    // Açıklama, Personel, Foto, KalitePersoneli
-    photoRows = fullRows.map(r => r.slice(0, 3));   // Tarih, Vardiya, Hat
-
+// load data
+async function loadDataFromBackend(){
+  try{
+    const res = await fetch(BACKEND_BASE + '/api/data');
+    const json = await res.json();
+    headerRow = json.header || [];
+    fullRows = json.rows || [];
+    dataRows = fullRows.map(r => r.slice(9,17));
+    photoRows = fullRows.map(r => r.slice(0,7));
     document.getElementById('dataCount').textContent = dataRows.length;
     document.getElementById('photoCount').textContent = photoRows.length;
-
-    createTable('dataTable', headerRow.slice(3, 7), dataRows, 'searchInput1', 'pagination1');
-    createTable('photoTable', headerRow.slice(0, 3), photoRows, 'searchInput2', 'pagination2', true, true);
-    renderChart();
-
-  } catch(err) {
-    console.warn('Veri çekilemedi, offline demo yükleniyor:', err);
-    showOfflineBadge(true);
-    // Burada demo CSV’yi tekrar kullanabilirsin
+    createEditableTable('dataTable', headerRow.slice(9,17), dataRows, 'searchInput1', 'pagination1');
+    createEditableTable('photoTable', headerRow.slice(0,7), photoRows, 'searchInput2', 'pagination2', true);
+    renderChart(); // safe: if chart wrapper hidden, Chart.js will handle size when shown
+  }catch(e){
+    console.error('loadDataFromBackend error',e);
+    // fallback: try to fetch CSV directly (older behavior)
+    fetchAndProcessCSV();
   }
 }
 
+async function fetchAndProcessCSV(){
+  try{
+    const res = await fetch('api/csv');
+    const txt = await res.text();
+    const parsed = Papa.parse(txt, {header:false}).data;
+    headerRow = parsed[0];
+    fullRows = parsed.slice(1);
+    dataRows = fullRows.map(r => r.slice(9,17));
+    photoRows = fullRows.map(r => r.slice(0,7));
+    document.getElementById('dataCount').textContent = dataRows.length;
+    document.getElementById('photoCount').textContent = photoRows.length;
+    createEditableTable('dataTable', headerRow.slice(9,17), dataRows, 'searchInput1', 'pagination1');
+    createEditableTable('photoTable', headerRow.slice(0,7), photoRows, 'searchInput2', 'pagination2', true);
+    renderChart();
+  }catch(e){ console.error('fetchAndProcessCSV fail', e); }
+}
 
-function renderTable(){
-  const tbody=document.querySelector('#dataTable tbody');
-  tbody.innerHTML='';
-  rows.forEach((r,i)=>{
-    const tr=document.createElement('tr');
-    Object.keys(r).forEach(k=>{
-      const td=document.createElement('td');
-      td.textContent=r[k];
+/* Editable table with inline + modal edit */
+function createEditableTable(tableId, headers, rows, searchId, paginationId, isPhoto=false){
+  const table = document.getElementById(tableId);
+  const thead = table.querySelector('thead');
+  const tbody = table.querySelector('tbody');
+  const search = document.getElementById(searchId);
+
+  // header
+  thead.innerHTML = '';
+  const tr = document.createElement('tr');
+  headers.forEach(h=>{
+    const th = document.createElement('th'); th.textContent = h || '';
+    tr.appendChild(th);
+  });
+  const actionTh = document.createElement('th'); actionTh.textContent='İşlemler'; tr.appendChild(actionTh);
+  thead.appendChild(tr);
+
+  // rows
+  tbody.innerHTML = '';
+  rows.forEach((row, rowIndex)=>{
+    const tr = document.createElement('tr');
+    row.forEach((cell, colIndex)=>{
+      const td = document.createElement('td');
+      if(isPhoto && colIndex===5 && cell){
+        const img = document.createElement('img'); img.src = cell; img.className='thumb'; img.alt='foto';
+        img.addEventListener('click', ()=> openImage(cell));
+        td.appendChild(img);
+      } else td.textContent = cell ?? '';
+      // inline edit double-click
+      td.addEventListener('dblclick', ()=> activateInline(td, tableId, rowIndex, colIndex));
       tr.appendChild(td);
     });
-    // Düzenle butonu
-    const tdEdit=document.createElement('td');
-    const btnEdit=document.createElement('button'); btnEdit.textContent='Düzenle';
-    btnEdit.className='btn-edit'; btnEdit.addEventListener('click',()=>openEditModal(i));
-    tdEdit.appendChild(btnEdit); tr.appendChild(tdEdit);
-    // Sil butonu
-    const tdDel=document.createElement('td');
-    const btnDel=document.createElement('button'); btnDel.textContent='Sil';
-    btnDel.className='btn-delete'; btnDel.addEventListener('click',()=>deleteRow(i));
-    tdDel.appendChild(btnDel); tr.appendChild(tdDel);
 
+    // action column
+    const actionTd = document.createElement('td');
+    const editBtn = document.createElement('button'); editBtn.className='btn btn-sm btn-outline-primary me-2'; editBtn.textContent='Düzenle';
+    editBtn.addEventListener('click', ()=> openEditModal(tableId, rowIndex));
+    actionTd.appendChild(editBtn);
+
+    const delBtn = document.createElement('button'); delBtn.className='btn btn-sm btn-outline-danger'; delBtn.textContent='Sil';
+    delBtn.addEventListener('click', ()=> deleteRow(tableId, rowIndex));
+    actionTd.appendChild(delBtn);
+
+    tr.appendChild(actionTd);
     tbody.appendChild(tr);
   });
-  // Başlık
-  const thead=document.querySelector('#dataTable thead');
-  thead.innerHTML='';
-  const trHead=document.createElement('tr');
-  Object.keys(rows[0]).forEach(k=>{const th=document.createElement('th'); th.textContent=k; trHead.appendChild(th);});
-  trHead.appendChild(document.createElement('th')); // Düzenle
-  trHead.appendChild(document.createElement('th')); // Sil
-  thead.appendChild(trHead);
-}
 
-function openEditModal(index){
-  currentEditRow=index;
-  const r=rows[index];
-  document.getElementById('editTarih').value=r.Tarih;
-  document.getElementById('editVardiya').value=r.Vardiya;
-  document.getElementById('editHat').value=r.Hat;
-  document.getElementById('editAciklama').value=r.Açıklama;
-  document.getElementById('editPersonel').value=r.Personel;
-  document.getElementById('editKalite').value=r.KalitePersoneli;
-  const modal=new bootstrap.Modal(document.getElementById('editModal'));
-  modal.show();
-}
-
-document.getElementById('saveEditBtn').addEventListener('click', async ()=>{
-  const r = {
-    tarih: document.getElementById('editTarih').value,
-    vardiya: document.getElementById('editVardiya').value,
-    hat: document.getElementById('editHat').value,
-    aciklama: document.getElementById('editAciklama').value,
-    personel: document.getElementById('editPersonel').value,
-    kalitePersoneli: document.getElementById('editKalite').value
-  };
-  const fileInput=document.getElementById('editFotoBase64');
-  if(fileInput.files.length>0){
-    const file = fileInput.files[0];
-    r.foto_base64 = await toBase64(file);
+  // search filter
+  if(search){
+    search.oninput = ()=>{
+      const term = (search.value||'').toLowerCase();
+      const trs = tbody.querySelectorAll('tr');
+      trs.forEach((r,i)=>{
+        const text = r.innerText.toLowerCase();
+        r.style.display = text.includes(term) ? '' : 'none';
+      });
+    };
   }
+}
+
+/* Inline editing */
+function activateInline(td, tableId, rowIndex, colIndex){
+  const previous = td.textContent;
+  td.innerHTML = `<input class="form-control form-control-sm" value="${previous}">`;
+  const input = td.querySelector('input');
+  input.focus();
+
+  function cancel(){ td.textContent = previous; input.removeEventListener('blur', cancel); }
+  input.addEventListener('keydown', async (e)=>{
+    if(e.key === 'Enter'){
+      const val = input.value.trim();
+      td.textContent = val;
+      // push to backend: need to compute absolute colIndex in fullRows
+      const globalRowIndex = rowIndex; // dataRows index corresponds to fullRows index
+      // compute colIndex in fullRows: for dataTable columns start 9..16
+      let absoluteCol = null;
+      if(tableId === 'dataTable') absoluteCol = 9 + colIndex;
+      else if(tableId === 'photoTable') absoluteCol = colIndex; // photo columns 0..6
+      // update backend
+      try{
+        await fetch('/api/updateCell', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ rowIndex: globalRowIndex, colIndex: absoluteCol, value: val })});
+        // refresh local copy
+        await loadDataFromBackend();
+      }catch(e){ console.error('updateCell error', e); }
+    }
+    if(e.key === 'Escape') cancel();
+  });
+  input.addEventListener('blur', ()=> { td.textContent = previous; });
+}
+
+/* Modal edit (full row) */
+function openEditModal(tableId, rowIndex){
+  const fullRow = fullRows[rowIndex] || [];
+  const header = headerRow || [];
+  let html = `<div class="modal fade" id="rowEditModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Kayıt Düzenle</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="rowEditForm">`;
+  // create inputs for first 22 columns (or available)
+  for(let i=0;i<Math.max(fullRow.length, header.length); i++){
+    const label = header[i] || ('Kolon '+(i+1));
+    const val = fullRow[i] ?? '';
+    html += `<label class="form-label">${label}</label><input class="form-control mb-2" data-col="${i}" value="${val}">`;
+  }
+  html += `</form></div><div class="modal-footer"><button id="saveRowBtn" class="btn btn-primary">Kaydet</button></div></div></div></div>`;
+  const container = document.getElementById('editModalContainer');
+  container.innerHTML = html;
+  const bs = new bootstrap.Modal(document.getElementById('rowEditModal'));
+  bs.show();
+
+  document.getElementById('saveRowBtn').onclick = async ()=>{
+    const inputs = document.querySelectorAll('#rowEditForm input');
+    const newRow = [];
+    inputs.forEach(inp=> newRow[parseInt(inp.dataset.col)] = inp.value.trim());
+    // ensure array filled
+    for(let k=0;k<Math.max(fullRow.length, header.length);k++) if(newRow[k]===undefined) newRow[k] = fullRow[k] ?? '';
+    // send to backend
+    try{
+      const res = await fetch('/api/updateRow', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ rowIndex, newRow })});
+      if(res.ok){
+        bs.hide();
+        await loadDataFromBackend();
+      } else {
+        alert('Güncelleme başarısız');
+      }
+    }catch(e){ console.error('updateRow error', e); alert('Sunucu hatası'); }
+  };
+}
+
+/* delete row */
+async function deleteRow(tableId, rowIndex){
+  if(!confirm('Satırı silmek istediğinize emin misiniz?')) return;
   try{
-    const res = await fetch(BACKEND_URL+"/api/duzenle",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({row:currentEditRow+2,yeni:r})
+    const res = await fetch('/api/deleteRow', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ rowIndex })});
+    if(res.ok) await loadDataFromBackend();
+  }catch(e){ console.error('deleteRow err', e); }
+}
+
+/* image modal */
+function openImage(src){ const img = document.getElementById('modalImage'); img.src = src; new bootstrap.Modal(document.getElementById('imageModal')).show(); }
+
+/* chart */
+function parseDateFromDDMMYYYY(s){ if(!s) return null; const p=s.split('.'); if(p.length!==3) return null; const d=new Date(+p[2], +p[1]-1, +p[0]); return isNaN(d)?null:d; }
+function weekKeyFromDate(d){ const onejan=new Date(d.getFullYear(),0,1); return 'W'+Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7); }
+function monthKeyFromDate(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+
+function renderChart(){
+  try{
+    const dateInput = document.getElementById('chartDate')?.value;
+    const btn = document.querySelector('.period-btn.active');
+    const btnPeriod = btn?btn.dataset.period:null;
+    const selectPeriod = document.getElementById('chartPeriod')?.value;
+    const period = btnPeriod || selectPeriod || 'daily';
+    let formattedSelected=null, selectedDateObj=null;
+    if(dateInput){ const p=dateInput.split('-'); if(p.length===3){ formattedSelected=`${p[2]}.${p[1]}.${p[0]}`; selectedDateObj=new Date(+p[0], +p[1]-1, +p[2]); } }
+
+    const counts = {}, labelsSet = new Set();
+    fullRows.forEach(row=>{
+      if(!row) return;
+      const dateStr = (row[19]||'').toString().trim();
+      if(!dateStr) return;
+      const dObj = parseDateFromDDMMYYYY(dateStr);
+      if(!dObj) return;
+      if(period==='daily' && formattedSelected && dateStr!==formattedSelected) return;
+      if(period==='weekly' && selectedDateObj && weekKeyFromDate(selectedDateObj)!==weekKeyFromDate(dObj)) return;
+      if(period==='monthly' && selectedDateObj && monthKeyFromDate(selectedDateObj)!==monthKeyFromDate(dObj)) return;
+      let key='';
+      if(period==='daily') key=dateStr;
+      else if(period==='weekly') key=weekKeyFromDate(dObj);
+      else key=monthKeyFromDate(dObj);
+      labelsSet.add(key);
+      const desc=(row[20]||'Açıklama Yok').toString().trim();
+      const cnt=parseInt(row[21])||0;
+      counts[`${desc}|${key}`] = (counts[`${desc}|${key}`]||0) + cnt;
     });
-    const data = await res.json();
-    if(res.ok){ alert(data.mesaj); rows[currentEditRow]=r; renderTable(); }
-    else alert(data.hata);
-    bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
-  }catch(e){ alert("Hata: "+e); }
+
+    const labels = Array.from(labelsSet).sort();
+    const groups = {};
+    for(const k in counts){ const [desc,pKey]=k.split('|'); if(!groups[desc]) groups[desc]={}; groups[desc][pKey]=counts[k]; }
+
+    const palette=["#8e44ad","#9b59b6","#e598ff","#d6a7ff","#7f7fd5","#b388ff","#6a1b9a","#3a0ca3"];
+    const datasets = [], descs = Object.keys(groups);
+    descs.forEach((desc,i)=>{ const arr = labels.map(l=> groups[desc][l] || 0); datasets.push({ label: desc, data: arr, backgroundColor: palette[i%palette.length], borderColor: palette[i%palette.length], borderWidth: 0, type: 'bar' }); });
+
+    const ctx = document.getElementById('errorChart')?.getContext('2d');
+    if(!ctx) return;
+    if(errorChart) errorChart.destroy();
+    errorChart = new Chart(ctx, { data: { labels, datasets }, options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'top' }, tooltip:{ mode:'index', intersect:false } }, scales:{ y:{ beginAtZero:true } } } });
+  }catch(e){ console.error('renderChart error', e); }
+}
+
+/* period buttons */
+document.addEventListener('click', function(e){
+  if(e.target && e.target.classList.contains('period-btn')){
+    document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
+    e.target.classList.add('active');
+    document.getElementById('chartPeriod').value = e.target.dataset.period;
+    renderChart();
+  }
 });
 
-function toBase64(file){return new Promise((res,rej)=>{const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=err=>rej(err); r.readAsDataURL(file); });}
+/* init events */
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('loginBtn').addEventListener('click', login);
+  document.getElementById('logoutBtn').addEventListener('click', logout);
+  document.getElementById('chartPeriod')?.addEventListener('change', function(){
+    document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.period-btn').forEach(b=>{ if(b.dataset.period===this.value) b.classList.add('active'); });
+    renderChart();
+  });
+  document.getElementById('chartDate')?.addEventListener('change', renderChart);
+  document.getElementById('refreshChart')?.addEventListener('click', renderChart);
 
-async function deleteRow(index){
-  if(!confirm("Satırı silmek istediğinizden emin misiniz?")) return;
-  try{
-    const res = await fetch(BACKEND_URL+"/api/sil",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({row:index+2})
-    });
-    const data = await res.json();
-    if(res.ok){ alert(data.mesaj); rows.splice(index,1); renderTable(); }
-    else alert(data.hata);
-  }catch(e){ alert("Hata: "+e); }
-}
+  document.getElementById('btnData')?.addEventListener('click', ()=>{
+    document.getElementById('dataTableWrapper').style.display='block';
+    document.getElementById('photoTableWrapper').style.display='none';
+    document.getElementById('chartWrapper').style.display='none';
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('btnData').classList.add('active');
+  });
+  document.getElementById('btnPhoto')?.addEventListener('click', ()=>{
+    document.getElementById('dataTableWrapper').style.display='none';
+    document.getElementById('photoTableWrapper').style.display='block';
+    document.getElementById('chartWrapper').style.display='none';
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('btnPhoto').classList.add('active');
+  });
+  document.getElementById('btnChart')?.addEventListener('click', ()=>{
+    document.getElementById('dataTableWrapper').style.display='none';
+    document.getElementById('photoTableWrapper').style.display='none';
+    document.getElementById('chartWrapper').style.display='block';
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('btnChart').classList.add('active');
+    renderChart();
+  });
+
+  if(localStorage.getItem('loggedIn')==='true') showMain();
+});
 </script>
 </body>
 </html>
