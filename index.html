@@ -267,6 +267,7 @@ function openEditModal(tableId,rowIndex){
     const fullRow = photoRows[rowIndex] || [];
     const header = photoHeader || [];
 
+    // Modal HTML
     let html = `<div class="modal fade" id="rowEditModal" tabindex="-1">
         <div class="modal-dialog modal-lg"><div class="modal-content">
         <div class="modal-header">
@@ -284,29 +285,33 @@ function openEditModal(tableId,rowIndex){
 
     html += `</form></div>
         <div class="modal-footer">
-            <button id="saveRowBtn" class="btn btn-primary">Kaydet</button>
+            <button type="button" id="saveRowBtn" class="btn btn-primary">Kaydet</button>
         </div></div></div></div>`;
 
+    // DOM’a ekle
     const container = document.getElementById('editModalContainer');
     container.innerHTML = html;
+
+    // Bootstrap Modal oluştur
     const modalEl = document.getElementById('rowEditModal');
     const bs = new bootstrap.Modal(modalEl);
     bs.show();
 
+    // Kaydet butonuna event
     document.getElementById('saveRowBtn').onclick = async ()=>{
         const inputs = document.querySelectorAll('#rowEditForm input');
         const newRow = [];
         inputs.forEach(inp=> newRow[parseInt(inp.dataset.col)] = inp.value.trim());
 
         const payload = {
-            row: rowIndex + 2, // header + index
+            row: rowIndex + 2, // header satırı + index
             yeni: {
                 tarih: newRow[0] || '',
                 vardiya: newRow[1] || '',
                 hat: newRow[2] || '',
                 aciklama: newRow[3] || '',
                 personel: newRow[4] || '',
-                foto_base64: '', // opsiyonel
+                foto_base64: '', 
                 foto_url: newRow[5] || '',
                 kalitePersoneli: newRow[6] || ''
             }
@@ -325,6 +330,7 @@ function openEditModal(tableId,rowIndex){
         }catch(e){ console.error(e); alert('Sunucu hatası'); }
     };
 }
+
 
 // ----------------- DELETE PHOTO -----------------
 async function deletePhotoRow(rowIndex){
