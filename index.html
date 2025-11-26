@@ -6,32 +6,28 @@
 <title>Kalite Kontrol Paneli</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+
 <style>
 :root{
-    --primary:#9b59b6;
-    --bg:#f6f8fa;
+    --primary:#2ecc71; /* Soft neon yeşil */
+    --primary-dark:#27ae60;
+    --bg:#f6fff7;
     --card:#ffffff;
-    --thead:#8e44ad;
+    --thead:#27ae60;
     --row1:#ffffff;
-    --row2:#f3f4f6;
-    --border:#d4d7dc;
-    --shadow:0 4px 18px rgba(0,0,0,0.08);
-
-    /* ⭐ Neon ek renkler */
-    --neon1:#ff00ea;
-    --neon2:#00f6ff;
-    --dark-bg:#0d0d0f;
+    --row2:#f0fff5;
+    --border:#cfe9d6;
+    --shadow:0 4px 18px rgba(0, 80, 30, 0.12);
 }
 
-/* ------------------------------------------------------
-   🟣 GENEL TEMA
------------------------------------------------------- */
+/* GENEL */
 body{
     background:var(--bg);
     font-family:"Segoe UI",sans-serif;
     padding:20px;
 }
 
+/* LOGIN */
 .login-container{
     max-width:420px;
     margin:90px auto;
@@ -45,220 +41,204 @@ body{
 #mainPage{display:none}
 
 .section-title{
-    color:var(--thead);
+    color:var(--primary-dark);
     font-weight:700;
     font-size:22px;
     margin-bottom:12px;
 }
 
-/* ------------------------------------------------------
-   🟣 NEON TABLE CARD
------------------------------------------------------- */
+/* TABLE CARD */
 .table-card{
-    background:rgba(20,20,30,0.85);
-    padding:22px;
-    border-radius:14px;
-    box-shadow:0 0 16px rgba(155,89,182,0.25);
-    border:2px solid rgba(155,89,182,0.35);
-    backdrop-filter:blur(8px);
-    animation:fadeIn 0.5s ease;
+    background:var(--card);
+    padding:18px;
+    border-radius:12px;
+    box-shadow:var(--shadow);
+    border:1px solid var(--border);
     margin-bottom:20px;
 }
 
-/* ------------------------------------------------------
-   🟣 TABLO BAŞLIĞI - NEON GRADIENT
------------------------------------------------------- */
+/* TABLE HEAD */
 .table thead th{
-    background: linear-gradient(135deg, var(--neon1), var(--neon2)) !important;
+    background: linear-gradient(135deg, #2ecc71, #27ae60) !important;
     color:#fff !important;
     padding:14px!important;
     font-size:15px;
+    letter-spacing:0.4px;
     text-transform:uppercase;
     border:none!important;
-    position:sticky;
-    top:0;
-    z-index:3;
-    box-shadow:0 2px 8px rgba(0,0,0,0.4);
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    box-shadow:0 2px 6px rgba(0,0,0,0.15);
     text-align:center;
-    letter-spacing:0.5px;
 }
 
-/* ------------------------------------------------------
-   🟣 TABLO SATIRLARI - HAFİF GLOW
------------------------------------------------------- */
+/* TABLE BODY */
 .table tbody tr{
-    background:rgba(255,255,255,0.05);
+    background:#fff;
     transition:0.25s ease;
+    box-shadow:0 1px 4px rgba(0,0,0,0.06);
     border-radius:10px;
 }
 
 .table tbody tr:hover{
-    background:rgba(155,89,182,0.15) !important;
-    transform:scale(1.02);
-    box-shadow:0 0 14px rgba(155,89,182,0.45);
+    background:#e8fff0 !important;
+    transform: scale(1.01);
+    box-shadow:0 4px 12px rgba(0,150,60,0.22);
 }
 
-/* Hücreler */
+/* CELLS */
 .table tbody td{
     padding:12px!important;
     vertical-align:middle;
     text-align:center;
-    color:#f1eaff;
-    border-top:1px solid rgba(255,255,255,0.06);
-    border-bottom:1px solid rgba(255,255,255,0.06);
+    border-top:1px solid var(--border);
+    border-bottom:1px solid var(--border);
 }
 
-/* Sol & sağ köşe radius */
 .table tbody tr td:first-child{
-    border-left:1px solid rgba(255,255,255,0.06);
+    border-left:1px solid var(--border);
     border-top-left-radius:10px;
     border-bottom-left-radius:10px;
 }
+
 .table tbody tr td:last-child{
-    border-right:1px solid rgba(255,255,255,0.06);
+    border-right:1px solid var(--border);
     border-top-right-radius:10px;
     border-bottom-right-radius:10px;
 }
 
-/* ------------------------------------------------------
-   🟣 NEON PAGINATION
------------------------------------------------------- */
-.pagination .page-link{
-    background:transparent;
-    border:1px solid var(--neon2);
-    color:var(--neon2);
-    border-radius:10px!important;
-    margin:3px;
-    transition:0.25s ease;
-}
-
-.pagination .page-link:hover{
-    background:var(--neon2);
-    color:#000;
-    box-shadow:0 0 12px var(--neon2);
-    transform:scale(1.12);
-}
-
-.pagination .page-item.active .page-link{
-    background:linear-gradient(90deg,var(--neon1),var(--neon2));
-    border:none;
-    color:#000;
-    box-shadow:0 0 18px var(--neon1);
-}
-
-/* İlk/son buton */
-.pagination .page-item:first-child .page-link,
-.pagination .page-item:last-child .page-link{
-    border-color:var(--neon1);
-    color:var(--neon1);
-}
-.pagination .page-item:first-child .page-link:hover,
-.pagination .page-item:last-child .page-link:hover{
-    background:var(--neon1);
-    color:#000;
-    box-shadow:0 0 12px var(--neon1);
-}
-
-/* ------------------------------------------------------
-   🟣 RESİM - HAFİF NEON BORDER
------------------------------------------------------- */
+/* THUMB */
 img.thumb{
-    width:88px;
-    height:72px;
-    object-fit:cover;
-    border-radius:8px;
-    border:2px solid rgba(155,89,182,0.4);
-    transition:0.25s ease;
+    width:88px;height:72px;object-fit:cover;
+    border-radius:8px;border:1px solid #b5eac4;
     cursor:pointer;
 }
-img.thumb:hover{
-    border-color:var(--neon2);
-    box-shadow:0 0 12px var(--neon2);
+
+/* SEARCH */
+.search-input{
+    border-radius:10px;padding:10px;
+    border:1px solid #b5eac4;
 }
 
-/* ------------------------------------------------------
-   🟣 SEARCH INPUT
------------------------------------------------------- */
-.search-input{
-    border-radius:10px;
-    padding:10px;
-    border:2px solid rgba(155,89,182,0.4);
-    background:rgba(255,255,255,0.1);
+/* PAGINATION */
+.pagination .page-link{
+    border-radius:8px;
+    border-color: var(--primary);
+    color: var(--primary);
+}
+.pagination .page-link:hover{
+    background: var(--primary);
     color:#fff;
 }
-.search-input:focus{
-    border-color:var(--neon2);
-    box-shadow:0 0 10px var(--neon2);
+
+/* CHART */
+#chartContainer{
+    height:520px!important;
+    padding:12px;
 }
 
-/* ------------------------------------------------------
-   🟣 TAB / BUTONLAR
------------------------------------------------------- */
+/* TAB BUTTON */
 .tab-btn{
     padding:8px 14px;
     border-radius:30px;
     font-weight:600;
-    border:2px solid var(--neon1);
-    background:#0d0d0f;
-    color:var(--neon1);
-    transition:0.25s ease;
+    border:1px solid var(--primary);
+    background:#fff;
+    cursor:pointer;
+    transition:0.2s;
 }
 .tab-btn.active{
-    background:linear-gradient(90deg,var(--neon1),var(--neon2));
-    color:#000;
-    box-shadow:0 0 15px var(--neon1);
+    background:var(--primary);
+    color:#fff;
+    box-shadow:0 0 10px rgba(0,255,120,0.5);
 }
 
-/* ------------------------------------------------------
-   🟣 CHART CONTAINER
------------------------------------------------------- */
-#chartContainer{
-    height:520px!important;
-    padding:12px;
-    background:rgba(20,20,30,0.9);
-    border-radius:14px;
-    box-shadow:0 0 16px rgba(155,89,182,0.25);
-    border:2px solid rgba(155,89,182,0.35);
+/* PERIOD BUTTON */
+.period-btn{
+    padding:6px 10px;
+    border-radius:8px;
+    border:1px solid #bceecf;
+    background:#fff;
+    cursor:pointer;
+    transition:0.2s;
+}
+.period-btn.active{
+    background:var(--primary);
+    color:#fff;
+    border-color:var(--primary);
+    box-shadow:0 0 10px rgba(0,255,120,0.5);
 }
 
-/* ------------------------------------------------------
-   🟣 RESPONSIVE
------------------------------------------------------- */
+/* RESPONSIVE */
 @media (max-width: 768px){
-    .table thead th{
-        font-size:12px !important;
-        padding:10px !important;
-    }
-    .table tbody td{
-        font-size:13px;
-        padding:8px !important;
-        white-space:nowrap;
-    }
-    img.thumb{
-        width:60px;
-        height:50px;
-    }
+    .table thead th{font-size:12px!important;padding:10px!important;}
+    .table tbody td{font-size:13px;padding:8px!important;white-space:nowrap;}
+    img.thumb{width:60px;height:50px;}
 }
+
 @media (max-width: 480px){
-    .table tbody td{
-        font-size:12px;
-        padding:6px !important;
-    }
-    img.thumb{
-        width:50px;
-        height:40px;
-    }
+    .table tbody td{font-size:12px;padding:6px!important;}
+    img.thumb{width:50px;height:40px;}
 }
 
-/* ------------------------------------------------------
-   🟣 ANİMASYON
------------------------------------------------------- */
-@keyframes fadeIn{
-    from { opacity:0; transform:translateY(12px); }
-    to   { opacity:1; transform:translateY(0); }
+/* BADGE */
+#offlineBadge{
+    position:fixed;
+    right:12px;
+    bottom:12px;
+    z-index:2000;
 }
 
-/* PAGINATION RESPONSIVE */
+/* ADVANCED LOGIN */
+.advanced-login{
+    background: linear-gradient(145deg, #ffffff, #e7ffe8);
+    padding: 40px;
+    border-radius: 18px;
+    box-shadow: 0 10px 28px rgba(0,80,40,0.12);
+    border: none;
+    position: relative;
+    overflow: hidden;
+}
+.advanced-login:before{
+    content:"";
+    position:absolute;
+    width:160%;height:160%;
+    top:-30%;left:-30%;
+    background: radial-gradient(circle at center, rgba(46,204,113,0.12), transparent 70%);
+    z-index:0;pointer-events:none;
+}
+
+.login-header{position:relative;z-index:2;}
+.login-title{color:#1b6034;font-size:26px;font-weight:700;margin-bottom:6px;}
+.login-subtitle{color:#6c7a86;font-size:14px;}
+
+.login-input{
+    border-radius:12px;padding:12px;
+    border:1px solid #b5eac4;
+    transition:0.25s;
+}
+.login-input:focus{
+    border-color:var(--primary);
+    box-shadow:0 0 0 3px rgba(46,204,113,0.25);
+}
+
+.login-btn{
+    background:var(--primary);
+    border:none;
+    padding:12px;
+    font-size:16px;
+    border-radius:14px;
+    font-weight:600;
+    transition:0.25s;
+}
+.login-btn:hover{
+    background:var(--primary-dark);
+    transform:translateY(-2px);
+    box-shadow:0 6px 16px rgba(0,255,120,0.25);
+}
+
+/* PAGINATION WRAPPER */
 .pagination-wrapper{
     display:flex;
     justify-content:center;
@@ -268,8 +248,8 @@ img.thumb:hover{
 .pagination-wrapper ul{
     flex-wrap:nowrap;
 }
-
 </style>
+
 </head>
 <body>
 
