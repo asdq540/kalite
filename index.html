@@ -214,62 +214,112 @@ async function loadDataFromBackend(){
         createTable('dataTable', headerRow.slice(9,15), dataRows, 'searchInput1', 'pagination1', false);
         createTable('photoTable', headerRow.slice(0,7), photoRows, 'searchInput2', 'pagination2', true);
 
-        renderChart();
-    } catch(e){ console.error(e); }
-}
+       function renderChart() {
+    try {
+        const dateInput = document.getElementById('chartDate')?.value;
+        const periodSelect = document.getElementById('chartPeriod')?.value || 'daily';
 
-// -------------------- TABLO OLUŞTURMA --------------------
-function createTable(tableId, headers, rows, searchId, paginationId, isPhoto=false){
-    const table = document.getElementById(tableId);
-    const thead = table.querySelector('thead');
-    const tbody = table.querySelector('tbody');
-    const search = document.getElementById(searchId);
-
-    // HEADER
-    thead.innerHTML = '';
-    const tr = document.createElement('tr');
-    headers.forEach(h=>{ const th = document.createElement('th'); th.textContent = h||''; tr.appendChild(th); });
-    if(isPhoto){
-        const th = document.createElement('th'); th.textContent='İşlemler'; tr.appendChild(th);
-    }
-    thead.appendChild(tr);
-
-    // ROWS
-    tbody.innerHTML = '';
-    rows.forEach((row,rowIndex)=>{
-        const tr = document.createElement('tr');
-        row.forEach((cell,colIndex)=>{
-            const td = document.createElement('td');
-            if(isPhoto && colIndex===5 && cell){
-                const img = document.createElement('img');
-                img.src = cell;
-                img.className='thumb';
-                img.addEventListener('click', ()=> openImage(cell));
-                td.appendChild(img);
-            } else td.textContent = cell ?? '';
-            tr.appendChild(td);
-        });
-
-        if(isPhoto){
-            const actionTd = document.createElement('td');
-
-            const editBtn = document.createElement('button');
-            editBtn.className='btn btn-sm btn-outline-primary me-2';
-            editBtn.textContent='Düzenle';
-            editBtn.addEventListener('click', ()=> openEditModal(rowIndex));
-            actionTd.appendChild(editBtn);
-
-            const delBtn = document.createElement('button');
-            delBtn.className='btn btn-sm btn-outline-danger';
-            delBtn.textContent='Sil';
-            delBtn.addEventListener('click', ()=> deleteRow(rowIndex));
-            actionTd.appendChild(delBtn);
-
-            tr.appendChild(actionTd);
+        let selectedDate = null;
+        if (dateInput) {
+            const parts = dateInput.split('-');
+            if (parts.length === 3) {
+                selectedDate = new Date(+parts[0], +parts[1]-1, +parts[2]);
+            }
         }
 
-        tbody.appendChild(tr);
-    });
+        const counts = {};
+        const labelsSet = new Set();
+
+        // photoRows üzerinden veri al
+        photoRows.forEach(row => {
+            if (!row) return;
+            const dateStr = (row[0] || '').trim();   // fotoğraf tablosunda tarih A sütunu
+            const desc = (row[3] || 'Açıklama Yok').trim(); // açıklama D sütunu
+            const cnt = parseInt(row[6]) || 0;       // tekrar sayısı G sütunu
+
+            if (!dateStr) return;
+
+            const dObj = parseDateFromDDMMYYYY(dateStr);
+            if (!dObj) return;
+
+            // filtreleme
+            if (selectedDate) {
+                if (periodSelect === 'daily' && dateStr !== formatDate(selectedDate)) return;
+                if (periodSelect === 'weekly' && weekKeyFromDate(selectedDate) !== weekKeyFromDate(dObj)) return;
+                if (periodSelect === 'monthly' && monthKeyFromDate(selectedDate) !== monthKeyFromDate(dObj)) return;
+            }
+
+            let key = '';
+            if (periodSelect === 'daily') key = dateStr;
+            else if (periodSelect === 'weekly') key = weekKeyFromDate(dObj);
+            else if (periodSelect === 'monthly') key = monthKeyFromDate(dObj);
+
+            labelsSet.add(key);
+            counts[`${desc}|${key}`] = (counts[`${desc}|${key}`] || 0) + cnt;
+        });
+
+        const labels = Array.from(labelsSet).sort();
+        const groups = {};
+        for (const k in counts) {
+            const [desc, pKey] = k.split('|');
+            if (!groups[desc]) groups[desc] = {};
+            groups[desc][pKey] = counts[k];
+        }
+
+        const palette = ["#8e44ad","#9b59b6","#e598ff","#d6a7ff","#7f7fd5","#b388ff","#6a1b9a","#3a0ca3"];
+        const datasets = [];
+        const descs = Object.keys(groups);
+
+        descs.forEach((desc,i)=>{
+            const arr = labels.map(l=> groups[desc][l] || 0);
+            datasets.push({
+                label: desc,
+                data: arr,
+                backgroundColor: palette[i%palette.length],
+                borderColor: palette[i%palette.length],
+                borderWidth: 0,
+                type: 'bar'
+            });
+        });
+
+        const ctx = document.getElementById('errorChart')?.getContext('2d');
+        if (!ctx) return;
+        if (errorChart) errorChart.destroy();
+
+        errorChart = new Chart(ctx, {
+            data: { labels, datasets },
+            options: {
+                responsive:true,
+                maintainAspectRatio:false,
+                plugins:{ legend:{ position:'top' }, tooltip:{ mode:'index', intersect:false } },
+                scales:{ y:{ beginAtZero:true } }
+            }
+        });
+
+    } catch(e){
+        console.error('renderChart error', e);
+    }
+}
+
+// yardımcı fonksiyonlar
+function parseDateFromDDMMYYYY(s){
+    if(!s) return null;
+    const p=s.split('.');
+    if(p.length!==3) return null;
+    const d=new Date(+p[2], +p[1]-1, +p[0]);
+    return isNaN(d)?null:d;
+}
+function weekKeyFromDate(d){
+    const onejan=new Date(d.getFullYear(),0,1);
+    return 'W'+Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7);
+}
+function monthKeyFromDate(d){
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+function formatDate(d){
+    return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
+}
+
 
     // SEARCH
     if(search){
