@@ -639,24 +639,21 @@ function renderChart(){
         const periodSelect=document.getElementById('chartPeriod')?.value || 'daily';
         const groupBySelect=document.getElementById('chartGroupBy')?.value || 'aciklama';
 
-        let selectedDate=null;
-        if(dateInput){
-            const parts=dateInput.split('-');
-            if(parts.length===3) selectedDate=new Date(+parts[0],+parts[1]-1,+parts[2]);
-        }
+        // HTML date picker yyyy-mm-dd => gg.aa.yyyy
+        let selectedDateStr = null;
+        if(dateInput) selectedDateStr = dateInput.split('-').reverse().join('.'); // "yyyy-mm-dd" -> "dd.mm.yyyy"
 
         // Filtreleme
-        let filtered = photoRows.filter(row=>{
-            if(!row) return false;
-            const dateStr=row[0]||'';
-            if(!dateStr) return false;
-            const d=parseDateFromDDMMYYYY(dateStr);
+        const filtered = photoRows.filter(row=>{
+            if(!row || !row[0]) return false;
+            const rowDateStr = row[0]; // gg.aa.yyyy
+            const d = parseDateFromDDMMYYYY(rowDateStr);
             if(!d) return false;
 
-            if(selectedDate){
-                if(periodSelect==='daily' && dateStr!==formatDate(selectedDate)) return false;
-                if(periodSelect==='weekly' && weekKeyFromDate(selectedDate)!==weekKeyFromDate(d)) return false;
-                if(periodSelect==='monthly' && monthKeyFromDate(selectedDate)!==monthKeyFromDate(d)) return false;
+            if(selectedDateStr){
+                if(periodSelect==='daily' && rowDateStr !== selectedDateStr) return false;
+                if(periodSelect==='weekly' && weekKeyFromDate(d) !== weekKeyFromDate(parseDateFromDDMMYYYY(selectedDateStr))) return false;
+                if(periodSelect==='monthly' && monthKeyFromDate(d) !== monthKeyFromDate(parseDateFromDDMMYYYY(selectedDateStr))) return false;
             }
             return true;
         });
@@ -675,7 +672,7 @@ function renderChart(){
             groups[key] = (groups[key]||0)+1;
         });
 
-        // Sıralama büyükten küçüğe
+        // Büyükten küçüğe sıralama
         const sortedKeys = Object.keys(groups).sort((a,b)=>groups[b]-groups[a]);
         const labels = sortedKeys;
         const data = sortedKeys.map(k=>groups[k]);
@@ -711,7 +708,6 @@ function renderChart(){
 
     }catch(e){ console.error(e); }
 }
-
 
 
 
