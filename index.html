@@ -572,6 +572,95 @@ function openImage(src){
     new bootstrap.Modal(document.getElementById('imageModal')).show();
 }
 
+    function renderChart() {
+    if (!photoRows || photoRows.length === 0) return;
+
+    const dateInput = document.getElementById('chartDate')?.value;
+    const periodSelect = document.getElementById('chartPeriod')?.value || 'daily';
+    const groupBySelect = document.getElementById('chartGroupBy')?.value || 'aciklama';
+
+    let selectedDate = dateInput ? new Date(dateInput) : null;
+    const counts = {};
+
+    photoRows.forEach(row => {
+        if (!row || !row[0]) return; 
+        const rowDate = parseDateFromDDMMYYYY(row[0]);
+        if (!rowDate) return;
+
+        if (selectedDate) {
+            if (periodSelect === 'daily' && rowDate.toDateString() !== selectedDate.toDateString()) return;
+            if (periodSelect === 'weekly' && weekKeyFromDate(rowDate) !== weekKeyFromDate(selectedDate)) return;
+            if (periodSelect === 'monthly' && monthKeyFromDate(rowDate) !== monthKeyFromDate(selectedDate)) return;
+        }
+
+        let key = '';
+        switch(groupBySelect){
+            case 'aciklama': key = row[3] || 'Açıklama Yok'; break;
+            case 'personel': key = row[4] || 'Bilinmiyor'; break;
+            case 'hat': key = row[2] || 'Bilinmiyor'; break;
+            case 'vardiya': key = row[1] || 'Bilinmiyor'; break;
+            case 'tarih': key = row[0] || 'Bilinmiyor'; break;
+        }
+
+        counts[key] = (counts[key] || 0) + 1;
+    });
+
+    const sortedKeys = Object.keys(counts).sort((a,b) => counts[b]-counts[a]);
+    const labels = sortedKeys;
+    const data = sortedKeys.map(k => counts[k]);
+
+    const palette = ["#32ff7e","#7efff5","#0ff3ff","#3af1a0","#2ed573","#1dd1a1","#10ac84","#54a0ff","#fffa65","#ff6b6b"];
+    const datasets = [{
+        label: 'Tekrar Sayısı',
+        data: data,
+        backgroundColor: palette.slice(0, data.length),
+        borderColor: palette.slice(0, data.length),
+        borderWidth: 1
+    }];
+
+    const ctx = document.getElementById('errorChart')?.getContext('2d');
+    if(!ctx) return;
+    if(errorChart) errorChart.destroy();
+
+    errorChart = new Chart(ctx, {
+        type: 'bar',
+        data: { labels, datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { mode: 'index', intersect: false },
+                datalabels: {
+                    anchor: 'end',
+                    align: 'top',
+                    color: '#fff',
+                    font: { weight: 'bold' },
+                    formatter: value => value
+                }
+            },
+            scales: { y: { beginAtZero: true } }
+        },
+        plugins: [ChartDataLabels]
+    });
+}
+
+// yardımcı fonksiyonlar
+function parseDateFromDDMMYYYY(s){
+    if(!s) return null;
+    const parts=s.split('.');
+    if(parts.length!==3) return null;
+    const d=new Date(+parts[2], +parts[1]-1, +parts[0]);
+    return isNaN(d)?null:d;
+}
+function weekKeyFromDate(d){
+    const onejan = new Date(d.getFullYear(),0,1);
+    return 'W'+Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7);
+}
+function monthKeyFromDate(d){
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+
 // FOTOĞRAF TABLOSU DÜZENLEME
 function openEditModal(rowIndex){
     const row = photoRows[rowIndex];
@@ -642,7 +731,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         document.getElementById('dataTableWrapper').style.display='none'; 
         document.getElementById('photoTableWrapper').style.display='block'; 
         document.getElementById('chartWrapper').style.display='none'; 
-        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); 
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); fre
         document.getElementById('btnPhoto').classList.add('active'); 
     });
     document.getElementById('btnChart')?.addEventListener('click',()=>{ 
@@ -654,8 +743,9 @@ document.addEventListener('DOMContentLoaded',()=>{
         renderChart(); 
     });
 
-    document.getElementById('chartDate')?.addEventListener('change',renderChart);
-    document.getElementById('chartPeriod')?.addEventListener('change',renderChart);
+  document.getElementById('chartDate')?.addEventListener('change',renderChart);
+document.getElementById('chartPeriod')?.addEventListener('change',renderChart);
+document.getElementById('chartGroupBy')?.addEventListener('change',renderChart);
 
     if(localStorage.getItem('loggedIn')==='true') showMain();
 });
