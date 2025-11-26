@@ -450,16 +450,15 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
     }
     thead.appendChild(tr);
 
-    // Pagination
-    const totalPages = Math.ceil(rows.length / PAGE_SIZE);
+    let filteredRows = [...rows]; // filtre sonrası gösterilecek veri
     let currentPage = isPhoto ? currentPhotoPage : 1;
 
     function renderPage(){
         tbody.innerHTML='';
         const start = (currentPage-1)*PAGE_SIZE;
-        const end = Math.min(start+PAGE_SIZE, rows.length);
+        const end = Math.min(start+PAGE_SIZE, filteredRows.length);
         for(let i=start;i<end;i++){
-            const row = rows[i];
+            const row = filteredRows[i];
             const tr=document.createElement('tr');
             row.forEach((cell,colIndex)=>{
                 const td=document.createElement('td');
@@ -495,6 +494,7 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
         // Pagination controls
         const paginationUl = document.getElementById(paginationId);
         paginationUl.innerHTML='';
+        const totalPages = Math.ceil(filteredRows.length / PAGE_SIZE);
         const maxPagesToShow = 5;
         let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow/2));
         let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
@@ -526,29 +526,42 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
 
     renderPage();
 
-    // SEARCH
-    if(search){
-        search.oninput=()=>{
-            const term=(search.value||'').toLowerCase();
-            tbody.querySelectorAll('tr').forEach(r=>{
-                const text=r.innerText.toLowerCase();
-                r.style.display=text.includes(term)?'' : 'none';
-            });
-        };
-    }
-
-    // DATEPICKER (fotoğraf tablosu için)
+    // SEARCH & DATEPICKER (fotoğraf tablosu için)
     if(isPhoto){
         const searchDate = document.getElementById('searchDate');
+
+        function applyFilter(){
+            const term = (search.value||'').toLowerCase();
+            filteredRows = rows.filter(row=>{
+                return row.some(cell => (cell||'').toString().toLowerCase().includes(term));
+            });
+            currentPage = 1;
+            renderPage();
+        }
+
+        search.addEventListener('input', applyFilter);
+
         if(searchDate){
             searchDate.addEventListener('change',()=>{
                 const dateValue = searchDate.value;
                 if(!dateValue) return;
-                const parts = dateValue.split('-'); // yyyy-mm-dd
+                const parts = dateValue.split('-');
                 const formatted = `${parts[2]}.${parts[1]}.${parts[0]}`;
                 search.value = formatted;
-                search.dispatchEvent(new Event('input'));
+                applyFilter();
             });
+        }
+    } else {
+        // normal arama (data tablosu)
+        if(search){
+            search.oninput = ()=>{
+                const term=(search.value||'').toLowerCase();
+                filteredRows = rows.filter(row=>{
+                    return row.some(cell => (cell||'').toString().toLowerCase().includes(term));
+                });
+                currentPage = 1;
+                renderPage();
+            };
         }
     }
 }
@@ -613,11 +626,6 @@ async function deleteRow(rowIndex){
     }catch(e){ console.error(e); }
 }
 
-// GRAFİK
-function renderChart(){
-    // mevcut chart kodun burada...
-}
-
 // PAGE & PERIOD BUTTONS
 document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('loginBtn')?.addEventListener('click',login);
@@ -652,6 +660,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(localStorage.getItem('loggedIn')==='true') showMain();
 });
 </script>
+
 
 
 </body>
