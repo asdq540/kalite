@@ -236,17 +236,17 @@ function showMain(){ document.getElementById('loginPage').style.display='none'; 
 
 async function loadDataFromBackend(){
   try{
-    const res = await fetch(BACKEND_BASE + '/api/get');
-    const json = await res.json();
+    const res = await fetch('/api/get');
+const json = await res.json();
 
-    dataRows = json.data || [];
-    photoRows = json.photos || [];
+headerRow = json.dataHeader;
+dataRows = json.dataRows;
+photoRows = json.photoRows;
+photoHeader = json.photoHeader;
 
-    document.getElementById('dataCount').textContent = dataRows.length;
-    document.getElementById('photoCount').textContent = photoRows.length;
+createEditableTable('dataTable', headerRow, dataRows, 'searchInput1', 'pagination1');
+createEditableTable('photoTable', photoHeader, photoRows, 'searchInput2', 'pagination2', true);
 
-    createEditableTable('dataTable', headerRow.slice(9,15), dataRows, 'searchInput1', 'pagination1');
-createEditableTable('photoTable', headerRow.slice(0,7), photoRows, 'searchInput2', 'pagination2', true);
 
 
     renderChart();
