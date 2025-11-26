@@ -431,7 +431,7 @@ async function loadDataFromBackend(){
         createEditableTable('dataTable', headerRow, dataRows, 'searchInput1', 'pagination1', false);
         createEditableTable('photoTable', json.photoHeader, photoRows, 'searchInput2', 'pagination2', true);
 
-        renderChart();
+        renderChart(); 
     } catch(e){ console.error('loadDataFromBackend error', e); }
 }
 
@@ -450,7 +450,7 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
     }
     thead.appendChild(tr);
 
-    let filteredRows = [...rows]; // filtre sonrası gösterilecek veri
+    let filteredRows = [...rows]; 
     let currentPage = isPhoto ? currentPhotoPage : 1;
 
     function renderPage(){
@@ -522,6 +522,9 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
         if(currentPage===totalPages) nextLi.classList.add('disabled');
         nextLink.addEventListener('click',(e)=>{ e.preventDefault(); if(currentPage<totalPages){ currentPage++; if(isPhoto) currentPhotoPage=currentPage; renderPage(); } });
         nextLi.appendChild(nextLink); paginationUl.appendChild(nextLi);
+
+        // Grafik güncelle
+        if(isPhoto) renderChart(filteredRows); 
     }
 
     renderPage();
@@ -552,7 +555,6 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
             });
         }
     } else {
-        // normal arama (data tablosu)
         if(search){
             search.oninput = ()=>{
                 const term=(search.value||'').toLowerCase();
@@ -626,6 +628,71 @@ async function deleteRow(rowIndex){
     }catch(e){ console.error(e); }
 }
 
+// GRAFİK
+function renderChart(rows = null){
+    try{
+        const rowsToUse = rows || photoRows; // filtrelenmiş yoksa global kullan
+        const dateInput=document.getElementById('chartDate')?.value;
+        const periodSelect=document.getElementById('chartPeriod')?.value || 'daily';
+        let selectedDate=null;
+        if(dateInput){
+            const parts=dateInput.split('-');
+            if(parts.length===3) selectedDate=new Date(+parts[0],+parts[1]-1,+parts[2]);
+        }
+
+        const counts={};
+        const labelsSet=new Set();
+        rowsToUse.forEach(row=>{
+            if(!row) return;
+            const dateStr=row[0]||'';
+            const desc=row[3]||'Açıklama Yok';
+            if(!dateStr) return;
+            const d=parseDateFromDDMMYYYY(dateStr);
+            if(!d) return;
+
+            if(selectedDate){
+                if(periodSelect==='daily' && dateStr!==formatDate(selectedDate)) return;
+                if(periodSelect==='weekly' && weekKeyFromDate(selectedDate)!==weekKeyFromDate(d)) return;
+                if(periodSelect==='monthly' && monthKeyFromDate(selectedDate)!==monthKeyFromDate(d)) return;
+            }
+
+            let key='';
+            if(periodSelect==='daily') key=formatDate(d);
+            else if(periodSelect==='weekly') key=weekKeyFromDate(d);
+            else if(periodSelect==='monthly') key=monthKeyFromDate(d);
+
+            labelsSet.add(key);
+            const countKey=`${desc}|${key}`;
+            counts[countKey]=(counts[countKey]||0)+1;
+        });
+
+        const labels=Array.from(labelsSet).sort();
+        const groups={};
+        for(const k in counts){
+            const [desc,pKey]=k.split('|');
+            if(!groups[desc]) groups[desc]={};
+            groups[desc][pKey]=counts[k];
+        }
+
+        const palette=["#32ff7e","#7efff5","#0ff3ff","#3af1a0","#2ed573","#1dd1a1","#10ac84","#54a0ff"];
+        const datasets=[];
+        Object.keys(groups).forEach((desc,i)=>{
+            const arr=labels.map(l=>groups[desc][l]||0);
+            datasets.push({label:desc,data:arr,backgroundColor:palette[i%palette.length],borderColor:palette[i%palette.length],borderWidth:1,type:'bar'});
+        });
+
+        const ctx=document.getElementById('errorChart')?.getContext('2d');
+        if(!ctx) return;
+        if(errorChart) errorChart.destroy();
+        errorChart=new Chart(ctx,{data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'},tooltip:{mode:'index',intersect:false}},scales:{y:{beginAtZero:true}}}});
+    }catch(e){ console.error(e); }
+}
+
+function parseDateFromDDMMYYYY(s){ if(!s) return null; const p=s.split('.'); if(p.length!==3) return null; const d=new Date(+p[2],+p[1]-1,+p[0]); return isNaN(d)?null:d; }
+function weekKeyFromDate(d){ const onejan=new Date(d.getFullYear(),0,1); return 'W'+Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7); }
+function monthKeyFromDate(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+function formatDate(d){ return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; }
+
 // PAGE & PERIOD BUTTONS
 document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('loginBtn')?.addEventListener('click',login);
@@ -654,13 +721,12 @@ document.addEventListener('DOMContentLoaded',()=>{
         renderChart(); 
     });
 
-    document.getElementById('chartDate')?.addEventListener('change',renderChart);
-    document.getElementById('chartPeriod')?.addEventListener('change',renderChart);
+    document.getElementById('chartDate')?.addEventListener('change',()=>renderChart());
+    document.getElementById('chartPeriod')?.addEventListener('change',()=>renderChart());
 
     if(localStorage.getItem('loggedIn')==='true') showMain();
 });
 </script>
-
 
 
 </body>
