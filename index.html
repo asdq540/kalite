@@ -248,39 +248,50 @@ function openEditModal(rowIndex){
     const row = photoRows[rowIndex] || [];
     const header = photoHeader || [];
 
-    let html = `<div class="modal fade" id="rowEditModal" tabindex="-1">
-        <div class="modal-dialog modal-lg"><div class="modal-content">
-        <div class="modal-header">
-            <h5 class="modal-title">Fotoğraf Düzenle</h5>
-            <button class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body"><form id="rowEditForm">`;
+    // Dinamik modal ID
+    const modalId = 'rowEditModal_' + rowIndex;
+
+    // Modal HTML oluştur
+    let html = `<div class="modal fade" id="${modalId}" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Fotoğraf Düzenle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="rowEditForm_${rowIndex}">`;
 
     header.forEach((h,i)=>{
-        const val = row[i]||'';
+        const val = row[i] || '';
         html += `<label class="form-label">${h}</label>
                  <input class="form-control mb-2" data-col="${i}" value="${val}">`;
     });
 
-    html += `</form></div>
-        <div class="modal-footer">
-            <button type="button" id="saveRowBtn" class="btn btn-primary">Kaydet</button>
-        </div></div></div></div>`;
+    html += `</form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="saveRowBtn_${rowIndex}" class="btn btn-primary">Kaydet</button>
+            </div>
+        </div>
+    </div></div>`;
 
     const container = document.getElementById('editModalContainer');
     container.innerHTML = html;
 
-    const modalEl = document.getElementById('rowEditModal');
-    const bs = new bootstrap.Modal(modalEl);
-    bs.show();
+    // Modal Bootstrap nesnesi oluştur ve göster
+    const modalEl = document.getElementById(modalId);
+    const bsModal = new bootstrap.Modal(modalEl);
+    bsModal.show();
 
-    document.getElementById('saveRowBtn').onclick = async ()=>{
-        const inputs = document.querySelectorAll('#rowEditForm input');
+    // Save button event listener
+    document.getElementById(`saveRowBtn_${rowIndex}`).onclick = async ()=>{
+        const inputs = document.querySelectorAll(`#rowEditForm_${rowIndex} input`);
         const newRow = [];
-        inputs.forEach(inp=> newRow[parseInt(inp.dataset.col)] = inp.value.trim());
+        inputs.forEach(inp => newRow[parseInt(inp.dataset.col)] = inp.value.trim());
 
         const payload = {
-            row: rowIndex + 2, // 1.header + 0-index
+            row: rowIndex + 2, // Google Sheets 1-index + header
             yeni: {
                 tarih: newRow[0] || '',
                 vardiya: newRow[1] || '',
@@ -293,17 +304,25 @@ function openEditModal(rowIndex){
             }
         };
 
-        try{
-            const res = await fetch(BACKEND_BASE+'/api/duzenle',{
+        try {
+            const res = await fetch(BACKEND_BASE + '/api/duzenle', {
                 method:'POST',
                 headers:{'Content-Type':'application/json'},
                 body: JSON.stringify(payload)
             });
-            if(res.ok){ bs.hide(); loadDataFromBackend(); }
-            else alert('Güncelleme başarısız');
-        } catch(e){ console.error(e); alert('Sunucu hatası'); }
+            if(res.ok){
+                bsModal.hide();
+                loadDataFromBackend();
+            } else {
+                alert('Güncelleme başarısız');
+            }
+        } catch(e){
+            console.error(e);
+            alert('Sunucu hatası');
+        }
     };
 }
+
 
 // DELETE ROW PHOTO
 async function deleteRow(rowIndex){
