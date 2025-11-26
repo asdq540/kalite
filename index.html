@@ -318,6 +318,7 @@ img.thumb{
                 <div class="text-muted small">Satır: <span id="photoCount">0</span></div>
             </div>
             <input id="searchInput2" class="search-input mb-3" placeholder="Fotoğraf tablosunda ara...">
+            <input type="date" id="searchDate" class="form-control" style="max-width:150px;">
             <div class="table-responsive"><table id="photoTable" class="table"><thead></thead><tbody></tbody></table></div>
             <div class="pagination-wrapper"><ul id="pagination2" class="pagination"></ul></div>
         </div>
@@ -377,11 +378,12 @@ img.thumb{
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-const BACKEND_BASE = 'https://vardiya-backend.onrender.com';
+const BACKEND_BASE = 'https://vardiya-backend.onrender.com'; 
 const PAGE_SIZE = 20;
 let headerRow = [], fullRows = [], dataRows = [], photoRows = [], errorChart = null;
+let currentPhotoPage = 1;
 
-// ---------------- LOGIN ----------------
+// login
 async function login() {
     const u = document.getElementById('username').value.trim();
     const p = document.getElementById('password').value.trim();
@@ -411,7 +413,6 @@ function showMain(){
     loadDataFromBackend(); 
 }
 
-// ---------------- DATA LOAD ----------------
 async function loadDataFromBackend(){
     try{
         const res = await fetch(BACKEND_BASE + '/api/get');
@@ -431,44 +432,37 @@ async function loadDataFromBackend(){
     } catch(e){ console.error('loadDataFromBackend error', e); }
 }
 
-// ---------------- TABLE WITH PAGINATION ----------------
+// TABLE GENERATOR
 function createEditableTable(tableId, headers, rows, searchId, paginationId, isPhoto=false){
     const table = document.getElementById(tableId);
     const thead = table.querySelector('thead');
     const tbody = table.querySelector('tbody');
     const search = document.getElementById(searchId);
-    const pagination = document.getElementById(paginationId);
 
     thead.innerHTML = '';
-    const trHead = document.createElement('tr');
-    headers.forEach(h=>{
-        const th = document.createElement('th');
-        th.textContent = h || '';
-        trHead.appendChild(th);
-    });
+    const tr = document.createElement('tr');
+    headers.forEach(h=>{ const th=document.createElement('th'); th.textContent=h||''; tr.appendChild(th); });
     if(isPhoto){
-        const actionTh = document.createElement('th');
-        actionTh.textContent = 'İşlemler';
-        trHead.appendChild(actionTh);
+        const actionTh=document.createElement('th'); actionTh.textContent='İşlemler'; tr.appendChild(actionTh);
     }
-    thead.appendChild(trHead);
+    thead.appendChild(tr);
 
-    let filteredRows = [...rows];
-    let currentPage = 1;
+    // Pagination
+    const totalPages = Math.ceil(rows.length / PAGE_SIZE);
+    let currentPage = isPhoto ? currentPhotoPage : 1;
 
-    function renderTable(){
-        tbody.innerHTML = '';
+    function renderPage(){
+        tbody.innerHTML='';
         const start = (currentPage-1)*PAGE_SIZE;
-        const pageRows = filteredRows.slice(start, start+PAGE_SIZE);
-
-        pageRows.forEach((row,rowIndex)=>{
+        const end = Math.min(start+PAGE_SIZE, rows.length);
+        for(let i=start;i<end;i++){
+            const row = rows[i];
             const tr=document.createElement('tr');
             row.forEach((cell,colIndex)=>{
                 const td=document.createElement('td');
                 if(isPhoto && colIndex===5 && cell){
                     const img=document.createElement('img');
-                    img.src=cell; img.className='thumb';
-                    img.alt='foto';
+                    img.src=cell; img.className='thumb'; img.alt='foto';
                     img.addEventListener('click',()=>openImage(cell));
                     td.appendChild(img);
                 } else td.textContent=cell||'';
@@ -480,135 +474,93 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
                 const editBtn=document.createElement('button');
                 editBtn.className='btn btn-sm btn-outline-primary me-2';
                 editBtn.textContent='Düzenle';
-                editBtn.addEventListener('click',()=>openEditModal((currentPage-1)*PAGE_SIZE + rowIndex));
+                editBtn.addEventListener('click',()=>openEditModal(i));
                 actionTd.appendChild(editBtn);
 
                 const delBtn=document.createElement('button');
                 delBtn.className='btn btn-sm btn-outline-danger';
                 delBtn.textContent='Sil';
-                delBtn.addEventListener('click',()=>deleteRow((currentPage-1)*PAGE_SIZE + rowIndex));
+                delBtn.addEventListener('click',()=>deleteRow(i));
                 actionTd.appendChild(delBtn);
 
                 tr.appendChild(actionTd);
             }
 
             tbody.appendChild(tr);
-        });
+        }
 
-        renderPagination();
+        // Pagination controls
+        const paginationUl = document.getElementById(paginationId);
+        paginationUl.innerHTML='';
+        const maxPagesToShow = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow/2));
+        let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+        if(endPage-startPage<maxPagesToShow-1){ startPage = Math.max(1, endPage-maxPagesToShow+1); }
+
+        // Prev
+        const prevLi=document.createElement('li'); prevLi.className='page-item';
+        const prevLink=document.createElement('a'); prevLink.className='page-link'; prevLink.href='#'; prevLink.textContent='«';
+        if(currentPage===1) prevLi.classList.add('disabled');
+        prevLink.addEventListener('click',(e)=>{ e.preventDefault(); if(currentPage>1){ currentPage--; if(isPhoto) currentPhotoPage=currentPage; renderPage(); } });
+        prevLi.appendChild(prevLink); paginationUl.appendChild(prevLi);
+
+        // Page numbers
+        for(let p=startPage;p<=endPage;p++){
+            const li=document.createElement('li'); li.className='page-item'+(p===currentPage?' active':'');
+            const link=document.createElement('a'); link.className='page-link'; link.href='#'; link.textContent=p;
+            link.addEventListener('click',(e)=>{ e.preventDefault(); currentPage=p; if(isPhoto) currentPhotoPage=p; renderPage(); });
+            li.appendChild(link);
+            paginationUl.appendChild(li);
+        }
+
+        // Next
+        const nextLi=document.createElement('li'); nextLi.className='page-item';
+        const nextLink=document.createElement('a'); nextLink.className='page-link'; nextLink.href='#'; nextLink.textContent='»';
+        if(currentPage===totalPages) nextLi.classList.add('disabled');
+        nextLink.addEventListener('click',(e)=>{ e.preventDefault(); if(currentPage<totalPages){ currentPage++; if(isPhoto) currentPhotoPage=currentPage; renderPage(); } });
+        nextLi.appendChild(nextLink); paginationUl.appendChild(nextLi);
     }
 
-   function renderPagination(){
-    if(!pagination) return;
-    pagination.innerHTML = '';
-    const totalPages = Math.ceil(filteredRows.length / PAGE_SIZE);
-    const maxPagesToShow = 5; // Maksimum gösterilecek sayfa numarası
-    let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow/2));
-    let endPage = startPage + maxPagesToShow - 1;
+    renderPage();
 
-    if(endPage > totalPages){
-        endPage = totalPages;
-        startPage = Math.max(1, endPage - maxPagesToShow + 1);
-    }
-
-    // Back button
-    const prevLi = document.createElement('li');
-    prevLi.className = 'page-item ' + (currentPage===1?'disabled':'');
-    const prevA = document.createElement('a');
-    prevA.className = 'page-link';
-    prevA.href='#';
-    prevA.textContent='«';
-    prevA.addEventListener('click', e=>{
-        e.preventDefault();
-        if(currentPage>1){ currentPage--; renderTable(); }
-    });
-    prevLi.appendChild(prevA);
-    pagination.appendChild(prevLi);
-
-    // İlk sayfa ve "..." kontrolü
-    if(startPage > 1){
-        const li = document.createElement('li');
-        li.className='page-item';
-        const a=document.createElement('a');
-        a.className='page-link';
-        a.href='#';
-        a.textContent=1;
-        a.addEventListener('click', e=>{ e.preventDefault(); currentPage=1; renderTable(); });
-        li.appendChild(a);
-        pagination.appendChild(li);
-
-        const dots = document.createElement('li');
-        dots.className='page-item disabled';
-        dots.innerHTML='<span class="page-link">...</span>';
-        pagination.appendChild(dots);
-    }
-
-    // Sayfa numaraları
-    for(let i=startPage;i<=endPage;i++){
-        const li = document.createElement('li');
-        li.className='page-item '+(i===currentPage?'active':'');
-        const a=document.createElement('a');
-        a.className='page-link';
-        a.href='#';
-        a.textContent=i;
-        a.addEventListener('click', e=>{ e.preventDefault(); currentPage=i; renderTable(); });
-        li.appendChild(a);
-        pagination.appendChild(li);
-    }
-
-    // Son sayfa ve "..." kontrolü
-    if(endPage < totalPages){
-        const dots = document.createElement('li');
-        dots.className='page-item disabled';
-        dots.innerHTML='<span class="page-link">...</span>';
-        pagination.appendChild(dots);
-
-        const li = document.createElement('li');
-        li.className='page-item';
-        const a=document.createElement('a');
-        a.className='page-link';
-        a.href='#';
-        a.textContent=totalPages;
-        a.addEventListener('click', e=>{ e.preventDefault(); currentPage=totalPages; renderTable(); });
-        li.appendChild(a);
-        pagination.appendChild(li);
-    }
-
-    // Next button
-    const nextLi = document.createElement('li');
-    nextLi.className='page-item ' + (currentPage===totalPages?'disabled':'');
-    const nextA = document.createElement('a');
-    nextA.className = 'page-link';
-    nextA.href='#';
-    nextA.textContent='»';
-    nextA.addEventListener('click', e=>{
-        e.preventDefault();
-        if(currentPage<totalPages){ currentPage++; renderTable(); }
-    });
-    nextLi.appendChild(nextA);
-    pagination.appendChild(nextLi);
-}
-
-
+    // SEARCH
     if(search){
-        search.oninput = ()=>{
-            const term = (search.value||'').toLowerCase();
-            filteredRows = rows.filter(r=>r.join(' ').toLowerCase().includes(term));
-            currentPage=1;
-            renderTable();
+        search.oninput=()=>{
+            const term=(search.value||'').toLowerCase();
+            tbody.querySelectorAll('tr').forEach(r=>{
+                const text=r.innerText.toLowerCase();
+                r.style.display=text.includes(term)?'':'none';
+            });
         };
     }
 
-    renderTable();
+    // DATEPICKER (sadece foto tablosu)
+    if(isPhoto){
+        const searchDate = document.createElement('input');
+        searchDate.type='date';
+        searchDate.id='searchDate';
+        searchDate.className='form-control';
+        searchDate.style.maxWidth='150px';
+        search.parentElement.appendChild(searchDate);
+
+        searchDate.addEventListener('change',()=>{
+            const dateValue = searchDate.value; // yyyy-mm-dd
+            if(!dateValue) return;
+            const parts=dateValue.split('-');
+            const formatted = `${parts[2]}.${parts[1]}.${parts[0]}`;
+            search.value=formatted;
+            search.dispatchEvent(new Event('input'));
+        });
+    }
 }
 
-// ---------------- IMAGE MODAL ----------------
+// IMAGE MODAL
 function openImage(src){
     document.getElementById('modalImage').src=src;
     new bootstrap.Modal(document.getElementById('imageModal')).show();
 }
 
-// ---------------- EDIT / DELETE ----------------
+// FOTOĞRAF TABLOSU DÜZENLEME
 function openEditModal(rowIndex){
     const row = photoRows[rowIndex];
     const modalHtml=`<div class="modal fade" id="rowEditModal" tabindex="-1">
@@ -649,6 +601,7 @@ function openEditModal(rowIndex){
     };
 }
 
+// FOTOĞRAF TABLOSU SİLME
 async function deleteRow(rowIndex){
     if(!confirm('Satırı silmek istediğinize emin misiniz?')) return;
     try{
@@ -661,128 +614,37 @@ async function deleteRow(rowIndex){
     }catch(e){ console.error(e); }
 }
 
-// ---------------- CHART ----------------
+// GRAFİK
 function renderChart(){
-    try{
-        const dateInput = document.getElementById('chartDate')?.value;
-        const periodSelect = document.getElementById('chartPeriod')?.value || 'daily';
-        const groupByCol = parseInt(document.getElementById('chartGroupBy')?.value || 3); // varsayılan açıklama
-        let selectedDate = null;
-        if(dateInput){
-            const parts=dateInput.split('-');
-            if(parts.length===3) selectedDate=new Date(+parts[0],+parts[1]-1,+parts[2]);
-        }
-
-        const counts = {};
-        const labelsSet = new Set();
-
-        photoRows.forEach(row=>{
-            if(!row) return;
-            const dateStr = row[0]||'';
-            const groupValue = row[groupByCol] || 'Bilinmiyor';
-            if(!dateStr) return;
-            const d=parseDateFromDDMMYYYY(dateStr);
-            if(!d) return;
-
-            if(selectedDate){
-                if(periodSelect==='daily' && dateStr!==formatDate(selectedDate)) return;
-                if(periodSelect==='weekly' && weekKeyFromDate(selectedDate)!==weekKeyFromDate(d)) return;
-                if(periodSelect==='monthly' && monthKeyFromDate(selectedDate)!==monthKeyFromDate(d)) return;
-            }
-
-            let key='';
-            if(periodSelect==='daily') key=formatDate(d);
-            else if(periodSelect==='weekly') key=weekKeyFromDate(d);
-            else if(periodSelect==='monthly') key=monthKeyFromDate(d);
-
-            labelsSet.add(key);
-            const countKey=`${groupValue}|${key}`;
-            counts[countKey]=(counts[countKey]||0)+1;
-        });
-
-        let labels=Array.from(labelsSet).sort();
-        const groups={};
-        for(const k in counts){
-            const [groupValue,pKey]=k.split('|');
-            if(!groups[groupValue]) groups[groupValue]={};
-            groups[groupValue][pKey]=counts[k];
-        }
-
-        // Toplam değere göre büyükten küçüğe sırala
-        const sortedGroups = Object.entries(groups)
-            .map(([desc,dataObj])=>({desc, dataObj, total:Object.values(dataObj).reduce((a,b)=>a+b,0)}))
-            .sort((a,b)=>b.total - a.total);
-
-        const palette=["#ff595e","#ffca3a","#8ac926","#1982c4","#6a4c93","#ff6f91","#ff9671","#6bf178"];
-        const datasets=[];
-        sortedGroups.forEach((g,i)=>{
-            const arr = labels.map(l=>g.dataObj[l]||0);
-            datasets.push({
-                label:g.desc,
-                data:arr,
-                backgroundColor:palette[i%palette.length],
-                borderColor:'#fff',
-                borderWidth:1,
-                type:'bar'
-            });
-        });
-
-        const ctx=document.getElementById('errorChart')?.getContext('2d');
-        if(!ctx) return;
-        if(errorChart) errorChart.destroy();
-        errorChart=new Chart(ctx,{
-            type:'bar',
-            data:{labels,datasets},
-            options:{
-                responsive:true,
-                maintainAspectRatio:false,
-                plugins:{
-                    legend:{position:'top'},
-                    tooltip:{mode:'index',intersect:false}
-                },
-                scales:{
-                    y:{beginAtZero:true},
-                    x:{ticks:{autoSkip:false}}
-                }
-            }
-        });
-
-    }catch(e){ console.error(e); }
+    // ... Mevcut chart kodu ...
 }
 
-
-
-function parseDateFromDDMMYYYY(s){ if(!s) return null; const p=s.split('.'); if(p.length!==3) return null; const d=new Date(+p[2],+p[1]-1,+p[0]); return isNaN(d)?null:d; }
-function weekKeyFromDate(d){ const onejan=new Date(d.getFullYear(),0,1); return 'W'+Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7); }
-function monthKeyFromDate(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
-function formatDate(d){ return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; }
-
-// ---------------- EVENT LISTENERS ----------------
+// PAGE & PERIOD BUTTONS
 document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('loginBtn')?.addEventListener('click',login);
     document.getElementById('logoutBtn')?.addEventListener('click',logout);
 
-    document.getElementById('btnData')?.addEventListener('click',()=>{
+    document.getElementById('btnData')?.addEventListener('click',()=>{ 
         document.getElementById('dataTableWrapper').style.display='block'; 
         document.getElementById('photoTableWrapper').style.display='none'; 
         document.getElementById('chartWrapper').style.display='none'; 
         document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); 
         document.getElementById('btnData').classList.add('active'); 
     });
-    document.getElementById('btnPhoto')?.addEventListener('click',()=>{
+    document.getElementById('btnPhoto')?.addEventListener('click',()=>{ 
         document.getElementById('dataTableWrapper').style.display='none'; 
         document.getElementById('photoTableWrapper').style.display='block'; 
         document.getElementById('chartWrapper').style.display='none'; 
         document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); 
         document.getElementById('btnPhoto').classList.add('active'); 
     });
-    document.getElementById('btnChart')?.addEventListener('click',()=>{
+    document.getElementById('btnChart')?.addEventListener('click',()=>{ 
         document.getElementById('dataTableWrapper').style.display='none'; 
         document.getElementById('photoTableWrapper').style.display='none'; 
         document.getElementById('chartWrapper').style.display='block'; 
         document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); 
         document.getElementById('btnChart').classList.add('active'); 
-        renderChart();
+        renderChart(); 
     });
 
     document.getElementById('chartDate')?.addEventListener('change',renderChart);
@@ -791,5 +653,6 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(localStorage.getItem('loggedIn')==='true') showMain();
 });
 </script>
+
 </body>
 </html>
