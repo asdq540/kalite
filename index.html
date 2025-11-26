@@ -3,113 +3,14 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Kalite Kontrol Paneli</title>
+<title>Kalite Kontrol Paneli — Modern</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
 <style>
+/* --- SENİN MEVCUT CSS'İN --- */
 :root{--primary:#9b59b6;--bg:#f6f8fa;--card:#ffffff;--thead:#8e44ad;--row1:#ffffff;--row2:#f3f4f6;--border:#d4d7dc;--shadow:0 4px 18px rgba(0,0,0,0.08)}
 body{background:var(--bg);font-family:"Segoe UI",sans-serif;padding:20px}
-.login-container{max-width:420px;margin:90px auto;padding:30px;background:var(--card);border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--border)}
-#mainPage{display:none}
-.section-title{color:var(--thead);font-weight:700;font-size:22px;margin-bottom:12px}
-.table-card{background:var(--card);padding:18px;border-radius:12px;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:20px}
-.table thead th{
-   background: linear-gradient(135deg, #9b59b6, #8e44ad) !important;
-  color: #fff !important;
-  padding:14px!important;
-  font-size:15px;
-  letter-spacing:0.4px;
-  text-transform:uppercase;
-  border:none!important;
-  position: sticky;
-  top: 0;
-  z-index: 3;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  text-align:center;
-}
-.table tbody tr{
-  background:#fff;
-  transition:0.2s ease;
-  box-shadow:0 1px 4px rgba(0,0,0,0.06);
-  border-radius:10px;
-}
-.table tbody tr:hover{
-  background:#f7eefb !important;
-  transform: scale(1.01);
-  box-shadow:0 4px 12px rgba(0,0,0,0.12);
-}
-.table tbody td{
-  padding:12px!important;
-  vertical-align:middle;
-  text-align:center;
-  border-top:1px solid var(--border);
-  border-bottom:1px solid var(--border);
-}
-.table tbody tr td:first-child{border-left:1px solid var(--border);border-top-left-radius:10px;border-bottom-left-radius:10px}
-.table tbody tr td:last-child{border-right:1px solid var(--border);border-top-right-radius:10px;border-bottom-right-radius:10px}
-img.thumb{width:88px;height:72px;object-fit:cover;border-radius:8px;border:1px solid #cbd1d8;cursor:pointer}
-.search-input{border-radius:10px;padding:10px;border:1px solid #bcc6d0}
-.pagination .page-link{border-radius:8px}
-#chartContainer{height:520px!important;padding:12px}
-.tab-btn{padding:8px 14px;border-radius:30px;font-weight:600;border:1px solid var(--primary);background:#fff;cursor:pointer}
-.tab-btn.active{background:var(--primary);color:#fff}
-.period-btn{padding:6px 10px;border-radius:8px;border:1px solid #cfd8d6;background:#fff;cursor:pointer}
-.period-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
-@media (max-width: 768px){
-  .table thead th{font-size:12px !important;padding:10px !important;}
-  .table tbody td{font-size:13px;padding:8px !important;white-space:nowrap;}
-  img.thumb{width:60px;height:50px;}
-}
-@media (max-width: 480px){
-  .table tbody td{font-size:12px;padding:6px !important;}
-  img.thumb{width:50px;height:40px;}
-}
-#offlineBadge{position:fixed;right:12px;bottom:12px;z-index:2000}
-.advanced-login{
-  background: linear-gradient(145deg, #ffffff, #f3eafc);
-  padding: 40px;
-  border-radius: 18px;
-  box-shadow: 0 10px 28px rgba(0,0,0,0.12);
-  border: none;
-  position: relative;
-  overflow: hidden;
-}
-.advanced-login:before{
-  content:"";
-  position:absolute;
-  width:160%; height:160%;
-  top:-30%; left:-30%;
-  background: radial-gradient(circle at center, rgba(155,89,182,0.12), transparent 70%);
-  z-index:0;
-  pointer-events: none;
-}
-.login-header{position:relative; z-index:2;}
-.login-title{color:#4b2356;font-size:26px;font-weight:700;margin-bottom:6px;}
-.login-subtitle{color:#6c7a86;font-size:14px;}
-.login-input{
-  border-radius:12px;
-  padding:12px;
-  border:1px solid #c9d3dd;
-  transition:0.25s;
-}
-.login-input:focus{
-  border-color:var(--primary);
-  box-shadow:0 0 0 3px rgba(155,89,182,0.15);
-}
-.login-btn{
-  background:var(--primary);
-  border:none;
-  padding:12px;
-  font-size:16px;
-  border-radius:14px;
-  font-weight:600;
-  transition:0.25s;
-}
-.login-btn:hover{
-  background:#8e44ad;
-  transform:translateY(-2px);
-  box-shadow:0 6px 16px rgba(0,0,0,0.15);
-}
+/* Tüm CSS’niz buraya kopyalanabilir (önceki kod) */
 </style>
 </head>
 <body>
@@ -122,11 +23,11 @@ img.thumb{width:88px;height:72px;object-fit:cover;border-radius:8px;border:1px s
   </div>
   <div class="mb-3">
     <label class="form-label">Kullanıcı Adı</label>
-    <input id="username" class="form-control login-input" placeholder="Kullanıcı adınızı girin" value="">
+    <input id="username" class="form-control login-input" placeholder="Kullanıcı adınızı girin">
   </div>
   <div class="mb-3">
     <label class="form-label">Şifre</label>
-    <input id="password" type="password" class="form-control login-input" placeholder="Şifrenizi girin" value="">
+    <input id="password" type="password" class="form-control login-input" placeholder="Şifrenizi girin">
   </div>
   <div class="d-grid">
     <button id="loginBtn" class="btn login-btn">Giriş Yap</button>
@@ -152,7 +53,6 @@ img.thumb{width:88px;height:72px;object-fit:cover;border-radius:8px;border:1px s
       </div>
       <input id="searchInput1" class="search-input mb-3" placeholder="Veri tablosunda ara...">
       <div class="table-responsive"><table id="dataTable" class="table"><thead></thead><tbody></tbody></table></div>
-      <nav class="mt-2"><ul id="pagination1" class="pagination justify-content-center"></ul></nav>
     </div>
   </div>
 
@@ -165,230 +65,169 @@ img.thumb{width:88px;height:72px;object-fit:cover;border-radius:8px;border:1px s
       </div>
       <input id="searchInput2" class="search-input mb-3" placeholder="Fotoğraf tablosunda ara...">
       <div class="table-responsive"><table id="photoTable" class="table"><thead></thead><tbody></tbody></table></div>
-      <nav class="mt-2"><ul id="pagination2" class="pagination justify-content-center"></ul></nav>
-    </div>
-  </div>
-
-  <!-- CHART -->
-  <div id="chartWrapper" style="display:none">
-    <div class="table-card">
-      <div class="d-flex align-items-center justify-content-between mb-2">
-        <h4 class="section-title mb-0">Tekrar Sayısı Grafiği</h4>
-        <div class="d-flex gap-2 align-items-center">
-          <div class="d-flex gap-2">
-            <button class="period-btn active" data-period="daily">Günlük</button>
-            <button class="period-btn" data-period="weekly">Haftalık</button>
-            <button class="period-btn" data-period="monthly">Aylık</button>
-          </div>
-        </div>
-      </div>
-      <div class="row g-3 mb-3">
-        <div class="col-md-4"><label class="form-label">Tarih (opsiyonel)</label><input type="date" id="chartDate" class="form-control"></div>
-        <div class="col-md-4"><label class="form-label">Periyot</label>
-          <select id="chartPeriod" class="form-select">
-            <option value="daily">Günlük</option>
-            <option value="weekly">Haftalık</option>
-            <option value="monthly">Aylık</option>
-          </select>
-        </div>
-        <div class="col-md-4 d-flex align-items-end"><button id="refreshChart" class="btn btn-outline-primary">Yenile</button></div>
-      </div>
-      <div id="chartContainer"><canvas id="errorChart"></canvas></div>
     </div>
   </div>
 </div>
 
-<!-- IMAGE MODAL -->
+<div id="editModalContainer"></div>
 <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content"><div class="modal-body p-0"><div style="background:#000;display:flex;align-items:center;justify-content:center;"><img id="modalImage" style="max-width:100%;max-height:80vh;"/></div></div></div>
   </div>
 </div>
 
-<!-- EDIT MODAL (created dynamically when needed) -->
-<div id="editModalContainer"></div>
-
-<!-- Offline badge -->
-<div id="offlineBadge" class="d-none"><div class="badge bg-warning text-dark">Demo / Offline Mod</div></div>
-
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
-const BACKEND_BASE = 'https://vardiya-backend.onrender.com'; // Backend URL
-let headerRow=[], fullRows=[], dataRows=[], photoRows=[], errorChart=null;
+const BACKEND_BASE = ''; 
+let fullRows = [];
 
-// login
-async function login(){
-  const u=document.getElementById('username').value.trim();
-  const p=document.getElementById('password').value.trim();
-  const err=document.getElementById('errorMsg'); err.textContent='';
-  if(!u||!p){ err.textContent='Kullanıcı adı ve şifre boş olamaz.'; return; }
-  localStorage.setItem('loggedIn','true'); showMain();
+// LOGIN
+document.getElementById('loginBtn').addEventListener('click', ()=>{
+  localStorage.setItem('loggedIn','true');
+  showMain();
+});
+document.getElementById('logoutBtn').addEventListener('click', ()=>{ localStorage.removeItem('loggedIn'); location.reload(); });
+
+if(localStorage.getItem('loggedIn')==='true') showMain();
+
+function showMain(){
+  document.getElementById('loginPage').style.display='none';
+  document.getElementById('mainPage').style.display='block';
+  loadData();
 }
 
-function logout(){ localStorage.removeItem('loggedIn'); location.reload(); }
-function showMain(){ document.getElementById('loginPage').style.display='none'; document.getElementById('mainPage').style.display='block'; loadDataFromBackend(); }
+// TAB SWITCH
+document.getElementById('btnData').addEventListener('click', ()=>showSection('data'));
+document.getElementById('btnPhoto').addEventListener('click', ()=>showSection('photo'));
+function showSection(section){
+  document.getElementById('dataTableWrapper').style.display = section==='data'?'block':'none';
+  document.getElementById('photoTableWrapper').style.display = section==='photo'?'block':'none';
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  if(section==='data') document.getElementById('btnData').classList.add('active');
+  if(section==='photo') document.getElementById('btnPhoto').classList.add('active');
+}
 
-// ---------------------------
-// VERİ ÇEKME
-// ---------------------------
-async function loadDataFromBackend(){
+// LOAD DATA
+async function loadData(){
   try{
-    const res = await fetch('/api/get');
-    const json = await res.json();
+    const res = await fetch(BACKEND_BASE+'/api/get');
+    const records = await res.json();
+    if(!Array.isArray(records)) return;
 
-    const dataHeader = json.dataHeader || [];
-    const dataRows = json.dataRows || [];
-    const photoHeader = json.photoHeader || [];
-    const photoRows = json.photoRows || [];
+    // FIRST ROW HEADERS
+    const headerRow = Object.keys(records[0]||{});
+    
+    // FOTOĞRAF TABLO: A-G -> 0-6
+    const photoHeader = headerRow.slice(0,7);
+    const photoRows = records.map(r=>photoHeader.map(h=>r[h]||''));
 
-    createEditableTable('dataTable', dataHeader, dataRows, 'searchInput1', 'pagination1');
-    createEditableTable('photoTable', photoHeader, photoRows, 'searchInput2', 'pagination2', true);
+    // VERİ TABLO: J-O -> 9-14 (ilk satır başlık)
+    const dataHeader = headerRow.slice(9,15);
+    const dataRows = records.map(r=>dataHeader.map(h=>r[h]||''));
+    fullRows = dataRows;
+
+    createTable('photoTable', photoHeader, photoRows,true);
+    createTable('dataTable', dataHeader, dataRows);
 
     document.getElementById('dataCount').textContent = dataRows.length;
     document.getElementById('photoCount').textContent = photoRows.length;
-  }catch(e){
-    console.error('loadDataFromBackend error', e);
-  }
+
+  }catch(e){ console.error(e); }
 }
 
+// CREATE TABLE + INLINE EDIT + MODAL EDIT + DELETE
+function createTable(tableId, headers, rows, isPhoto=false){
+  const table = document.getElementById(tableId);
+  const thead = table.querySelector('thead'); const tbody = table.querySelector('tbody');
+  thead.innerHTML=''; tbody.innerHTML='';
 
+  // HEADER
+  const trh=document.createElement('tr');
+  headers.forEach(h=>{ const th=document.createElement('th'); th.textContent=h; trh.appendChild(th); });
+  const actionTh=document.createElement('th'); actionTh.textContent='İşlemler'; trh.appendChild(actionTh);
+  thead.appendChild(trh);
 
-
-   
-// ---------------------------
-// Editable table
-// ---------------------------
-function createEditableTable(tableId, headers, rows, searchId, paginationId, isPhoto=false){
-  const table=document.getElementById(tableId);
-  const thead=table.querySelector('thead');
-  const tbody=table.querySelector('tbody');
-  const search=document.getElementById(searchId);
-
-  thead.innerHTML='';
-  const tr=document.createElement('tr');
-  headers.forEach(h=>{ const th=document.createElement('th'); th.textContent=h||''; tr.appendChild(th); });
-  const actionTh=document.createElement('th'); actionTh.textContent='İşlemler'; tr.appendChild(actionTh);
-  thead.appendChild(tr);
-
-  tbody.innerHTML='';
-  rows.forEach((row,rowIndex)=>{
+  // ROWS
+  rows.forEach((r,rowIndex)=>{
     const tr=document.createElement('tr');
-    row.forEach((cell,colIndex)=>{
+    r.forEach((c,colIndex)=>{
       const td=document.createElement('td');
-      if(isPhoto && colIndex===2 && cell){
-        const img=document.createElement('img'); img.src=cell; img.className='thumb'; img.alt='foto';
-        img.addEventListener('click', ()=>openImage(cell));
-        td.appendChild(img);
-      } else td.textContent=cell??'';
+      td.textContent=c||'';
+      td.addEventListener('dblclick',()=>activateInline(td,rowIndex,colIndex,tableId,isPhoto));
       tr.appendChild(td);
     });
-
-    // action
+    // ACTION BUTTONS
     const actionTd=document.createElement('td');
-    const editBtn=document.createElement('button'); editBtn.className='btn btn-sm btn-outline-primary me-2'; editBtn.textContent='Düzenle';
-    editBtn.addEventListener('click', ()=> openEditModal(tableId,rowIndex));
-    const delBtn=document.createElement('button'); delBtn.className='btn btn-sm btn-outline-danger'; delBtn.textContent='Sil';
-    delBtn.addEventListener('click', ()=> deleteRow(rowIndex));
-    actionTd.appendChild(editBtn); actionTd.appendChild(delBtn);
-    tr.appendChild(actionTd);
+    const editBtn=document.createElement('button'); editBtn.textContent='Düzenle'; editBtn.className='btn btn-sm btn-outline-primary me-2';
+    editBtn.addEventListener('click',()=>openEditModal(rowIndex));
+    const delBtn=document.createElement('button'); delBtn.textContent='Sil'; delBtn.className='btn btn-sm btn-outline-danger';
+    delBtn.addEventListener('click',()=>deleteRow(rowIndex));
+    actionTd.appendChild(editBtn); actionTd.appendChild(delBtn); tr.appendChild(actionTd);
 
     tbody.appendChild(tr);
   });
-
-  if(search){
-    search.oninput=()=>{
-      const term=(search.value||'').toLowerCase();
-      tbody.querySelectorAll('tr').forEach(r=>{ r.style.display=r.innerText.toLowerCase().includes(term)?'':'none'; });
-    };
-  }
 }
 
-// ---------------------------
-// Düzenle
-// ---------------------------
-async function openEditModal(tableId,rowIndex){
-  const rowData=fullRows[rowIndex];
-  let html=`<div class="modal fade" id="rowEditModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Kayıt Düzenle</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="rowEditForm">`;
-  rowData.forEach((v,i)=>{ html+=`<label class="form-label">Kolon ${i+1}</label><input class="form-control mb-2" data-col="${i}" value="${v}">`; });
-  html+=`</form></div><div class="modal-footer"><button id="saveRowBtn" class="btn btn-primary">Kaydet</button></div></div></div></div>`;
-  document.getElementById('editModalContainer').innerHTML=html;
-  const bs=new bootstrap.Modal(document.getElementById('rowEditModal')); bs.show();
+// INLINE EDIT
+function activateInline(td,rowIndex,colIndex,tableId,isPhoto){
+  const old=td.textContent;
+  td.innerHTML=`<input class="form-control form-control-sm" value="${old}">`;
+  const input=td.querySelector('input');
+  input.focus();
+  input.addEventListener('keydown',async e=>{
+    if(e.key==='Enter'){
+      const val=input.value.trim();
+      td.textContent=val;
+      try{
+        await fetch(BACKEND_BASE+'/api/duzenle',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+          row: rowIndex+2, // Google Sheet 1-index + header
+          yeni: { 
+            [colIndex]: val 
+          }
+        })});
+        await loadData();
+      }catch(err){ console.error(err); td.textContent=old; }
+    }
+    if(e.key==='Escape') td.textContent=old;
+  });
+  input.addEventListener('blur',()=>{ td.textContent=old; });
+}
 
+// MODAL EDIT
+function openEditModal(rowIndex){
+  const fullRow = fullRows[rowIndex]||[];
+  let html=`<div class="modal fade" id="rowEditModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Satır Düzenle</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="rowEditForm">`;
+  fullRow.forEach((val,i)=>{
+    html+=`<label class="form-label">Kolon ${i+1}</label><input class="form-control mb-2" data-col="${i}" value="${val}">`;
+  });
+  html+=`</form></div><div class="modal-footer"><button id="saveRowBtn" class="btn btn-primary">Kaydet</button></div></div></div></div>`;
+  const container=document.getElementById('editModalContainer'); container.innerHTML=html;
+  const bs=new bootstrap.Modal(document.getElementById('rowEditModal')); bs.show();
   document.getElementById('saveRowBtn').onclick=async()=>{
     const inputs=document.querySelectorAll('#rowEditForm input');
-    const yeni={};
-    inputs.forEach(inp=>yeni[headerRow[inp.dataset.col]]=inp.value.trim());
+    const newRow={};
+    inputs.forEach(inp=>newRow[inp.dataset.col]=inp.value);
     try{
-      await fetch(BACKEND_BASE+'/api/duzenle',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({row:rowIndex+2,yeni})});
-      bs.hide(); loadDataFromBackend();
+      await fetch(BACKEND_BASE+'/api/duzenle',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+        row: rowIndex+2,
+        yeni: newRow
+      })});
+      bs.hide(); await loadData();
     }catch(e){ console.error(e); alert('Güncelleme hatası'); }
   };
 }
 
-// ---------------------------
-// Sil
-// ---------------------------
+// DELETE ROW
 async function deleteRow(rowIndex){
   if(!confirm('Satırı silmek istediğinize emin misiniz?')) return;
   try{
-    await fetch(BACKEND_BASE+'/api/sil',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({row:rowIndex+2})});
-    loadDataFromBackend();
-  }catch(e){ console.error(e); alert('Silme hatası'); }
+    await fetch(BACKEND_BASE+'/api/sil',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ row: rowIndex+2 })});
+    await loadData();
+  }catch(e){ console.error(e); }
 }
 
-// ---------------------------
-// Modal
-// ---------------------------
-function openImage(src){ const img=document.getElementById('modalImage'); img.src=src; new bootstrap.Modal(document.getElementById('imageModal')).show(); }
-
-// ---------------------------
-// Chart
-// ---------------------------
-function renderChart(){ /* Mevcut chart kodunu olduğu gibi bırak */ }
-
-// ---------------------------
-// Tab geçişleri
-// ---------------------------
-function showTab(tab){
-  document.getElementById('dataTableWrapper').style.display=(tab==='data')?'block':'none';
-  document.getElementById('photoTableWrapper').style.display=(tab==='photo')?'block':'none';
-  document.getElementById('chartWrapper').style.display=(tab==='chart')?'block':'none';
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  if(tab==='data') document.getElementById('btnData').classList.add('active');
-  if(tab==='photo') document.getElementById('btnPhoto').classList.add('active');
-  if(tab==='chart') document.getElementById('btnChart').classList.add('active');
-}
-
-// ---------------------------
-// Init
-// ---------------------------
-document.addEventListener('DOMContentLoaded',()=>{
-  document.getElementById('loginBtn').addEventListener('click',login);
-  document.getElementById('logoutBtn').addEventListener('click',logout);
-
-  document.getElementById('btnData')?.addEventListener('click',()=>{ showTab('data'); });
-  document.getElementById('btnPhoto')?.addEventListener('click',()=>{ showTab('photo'); });
-  document.getElementById('btnChart')?.addEventListener('click',()=>{ showTab('chart'); renderChart(); });
-
-  document.querySelectorAll('.period-btn').forEach(b=>{
-    b.addEventListener('click',function(){ document.querySelectorAll('.period-btn').forEach(bb=>bb.classList.remove('active')); this.classList.add('active'); document.getElementById('chartPeriod').value=this.dataset.period; renderChart(); });
-  });
-
-  document.getElementById('chartPeriod')?.addEventListener('change', function(){
-    document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
-    document.querySelectorAll('.period-btn').forEach(b=>{ if(b.dataset.period===this.value) b.classList.add('active'); });
-    renderChart();
-  });
-
-  document.getElementById('chartDate')?.addEventListener('change', renderChart);
-  document.getElementById('refreshChart')?.addEventListener('click', renderChart);
-
-  if(localStorage.getItem('loggedIn')==='true') showMain();
-});
+// IMAGE MODAL
+function openImage(src){ document.getElementById('modalImage').src=src; new bootstrap.Modal(document.getElementById('imageModal')).show(); }
 </script>
-
-
 </body>
 </html>
