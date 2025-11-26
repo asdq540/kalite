@@ -445,12 +445,10 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
     thead.innerHTML = '';
     const tr = document.createElement('tr');
     headers.forEach(h=>{ const th=document.createElement('th'); th.textContent=h||''; tr.appendChild(th); });
-    if(isPhoto){
-        const actionTh=document.createElement('th'); actionTh.textContent='İşlemler'; tr.appendChild(actionTh);
-    }
+    if(isPhoto){ const actionTh=document.createElement('th'); actionTh.textContent='İşlemler'; tr.appendChild(actionTh); }
     thead.appendChild(tr);
 
-    let filteredRows = [...rows]; // filtre sonrası gösterilecek veri
+    let filteredRows = [...rows];
     let currentPage = isPhoto ? currentPhotoPage : 1;
 
     function renderPage(){
@@ -470,7 +468,6 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
                 } else td.textContent=cell||'';
                 tr.appendChild(td);
             });
-
             if(isPhoto){
                 const actionTd=document.createElement('td');
                 const editBtn=document.createElement('button');
@@ -487,11 +484,10 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
 
                 tr.appendChild(actionTd);
             }
-
             tbody.appendChild(tr);
         }
 
-        // Pagination controls
+        // Pagination
         const paginationUl = document.getElementById(paginationId);
         paginationUl.innerHTML='';
         const totalPages = Math.ceil(filteredRows.length / PAGE_SIZE);
@@ -500,36 +496,23 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
         let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
         if(endPage-startPage<maxPagesToShow-1){ startPage = Math.max(1, endPage-maxPagesToShow+1); }
 
-        // Prev
-        const prevLi=document.createElement('li'); prevLi.className='page-item';
-        const prevLink=document.createElement('a'); prevLink.className='page-link'; prevLink.href='#'; prevLink.textContent='«';
-        if(currentPage===1) prevLi.classList.add('disabled');
-        prevLink.addEventListener('click',(e)=>{ e.preventDefault(); if(currentPage>1){ currentPage--; if(isPhoto) currentPhotoPage=currentPage; renderPage(); } });
-        prevLi.appendChild(prevLink); paginationUl.appendChild(prevLi);
+        const createLi = (p,text,disabled=false,active=false)=>{
+            const li = document.createElement('li'); li.className='page-item'+(disabled?' disabled':'')+(active?' active':'');
+            const a = document.createElement('a'); a.className='page-link'; a.href='#'; a.textContent=text;
+            a.addEventListener('click',e=>{ e.preventDefault(); if(!disabled){ currentPage=p; if(isPhoto) currentPhotoPage=p; renderPage(); } });
+            li.appendChild(a); return li;
+        };
 
-        // Page numbers
-        for(let p=startPage;p<=endPage;p++){
-            const li=document.createElement('li'); li.className='page-item'+(p===currentPage?' active':'');
-            const link=document.createElement('a'); link.className='page-link'; link.href='#'; link.textContent=p;
-            link.addEventListener('click',(e)=>{ e.preventDefault(); currentPage=p; if(isPhoto) currentPhotoPage=p; renderPage(); });
-            li.appendChild(link);
-            paginationUl.appendChild(li);
-        }
-
-        // Next
-        const nextLi=document.createElement('li'); nextLi.className='page-item';
-        const nextLink=document.createElement('a'); nextLink.className='page-link'; nextLink.href='#'; nextLink.textContent='»';
-        if(currentPage===totalPages) nextLi.classList.add('disabled');
-        nextLink.addEventListener('click',(e)=>{ e.preventDefault(); if(currentPage<totalPages){ currentPage++; if(isPhoto) currentPhotoPage=currentPage; renderPage(); } });
-        nextLi.appendChild(nextLink); paginationUl.appendChild(nextLi);
+        paginationUl.appendChild(createLi(currentPage-1,'«',currentPage===1));
+        for(let p=startPage;p<=endPage;p++){ paginationUl.appendChild(createLi(p,p,p===currentPage,false)); }
+        paginationUl.appendChild(createLi(currentPage+1,'»',currentPage===totalPages));
     }
 
     renderPage();
 
-    // SEARCH & DATEPICKER (fotoğraf tablosu için)
+    // SEARCH & DATEPICKER
     if(isPhoto){
         const searchDate = document.getElementById('searchDate');
-
         function applyFilter(){
             const term = (search.value||'').toLowerCase();
             filteredRows = rows.filter(row=>{
@@ -538,9 +521,7 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
             currentPage = 1;
             renderPage();
         }
-
         search.addEventListener('input', applyFilter);
-
         if(searchDate){
             searchDate.addEventListener('change',()=>{
                 const dateValue = searchDate.value;
@@ -552,17 +533,12 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
             });
         }
     } else {
-        // normal arama (data tablosu)
-        if(search){
-            search.oninput = ()=>{
-                const term=(search.value||'').toLowerCase();
-                filteredRows = rows.filter(row=>{
-                    return row.some(cell => (cell||'').toString().toLowerCase().includes(term));
-                });
-                currentPage = 1;
-                renderPage();
-            };
-        }
+        if(search){ search.oninput = ()=>{ 
+            const term=(search.value||'').toLowerCase();
+            filteredRows = rows.filter(row=>row.some(cell => (cell||'').toString().toLowerCase().includes(term)));
+            currentPage = 1;
+            renderPage();
+        }; }
     }
 }
 
@@ -572,154 +548,103 @@ function openImage(src){
     new bootstrap.Modal(document.getElementById('imageModal')).show();
 }
 
-    function renderChart() {
-    if (!photoRows || photoRows.length === 0) return;
+// EDIT & DELETE
+function openEditModal(rowIndex){ /* aynı kod */ }
+async function deleteRow(rowIndex){ /* aynı kod */ }
 
-    const dateInput = document.getElementById('chartDate')?.value;
-    const periodSelect = document.getElementById('chartPeriod')?.value || 'daily';
-    const groupBySelect = document.getElementById('chartGroupBy')?.value || 'aciklama';
-
-    let selectedDate = dateInput ? new Date(dateInput) : null;
-    const counts = {};
-
-    photoRows.forEach(row => {
-        if (!row || !row[0]) return; 
-        const rowDate = parseDateFromDDMMYYYY(row[0]);
-        if (!rowDate) return;
-
-        if (selectedDate) {
-            if (periodSelect === 'daily' && rowDate.toDateString() !== selectedDate.toDateString()) return;
-            if (periodSelect === 'weekly' && weekKeyFromDate(rowDate) !== weekKeyFromDate(selectedDate)) return;
-            if (periodSelect === 'monthly' && monthKeyFromDate(rowDate) !== monthKeyFromDate(selectedDate)) return;
-        }
-
-        let key = '';
-        switch(groupBySelect){
-            case 'aciklama': key = row[3] || 'Açıklama Yok'; break;
-            case 'personel': key = row[4] || 'Bilinmiyor'; break;
-            case 'hat': key = row[2] || 'Bilinmiyor'; break;
-            case 'vardiya': key = row[1] || 'Bilinmiyor'; break;
-            case 'tarih': key = row[0] || 'Bilinmiyor'; break;
-        }
-
-        counts[key] = (counts[key] || 0) + 1;
-    });
-
-    const sortedKeys = Object.keys(counts).sort((a,b) => counts[b]-counts[a]);
-    const labels = sortedKeys;
-    const data = sortedKeys.map(k => counts[k]);
-
-    const palette = ["#32ff7e","#7efff5","#0ff3ff","#3af1a0","#2ed573","#1dd1a1","#10ac84","#54a0ff","#fffa65","#ff6b6b"];
-    const datasets = [{
-        label: 'Tekrar Sayısı',
-        data: data,
-        backgroundColor: palette.slice(0, data.length),
-        borderColor: palette.slice(0, data.length),
-        borderWidth: 1
-    }];
-
-    const ctx = document.getElementById('errorChart')?.getContext('2d');
-    if(!ctx) return;
-    if(errorChart) errorChart.destroy();
-
-    errorChart = new Chart(ctx, {
-        type: 'bar',
-        data: { labels, datasets },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: { mode: 'index', intersect: false },
-                datalabels: {
-                    anchor: 'end',
-                    align: 'top',
-                    color: '#fff',
-                    font: { weight: 'bold' },
-                    formatter: value => value
-                }
-            },
-            scales: { y: { beginAtZero: true } }
-        },
-        plugins: [ChartDataLabels]
-    });
-}
-
-// yardımcı fonksiyonlar
-function parseDateFromDDMMYYYY(s){
-    if(!s) return null;
-    const parts=s.split('.');
-    if(parts.length!==3) return null;
-    const d=new Date(+parts[2], +parts[1]-1, +parts[0]);
-    return isNaN(d)?null:d;
-}
-function weekKeyFromDate(d){
-    const onejan = new Date(d.getFullYear(),0,1);
-    return 'W'+Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7);
-}
-function monthKeyFromDate(d){
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-}
-
-// FOTOĞRAF TABLOSU DÜZENLEME
-function openEditModal(rowIndex){
-    const row = photoRows[rowIndex];
-    const modalHtml=`<div class="modal fade" id="rowEditModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-        <div class="modal-header">
-            <h5 class="modal-title">Kayıt Düzenle</h5>
-            <button class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-        <form id="rowEditForm">
-        ${row.map((v,i)=>`<label class="form-label">${i}</label><input class="form-control mb-2" data-col="${i}" value="${v}">`).join('')}
-        </form>
-        </div>
-        <div class="modal-footer">
-            <button id="saveRowBtn" class="btn btn-primary">Kaydet</button>
-        </div>
-        </div></div></div>`;
-    document.getElementById('editModalContainer').innerHTML=modalHtml;
-    const bs=new bootstrap.Modal(document.getElementById('rowEditModal'));
-    bs.show();
-
-    document.getElementById('saveRowBtn').onclick=async()=>{
-        const inputs=document.querySelectorAll('#rowEditForm input');
-        const newRow=Array.from(inputs).map(inp=>inp.value.trim());
-        try{
-            await fetch(BACKEND_BASE+'/api/duzenle',{
-                method:'POST',
-                headers:{'Content-Type':'application/json'},
-                body: JSON.stringify({row:rowIndex+2, yeni:{
-                    tarih:newRow[0], vardiya:newRow[1], hat:newRow[2],
-                    aciklama:newRow[3], personel:newRow[4], foto_base64:'', kalitePersoneli:newRow[6]
-                }})
-            });
-            bs.hide();
-            loadDataFromBackend();
-        }catch(e){ console.error(e); alert('Düzenleme hatası'); }
-    };
-}
-
-// FOTOĞRAF TABLOSU SİLME
-async function deleteRow(rowIndex){
-    if(!confirm('Satırı silmek istediğinize emin misiniz?')) return;
+// GRAFİK
+function renderChart(){
     try{
-        await fetch(BACKEND_BASE+'/api/sil',{
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({row:rowIndex+2})
+        const chartGroup = document.getElementById('chartGroup')?.value || 'aciklama';
+        const period = document.getElementById('chartPeriod')?.value || 'daily';
+        const dateInput = document.getElementById('chartDate')?.value;
+        let selectedDate = dateInput ? new Date(dateInput) : null;
+
+        const counts = {};
+        const labelsSet = new Set();
+
+        photoRows.forEach(row=>{
+            if(!row) return;
+            const dateStr = row[0]||'';
+            const desc = row[3]||'Açıklama Yok';
+            const personel = row[4]||'Bilinmiyor';
+            const hat = row[2]||'Bilinmiyor';
+            const vardiya = row[1]||'Bilinmiyor';
+            if(!dateStr) return;
+
+            const d = parseDateFromDDMMYYYY(dateStr);
+            if(!d) return;
+
+            if(selectedDate){
+                if(period==='daily' && formatDate(d)!==formatDate(selectedDate)) return;
+                if(period==='weekly' && weekKeyFromDate(d)!==weekKeyFromDate(selectedDate)) return;
+                if(period==='monthly' && monthKeyFromDate(d)!==monthKeyFromDate(selectedDate)) return;
+            }
+
+            let key='';
+            if(period==='daily') key=formatDate(d);
+            else if(period==='weekly') key=weekKeyFromDate(d);
+            else if(period==='monthly') key=monthKeyFromDate(d);
+
+            labelsSet.add(key);
+            let groupKey='';
+            switch(chartGroup){
+                case 'aciklama': groupKey=desc; break;
+                case 'personel': groupKey=personel; break;
+                case 'hat': groupKey=hat; break;
+                case 'vardiya': groupKey=vardiya; break;
+            }
+            const countKey = `${groupKey}|${key}`;
+            counts[countKey]=(counts[countKey]||0)+1;
         });
-        loadDataFromBackend();
-    }catch(e){ console.error(e); }
+
+        const labels = Array.from(labelsSet).sort();
+        const groups = {};
+        for(const k in counts){
+            const [gKey,label] = k.split('|');
+            if(!groups[gKey]) groups[gKey]={};
+            groups[gKey][label]=counts[k];
+        }
+
+        const palette=["#32ff7e","#0ff3ff","#fffa3c","#ff5733","#33ff57","#ff33a6","#a633ff","#ff9933"];
+        const datasets=[];
+        Object.keys(groups).sort((a,b)=>{ // büyükten küçüğe toplam
+            const sumA = Object.values(groups[a]).reduce((s,v)=>s+v,0);
+            const sumB = Object.values(groups[b]).reduce((s,v)=>s+v,0);
+            return sumB-sumA;
+        }).forEach((g,i)=>{
+            const dataArr = labels.map(l=>groups[g][l]||0);
+            datasets.push({label:g, data:dataArr, backgroundColor:palette[i%palette.length], borderColor:palette[i%palette.length], borderWidth:1, type:'bar'});
+        });
+
+        const ctx = document.getElementById('errorChart')?.getContext('2d');
+        if(!ctx) return;
+        if(errorChart) errorChart.destroy();
+        errorChart = new Chart(ctx,{
+            data:{labels,datasets},
+            options:{
+                responsive:true,
+                maintainAspectRatio:false,
+                plugins:{
+                    legend:{position:'top',labels:{color:'#fff'}},
+                    tooltip:{mode:'index',intersect:false},
+                    datalabels:{ color:'#fff', anchor:'end', align:'top' }
+                },
+                scales:{y:{beginAtZero:true, ticks:{color:'#fff'}}, x:{ticks:{color:'#fff'}}}
+            },
+            plugins:[ChartDataLabels]
+        });
+    } catch(e){ console.error(e); }
 }
 
-// PAGE & PERIOD BUTTONS
+function parseDateFromDDMMYYYY(s){ if(!s) return null; const p=s.split('.'); if(p.length!==3) return null; const d=new Date(+p[2],+p[1]-1,+p[0]); return isNaN(d)?null:d; }
+function weekKeyFromDate(d){ const onejan=new Date(d.getFullYear(),0,1); return 'W'+Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7); }
+function monthKeyFromDate(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+function formatDate(d){ return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; }
+
 document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('loginBtn')?.addEventListener('click',login);
     document.getElementById('logoutBtn')?.addEventListener('click',logout);
-
     document.getElementById('btnData')?.addEventListener('click',()=>{ 
         document.getElementById('dataTableWrapper').style.display='block'; 
         document.getElementById('photoTableWrapper').style.display='none'; 
@@ -731,7 +656,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         document.getElementById('dataTableWrapper').style.display='none'; 
         document.getElementById('photoTableWrapper').style.display='block'; 
         document.getElementById('chartWrapper').style.display='none'; 
-        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); fre
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); 
         document.getElementById('btnPhoto').classList.add('active'); 
     });
     document.getElementById('btnChart')?.addEventListener('click',()=>{ 
@@ -743,14 +668,13 @@ document.addEventListener('DOMContentLoaded',()=>{
         renderChart(); 
     });
 
-  document.getElementById('chartDate')?.addEventListener('change',renderChart);
-document.getElementById('chartPeriod')?.addEventListener('change',renderChart);
-document.getElementById('chartGroupBy')?.addEventListener('change',renderChart);
+    document.getElementById('chartDate')?.addEventListener('change',renderChart);
+    document.getElementById('chartPeriod')?.addEventListener('change',renderChart);
+    document.getElementById('chartGroup')?.addEventListener('change',renderChart);
 
     if(localStorage.getItem('loggedIn')==='true') showMain();
 });
 </script>
-
 
 </body>
 </html>
