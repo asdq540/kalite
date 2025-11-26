@@ -381,12 +381,12 @@ img.thumb{
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-const BACKEND_BASE = 'https://vardiya-backend.onrender.com'; 
+const BACKEND_BASE = 'https://vardiya-backend.onrender.com';
 const PAGE_SIZE = 20;
-let headerRow = [], dataRows = [], photoRows = [], errorChart = null;
-let currentPhotoPage = 1;
+let headerRow = [], fullRows = [], dataRows = [], photoRows = [], errorChart = null;
+let currentPageData = 1, currentPagePhoto = 1;
 
-// login
+// ---------------- LOGIN ----------------
 async function login() {
     const u = document.getElementById('username').value.trim();
     const p = document.getElementById('password').value.trim();
@@ -416,6 +416,7 @@ function showMain(){
     loadDataFromBackend(); 
 }
 
+// ---------------- DATA LOAD ----------------
 async function loadDataFromBackend(){
     try{
         const res = await fetch(BACKEND_BASE + '/api/get');
@@ -424,157 +425,124 @@ async function loadDataFromBackend(){
         headerRow = json.dataHeader || [];
         dataRows = json.dataRows || [];
         photoRows = json.photoRows || [];
-        
+
         document.getElementById('dataCount').textContent = dataRows.length;
         document.getElementById('photoCount').textContent = photoRows.length;
 
-        createEditableTable('dataTable', headerRow, dataRows, 'searchInput1', 'pagination1', false);
-        createEditableTable('photoTable', json.photoHeader, photoRows, 'searchInput2', 'pagination2', true);
+        currentPageData = 1;
+        currentPagePhoto = 1;
 
-        renderChart(); 
+        renderDataTable();
+        renderPhotoTable();
+        renderChart();
     } catch(e){ console.error('loadDataFromBackend error', e); }
 }
 
-// TABLE GENERATOR
-function createEditableTable(tableId, headers, rows, searchId, paginationId, isPhoto=false){
+// ---------------- TABLE GENERATOR ----------------
+function renderDataTable(){
+    const start = (currentPageData-1)*PAGE_SIZE;
+    const end = start+PAGE_SIZE;
+    const slice = dataRows.slice(start,end);
+    createTable('dataTable', headerRow, slice, false);
+    createPagination('pagination1', dataRows.length, currentPageData, p=>{ currentPageData=p; renderDataTable(); });
+}
+
+function renderPhotoTable(){
+    const start = (currentPagePhoto-1)*PAGE_SIZE;
+    const end = start+PAGE_SIZE;
+    const slice = photoRows.slice(start,end);
+    createTable('photoTable', headerRow, slice, true);
+    createPagination('pagination2', photoRows.length, currentPagePhoto, p=>{ currentPagePhoto=p; renderPhotoTable(); });
+}
+
+function createTable(tableId, headers, rows, isPhoto=false){
     const table = document.getElementById(tableId);
     const thead = table.querySelector('thead');
     const tbody = table.querySelector('tbody');
-    const search = document.getElementById(searchId);
 
+    // HEAD
     thead.innerHTML = '';
     const tr = document.createElement('tr');
     headers.forEach(h=>{ const th=document.createElement('th'); th.textContent=h||''; tr.appendChild(th); });
-    if(isPhoto){
-        const actionTh=document.createElement('th'); actionTh.textContent='İşlemler'; tr.appendChild(actionTh);
-    }
+    if(isPhoto){ const th=document.createElement('th'); th.textContent='İşlemler'; tr.appendChild(th); }
     thead.appendChild(tr);
 
-    let filteredRows = [...rows]; 
-    let currentPage = isPhoto ? currentPhotoPage : 1;
+    // BODY
+    tbody.innerHTML='';
+    rows.forEach((row,rowIndex)=>{
+        const tr=document.createElement('tr');
+        row.forEach((cell,colIndex)=>{
+            const td=document.createElement('td');
+            if(isPhoto && colIndex===5 && cell){
+                const img=document.createElement('img');
+                img.src=cell; img.className='thumb'; img.alt='foto';
+                img.addEventListener('click',()=>openImage(cell));
+                td.appendChild(img);
+            } else td.textContent=cell||'';
+            tr.appendChild(td);
+        });
 
-    function renderPage(){
-        tbody.innerHTML='';
-        const start = (currentPage-1)*PAGE_SIZE;
-        const end = Math.min(start+PAGE_SIZE, filteredRows.length);
-        for(let i=start;i<end;i++){
-            const row = filteredRows[i];
-            const tr=document.createElement('tr');
-            row.forEach((cell,colIndex)=>{
-                const td=document.createElement('td');
-                if(isPhoto && colIndex===5 && cell){
-                    const img=document.createElement('img');
-                    img.src=cell; img.className='thumb'; img.alt='foto';
-                    img.addEventListener('click',()=>openImage(cell));
-                    td.appendChild(img);
-                } else td.textContent=cell||'';
-                tr.appendChild(td);
-            });
+        if(isPhoto){
+            const actionTd=document.createElement('td');
+            const editBtn=document.createElement('button');
+            editBtn.className='btn btn-sm btn-outline-primary me-2';
+            editBtn.textContent='Düzenle';
+            editBtn.addEventListener('click',()=>openEditModal(rowIndex + (currentPagePhoto-1)*PAGE_SIZE));
+            actionTd.appendChild(editBtn);
 
-            if(isPhoto){
-                const actionTd=document.createElement('td');
-                const editBtn=document.createElement('button');
-                editBtn.className='btn btn-sm btn-outline-primary me-2';
-                editBtn.textContent='Düzenle';
-                editBtn.addEventListener('click',()=>openEditModal(i));
-                actionTd.appendChild(editBtn);
+            const delBtn=document.createElement('button');
+            delBtn.className='btn btn-sm btn-outline-danger';
+            delBtn.textContent='Sil';
+            delBtn.addEventListener('click',()=>deleteRow(rowIndex + (currentPagePhoto-1)*PAGE_SIZE));
+            actionTd.appendChild(delBtn);
 
-                const delBtn=document.createElement('button');
-                delBtn.className='btn btn-sm btn-outline-danger';
-                delBtn.textContent='Sil';
-                delBtn.addEventListener('click',()=>deleteRow(i));
-                actionTd.appendChild(delBtn);
-
-                tr.appendChild(actionTd);
-            }
-
-            tbody.appendChild(tr);
+            tr.appendChild(actionTd);
         }
 
-        // Pagination controls
-        const paginationUl = document.getElementById(paginationId);
-        paginationUl.innerHTML='';
-        const totalPages = Math.ceil(filteredRows.length / PAGE_SIZE);
-        const maxPagesToShow = 5;
-        let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow/2));
-        let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
-        if(endPage-startPage<maxPagesToShow-1){ startPage = Math.max(1, endPage-maxPagesToShow+1); }
-
-        // Prev
-        const prevLi=document.createElement('li'); prevLi.className='page-item';
-        const prevLink=document.createElement('a'); prevLink.className='page-link'; prevLink.href='#'; prevLink.textContent='«';
-        if(currentPage===1) prevLi.classList.add('disabled');
-        prevLink.addEventListener('click',(e)=>{ e.preventDefault(); if(currentPage>1){ currentPage--; if(isPhoto) currentPhotoPage=currentPage; renderPage(); } });
-        prevLi.appendChild(prevLink); paginationUl.appendChild(prevLi);
-
-        // Page numbers
-        for(let p=startPage;p<=endPage;p++){
-            const li=document.createElement('li'); li.className='page-item'+(p===currentPage?' active':'');
-            const link=document.createElement('a'); link.className='page-link'; link.href='#'; link.textContent=p;
-            link.addEventListener('click',(e)=>{ e.preventDefault(); currentPage=p; if(isPhoto) currentPhotoPage=p; renderPage(); });
-            li.appendChild(link);
-            paginationUl.appendChild(li);
-        }
-
-        // Next
-        const nextLi=document.createElement('li'); nextLi.className='page-item';
-        const nextLink=document.createElement('a'); nextLink.className='page-link'; nextLink.href='#'; nextLink.textContent='»';
-        if(currentPage===totalPages) nextLi.classList.add('disabled');
-        nextLink.addEventListener('click',(e)=>{ e.preventDefault(); if(currentPage<totalPages){ currentPage++; if(isPhoto) currentPhotoPage=currentPage; renderPage(); } });
-        nextLi.appendChild(nextLink); paginationUl.appendChild(nextLi);
-
-        // Grafik güncelle
-        if(isPhoto) renderChart(filteredRows); 
-    }
-
-    renderPage();
-
-    // SEARCH & DATEPICKER (fotoğraf tablosu için)
-    if(isPhoto){
-        const searchDate = document.getElementById('searchDate');
-
-        function applyFilter(){
-            const term = (search.value||'').toLowerCase();
-            filteredRows = rows.filter(row=>{
-                return row.some(cell => (cell||'').toString().toLowerCase().includes(term));
-            });
-            currentPage = 1;
-            renderPage();
-        }
-
-        search.addEventListener('input', applyFilter);
-
-        if(searchDate){
-            searchDate.addEventListener('change',()=>{
-                const dateValue = searchDate.value;
-                if(!dateValue) return;
-                const parts = dateValue.split('-');
-                const formatted = `${parts[2]}.${parts[1]}.${parts[0]}`;
-                search.value = formatted;
-                applyFilter();
-            });
-        }
-    } else {
-        if(search){
-            search.oninput = ()=>{
-                const term=(search.value||'').toLowerCase();
-                filteredRows = rows.filter(row=>{
-                    return row.some(cell => (cell||'').toString().toLowerCase().includes(term));
-                });
-                currentPage = 1;
-                renderPage();
-            };
-        }
-    }
+        tbody.appendChild(tr);
+    });
 }
 
-// IMAGE MODAL
+// ---------------- PAGINATION ----------------
+function createPagination(paginationId,total,currentPage,onPageClick){
+    const wrapper=document.getElementById(paginationId);
+    wrapper.innerHTML='';
+
+    const totalPages=Math.ceil(total/PAGE_SIZE);
+    if(totalPages<=1) return;
+
+    const maxPagesToShow=5;
+    let startPage=Math.max(1,currentPage-Math.floor(maxPagesToShow/2));
+    let endPage=startPage+maxPagesToShow-1;
+    if(endPage>totalPages){ endPage=totalPages; startPage=Math.max(1,endPage-maxPagesToShow+1); }
+
+    const ul=document.createElement('ul');
+    ul.className='pagination justify-content-center flex-wrap';
+
+    const prevLi=document.createElement('li'); prevLi.className='page-item '+(currentPage===1?'disabled':'');
+    const prevBtn=document.createElement('button'); prevBtn.className='page-link'; prevBtn.textContent='‹'; prevBtn.onclick=()=>onPageClick(currentPage-1);
+    prevLi.appendChild(prevBtn); ul.appendChild(prevLi);
+
+    for(let i=startPage;i<=endPage;i++){
+        const li=document.createElement('li'); li.className='page-item '+(i===currentPage?'active':'');
+        const btn=document.createElement('button'); btn.className='page-link'; btn.textContent=i; btn.onclick=()=>onPageClick(i);
+        li.appendChild(btn); ul.appendChild(li);
+    }
+
+    const nextLi=document.createElement('li'); nextLi.className='page-item '+(currentPage===totalPages?'disabled':'');
+    const nextBtn=document.createElement('button'); nextBtn.className='page-link'; nextBtn.textContent='›'; nextBtn.onclick=()=>onPageClick(currentPage+1);
+    nextLi.appendChild(nextBtn); ul.appendChild(nextLi);
+
+    wrapper.appendChild(ul);
+}
+
+// ---------------- IMAGE MODAL ----------------
 function openImage(src){
     document.getElementById('modalImage').src=src;
     new bootstrap.Modal(document.getElementById('imageModal')).show();
 }
 
-// FOTOĞRAF TABLOSU DÜZENLEME
+// ---------------- EDIT & DELETE ----------------
 function openEditModal(rowIndex){
     const row = photoRows[rowIndex];
     const modalHtml=`<div class="modal fade" id="rowEditModal" tabindex="-1">
@@ -615,7 +583,6 @@ function openEditModal(rowIndex){
     };
 }
 
-// FOTOĞRAF TABLOSU SİLME
 async function deleteRow(rowIndex){
     if(!confirm('Satırı silmek istediğinize emin misiniz?')) return;
     try{
@@ -628,34 +595,88 @@ async function deleteRow(rowIndex){
     }catch(e){ console.error(e); }
 }
 
-// GRAFİK
-function renderChart(rows = null){
+// ---------------- PHOTO SEARCH & DATEPICKER ----------------
+function initPhotoSearch(){
+    const search = document.getElementById('searchInput2');
+    const datePicker = document.createElement('input');
+    datePicker.type='date';
+    datePicker.className='form-control ms-2';
+    datePicker.style.width='200px';
+    search.parentNode.insertBefore(datePicker, search.nextSibling);
+
+    datePicker.addEventListener('change',()=>{
+        if(!datePicker.value) return;
+        const d=datePicker.value.split('-');
+        if(d.length===3){
+            const val=`${d[2]}.${d[1]}.${d[0]}`;
+            search.value=val;
+            filterPhotoTable(val);
+        }
+    });
+
+    search.addEventListener('input',()=>filterPhotoTable(search.value));
+}
+
+function filterPhotoTable(term){
+    term=term.toLowerCase();
+    photoRows.forEach((row,i)=>{
+        const tr=document.getElementById('photoTable').querySelectorAll('tbody tr')[i % PAGE_SIZE];
+        if(!tr) return;
+        const text=row.join(' ').toLowerCase();
+        tr.style.display=text.includes(term)?'':'none';
+    });
+}
+
+// ---------------- CHART ----------------
+function parseDateFromDDMMYYYY(s){ if(!s) return null; const p=s.split('.'); if(p.length!==3) return null; const d=new Date(+p[2],+p[1]-1,+p[0]); return isNaN(d)?null:d; }
+function weekKeyFromDate(d){ const onejan=new Date(d.getFullYear(),0,1); return 'W'+Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7); }
+function monthKeyFromDate(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+function formatDate(d){ return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; }
+
+function renderChart(){
     try{
-        const rowsToUse = rows || photoRows; // filtrelenmiş yoksa global kullan
         const dateInput=document.getElementById('chartDate')?.value;
         const periodSelect=document.getElementById('chartPeriod')?.value || 'daily';
+        const sortSelect=document.getElementById('chartSortBy')?.value || 'desc';
         let selectedDate=null;
         if(dateInput){
             const parts=dateInput.split('-');
             if(parts.length===3) selectedDate=new Date(+parts[0],+parts[1]-1,+parts[2]);
         }
 
-        const counts={};
-        const labelsSet=new Set();
-        rowsToUse.forEach(row=>{
-            if(!row) return;
+        // Filter
+        let filtered = photoRows.filter(row=>{
+            if(!row) return false;
             const dateStr=row[0]||'';
-            const desc=row[3]||'Açıklama Yok';
-            if(!dateStr) return;
+            if(!dateStr) return false;
             const d=parseDateFromDDMMYYYY(dateStr);
-            if(!d) return;
+            if(!d) return false;
 
             if(selectedDate){
-                if(periodSelect==='daily' && dateStr!==formatDate(selectedDate)) return;
-                if(periodSelect==='weekly' && weekKeyFromDate(selectedDate)!==weekKeyFromDate(d)) return;
-                if(periodSelect==='monthly' && monthKeyFromDate(selectedDate)!==monthKeyFromDate(d)) return;
+                if(periodSelect==='daily' && dateStr!==formatDate(selectedDate)) return false;
+                if(periodSelect==='weekly' && weekKeyFromDate(selectedDate)!==weekKeyFromDate(d)) return false;
+                if(periodSelect==='monthly' && monthKeyFromDate(selectedDate)!==monthKeyFromDate(d)) return false;
             }
+            return true;
+        });
 
+        // Sort
+        filtered.sort((a,b)=>{
+            if(sortSelect==='desc') return (b[3]||'').localeCompare(a[3]||''); 
+            if(sortSelect==='personel') return (b[4]||'').localeCompare(a[4]||''); 
+            if(sortSelect==='hat') return (b[2]||'').localeCompare(a[2]||''); 
+            if(sortSelect==='vardiya') return (b[1]||'').localeCompare(a[1]||''); 
+            if(sortSelect==='tarih'){ 
+                const da=parseDateFromDDMMYYYY(a[0]), db=parseDateFromDDMMYYYY(b[0]); 
+                return db-da; 
+            }
+            return 0;
+        });
+
+        const counts={}, labelsSet=new Set();
+        filtered.forEach(row=>{
+            const dateStr=row[0]||'', desc=row[3]||'Açıklama Yok';
+            const d=parseDateFromDDMMYYYY(dateStr);
             let key='';
             if(periodSelect==='daily') key=formatDate(d);
             else if(periodSelect==='weekly') key=weekKeyFromDate(d);
@@ -688,46 +709,43 @@ function renderChart(rows = null){
     }catch(e){ console.error(e); }
 }
 
-function parseDateFromDDMMYYYY(s){ if(!s) return null; const p=s.split('.'); if(p.length!==3) return null; const d=new Date(+p[2],+p[1]-1,+p[0]); return isNaN(d)?null:d; }
-function weekKeyFromDate(d){ const onejan=new Date(d.getFullYear(),0,1); return 'W'+Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7); }
-function monthKeyFromDate(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
-function formatDate(d){ return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; }
-
-// PAGE & PERIOD BUTTONS
+// ---------------- PAGE LOAD ----------------
 document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('loginBtn')?.addEventListener('click',login);
     document.getElementById('logoutBtn')?.addEventListener('click',logout);
 
-    document.getElementById('btnData')?.addEventListener('click',()=>{ 
-        document.getElementById('dataTableWrapper').style.display='block'; 
-        document.getElementById('photoTableWrapper').style.display='none'; 
-        document.getElementById('chartWrapper').style.display='none'; 
-        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); 
-        document.getElementById('btnData').classList.add('active'); 
+    document.getElementById('btnData')?.addEventListener('click',()=>{
+        document.getElementById('dataTableWrapper').style.display='block';
+        document.getElementById('photoTableWrapper').style.display='none';
+        document.getElementById('chartWrapper').style.display='none';
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+        document.getElementById('btnData').classList.add('active');
     });
-    document.getElementById('btnPhoto')?.addEventListener('click',()=>{ 
-        document.getElementById('dataTableWrapper').style.display='none'; 
-        document.getElementById('photoTableWrapper').style.display='block'; 
-        document.getElementById('chartWrapper').style.display='none'; 
-        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); 
-        document.getElementById('btnPhoto').classList.add('active'); 
+    document.getElementById('btnPhoto')?.addEventListener('click',()=>{
+        document.getElementById('dataTableWrapper').style.display='none';
+        document.getElementById('photoTableWrapper').style.display='block';
+        document.getElementById('chartWrapper').style.display='none';
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+        document.getElementById('btnPhoto').classList.add('active');
     });
-    document.getElementById('btnChart')?.addEventListener('click',()=>{ 
-        document.getElementById('dataTableWrapper').style.display='none'; 
-        document.getElementById('photoTableWrapper').style.display='none'; 
-        document.getElementById('chartWrapper').style.display='block'; 
-        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); 
-        document.getElementById('btnChart').classList.add('active'); 
-        renderChart(); 
+    document.getElementById('btnChart')?.addEventListener('click',()=>{
+        document.getElementById('dataTableWrapper').style.display='none';
+        document.getElementById('photoTableWrapper').style.display='none';
+        document.getElementById('chartWrapper').style.display='block';
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+        document.getElementById('btnChart').classList.add('active');
+        renderChart();
     });
 
-    document.getElementById('chartDate')?.addEventListener('change',()=>renderChart());
-    document.getElementById('chartPeriod')?.addEventListener('change',()=>renderChart());
+    document.getElementById('chartDate')?.addEventListener('change',renderChart);
+    document.getElementById('chartPeriod')?.addEventListener('change',renderChart);
+    document.getElementById('chartSortBy')?.addEventListener('change',renderChart);
+
+    initPhotoSearch();
 
     if(localStorage.getItem('loggedIn')==='true') showMain();
 });
 </script>
-
 
 </body>
 </html>
