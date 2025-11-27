@@ -456,10 +456,19 @@ document.addEventListener('DOMContentLoaded', ()=>{
 function renderChart(){
     if(!photoRows || photoRows.length===0) return;
 
-    const groupBy = document.getElementById('chartGroup').value; // aciklama, personel, hat, vardiya
-    const countMap = {};
+    const groupBy = document.getElementById('chartGroup').value;
+    const period = document.getElementById('chartPeriod').value;
+    const dateFilter = document.getElementById('chartDate').value;
 
-    photoRows.forEach(r=>{
+    // Filter by date
+    let filteredRows = photoRows;
+    if(dateFilter){
+        filteredRows = filteredRows.filter(r=>r[0]===dateFilter); // r[0] = tarih sütunu
+    }
+
+    // Grouping
+    const countMap = {};
+    filteredRows.forEach(r=>{
         let key = '';
         switch(groupBy){
             case 'aciklama': key = r[3]||'Boş'; break;
@@ -479,25 +488,21 @@ function renderChart(){
 
     errorChart = new Chart(ctx, {
         type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Tekrar Sayısı',
-                data: data,
-                backgroundColor: 'rgba(46,204,113,0.7)',
-                borderColor: 'rgba(46,204,113,1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { beginAtZero: true, ticks: { stepSize: 1 } }
-            }
+        data: { labels, datasets:[{label:'Tekrar Sayısı', data, backgroundColor:'rgba(46,204,113,0.7)', borderColor:'rgba(46,204,113,1)', borderWidth:1}] },
+        options:{
+            responsive:true,
+            plugins:{ legend:{ display:false } },
+            scales:{ y:{ beginAtZero:true, ticks:{ stepSize:1 } } }
         }
     });
 }
+
+// Yenile butonu ve grup seçimi
+document.getElementById('refreshChart').addEventListener('click', renderChart);
+document.getElementById('chartGroup').addEventListener('change', renderChart);
+document.getElementById('chartPeriod').addEventListener('change', renderChart);
+document.getElementById('chartDate').addEventListener('change', renderChart);
+
 
 </script>
 
