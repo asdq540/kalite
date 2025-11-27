@@ -593,129 +593,91 @@ function monthKeyFromDate(d){
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
 }
 
-// --- asıl renderChart (yeni, sağlam) ---
-function renderChart(){
-    try{
-        if(!photoRows || !Array.isArray(photoRows)) return;
-        const indices = getColumnIndices();
-        const chartGroup = (document.getElementById('chartGroup')?.value || document.getElementById('chartGroupBy')?.value || 'aciklama').toString().toLowerCase();
-        const period = document.getElementById('chartPeriod')?.value || 'daily';
-        const dateInput = document.getElementById('chartDate')?.value || null;
-        const selectedDate = dateInput ? new Date(dateInput) : null;
+// =========================
+//    GRAFİK FONKSİYONU
+// =========================
+function renderChart() {
+    try {
+        if (!dataRows || dataRows.length === 0) return;
 
-        // sayım: key -> count
-        const countsMap = {}; // {groupKey: totalCount}
-        const detailByDate = {}; // eğer tarih periyotunda detay istenirse (gerekirse genişlet)
+        const period = document.getElementById("chartPeriod")?.value || "aciklama";
 
-        for(const row of photoRows){
-            if(!row) continue;
-            const rawDate = row[indices.tarih];
-            if(!rawDate) continue;
-            const rowDate = parseDateFromDDMMYYYY(rawDate);
-            if(!rowDate) continue;
+        // SÜTUN INDEXLERİ
+        const columnIndex = {
+            aciklama: 3,
+            personel: 4,
+            hat: 2,
+            vardiya: 1
+        };
 
-            // period filtre (selectedDate varsa)
-            if(selectedDate){
-                if(period === 'daily' && rowDate.toDateString() !== selectedDate.toDateString()) continue;
-                if(period === 'weekly' && weekKeyFromDate(rowDate) !== weekKeyFromDate(selectedDate)) continue;
-                if(period === 'monthly' && monthKeyFromDate(rowDate) !== monthKeyFromDate(selectedDate)) continue;
-            }
+        const col = columnIndex[period];
 
-            // groupKey seçimine göre al
-            let groupKey = 'Bilinmiyor';
-            switch(chartGroup){
-                case 'aciklama':
-                case 'açıklama':
-                    groupKey = (row[indices.aciklama] || 'Açıklama Yok').toString();
-                    break;
-                case 'personel':
-                case 'sorumlu':
-                    groupKey = (row[indices.personel] || 'Bilinmiyor').toString();
-                    break;
-                case 'hat':
-                    groupKey = (row[indices.hat] || 'Bilinmiyor').toString();
-                    break;
-                case 'vardiya':
-                    groupKey = (row[indices.vardiya] || 'Bilinmiyor').toString();
-                    break;
-                case 'tarih':
-                    groupKey = formatDate(rowDate);
-                    break;
-                default:
-                    groupKey = (row[indices.aciklama] || row[indices.personel] || 'Bilinmiyor').toString();
-            }
-
-            countsMap[groupKey] = (countsMap[groupKey]||0) + 1;
-        }
-
-        // Eğer hiç veri yoksa grafik temizle ve çık
-        const keys = Object.keys(countsMap);
-        if(keys.length === 0){
-            if(errorChart){ errorChart.destroy(); errorChart = null; }
-            // isteğe bağlı: canvas altına "Veri yok" yazdırılabilir
+        if (col === undefined) {
+            console.error("HATALI KRİTER:", period);
             return;
         }
 
-        // Sırala: toplam adede göre büyükten küçüğe
-        const sorted = keys.sort((a,b) => countsMap[b] - countsMap[a]);
+        // GRUPLAMA YAP
+        const grouped = {};
 
-        // label ve data dizileri
-        const labels = sorted;
-        const data = sorted.map(k => countsMap[k]);
+        dataRows.forEach(r => {
+            const key = (r[col] || "Boş").toString().trim();
+            grouped[key] = (grouped[key] || 0) + 1;
+        });
 
-        // renk paleti bar başına
-        const palette = ["#32ff7e","#7efff5","#0ff3ff","#3af1a0","#2ed573","#1dd1a1","#10ac84","#54a0ff","#fffa65","#ff6b6b","#b388ff","#ff9f43"];
-        const bgColors = labels.map((_,i) => palette[i % palette.length]);
+        // OBJ → ARRAY (büyükten küçüğe sırala)
+        const sortedKeys = Object.keys(grouped)
+            .sort((a, b) => grouped[b] - grouped[a]);
 
-        // tek dataset (her bar kendi label'ı taşıyacak)
-        const datasets = [{
-            label: 'Tekrar Sayısı',
-            data: data,
-            backgroundColor: bgColors,
-            borderColor: bgColors,
-            borderWidth: 1,
-            maxBarThickness: 48
-        }];
+        const labels = sortedKeys;
+        const values = sortedKeys.map(k => grouped[k]);
 
-        // chart çizimi (ChartDataLabels plugin varsa kullan)
-        const ctx = document.getElementById('errorChart')?.getContext('2d');
-        if(!ctx) return;
-        if(errorChart) errorChart.destroy();
+        // ESKİ GRAFİĞİ SİL
+        if (errorChart) {
+            errorChart.destroy();
+        }
 
-        const pluginsArr = [];
-        if(typeof ChartDataLabels !== 'undefined') pluginsArr.push(ChartDataLabels);
-
+        // YENİ GRAFİK OLUŞTUR
+        const ctx = document.getElementById("errorChart").getContext("2d");
         errorChart = new Chart(ctx, {
-            type: 'bar',
-            data: { labels, datasets },
+            type: "bar",
+            data: {
+                labels: labels,     // <-- ARTIK GÖRÜNÜYOR
+                datasets: [{
+                    label: "Adet",   // <-- Veri başlığı eklendi
+                    data: values,
+                    backgroundColor: "rgba(0, 200, 120, 0.35)",
+                    borderColor: "rgba(0, 200, 120, 1)",
+                    borderWidth: 2,
+                    borderRadius: 6
+                }]
+            },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                interaction: { mode: 'index', intersect: false },
                 plugins: {
-                    legend: { display: false },
-                    tooltip: { enabled: true, mode: 'index', intersect: false },
-                    datalabels: {
-                        display: typeof ChartDataLabels !== 'undefined',
-                        color: '#000',
-                        anchor: 'end',
-                        align: 'end',
-                        font: { weight: '600', size: 11 },
-                        formatter: v => (v === 0 ? '' : v)
+                    legend: { display: true },
+                    title: {
+                        display: true,
+                        text: `Grup Kriteri: ${period.toUpperCase()}`
                     }
                 },
                 scales: {
-                    x: { ticks: { color: '#fff' }, grid: { display: false } },
-                    y: { beginAtZero: true, ticks: { color: '#fff', precision: 0 } }
+                    x: {
+                        ticks: { color: "#222", font: { size: 12 } }
+                    },
+                    y: {
+                        ticks: { beginAtZero: true }
+                    }
                 }
-            },
-            plugins: pluginsArr
+            }
         });
 
-    }catch(err){
-        console.error('renderChart hata', err);
+    } catch (err) {
+        console.error("renderChart HATA:", err);
     }
 }
+
 
 
 
