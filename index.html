@@ -412,6 +412,7 @@ img.thumb{
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
 const BACKEND_BASE = 'https://vardiya-backend.onrender.com'; 
 const PAGE_SIZE = 20;
@@ -420,7 +421,7 @@ let currentPhotoPage = 1;
 let editRowIndex = null;
 const editModalEl = new bootstrap.Modal(document.getElementById('editModal'));
 
-// LOGIN
+// --- LOGIN / LOGOUT / SHOW MAIN ---
 async function login() {
     const u = document.getElementById('username').value.trim();
     const p = document.getElementById('password').value.trim();
@@ -437,13 +438,9 @@ async function login() {
         if(res.ok && data.success){
             localStorage.setItem('loggedIn','true');
             showMain();
-        } else {
-            err.textContent = data?.message || 'Giriş başarısız.';
-        }
+        } else { err.textContent = data?.message || 'Giriş başarısız.'; }
     } catch(e){ err.textContent='Sunucuya ulaşılamadı.'; }
 }
-
-// LOGOUT
 function logout(){ localStorage.removeItem('loggedIn'); location.reload(); }
 function showMain(){ 
     document.getElementById('loginPage').style.display='none'; 
@@ -451,7 +448,7 @@ function showMain(){
     loadDataFromBackend(); 
 }
 
-// DATA LOAD
+// --- LOAD DATA ---
 async function loadDataFromBackend(){
     try{
         const res = await fetch(BACKEND_BASE + '/api/get');
@@ -471,7 +468,7 @@ async function loadDataFromBackend(){
     } catch(e){ console.error('loadDataFromBackend error', e); }
 }
 
-// TABLE GENERATOR
+// --- TABLE GENERATOR ---
 function createEditableTable(tableId, headers, rows, searchId, paginationId, isPhoto=false){
     const table = document.getElementById(tableId);
     const thead = table.querySelector('thead');
@@ -577,13 +574,13 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
     }
 }
 
-// IMAGE MODAL
+// --- IMAGE MODAL ---
 function openImage(src){
     document.getElementById('modalImage').src=src;
     new bootstrap.Modal(document.getElementById('imageModal')).show();
 }
 
-// EDIT MODAL
+// --- EDIT MODAL ---
 function openEditModal(rowIndex){
     editRowIndex = rowIndex;
     const row = photoRows[rowIndex];
@@ -594,7 +591,7 @@ function openEditModal(rowIndex){
     editModalEl.show();
 }
 
-// SAVE EDIT
+// --- SAVE EDIT (Google Sheets update via existing backend) ---
 document.getElementById('saveEditBtn').addEventListener('click', async ()=>{
     if(editRowIndex === null) return;
 
@@ -603,14 +600,15 @@ document.getElementById('saveEditBtn').addEventListener('click', async ()=>{
     const updatedVardiya = document.getElementById('editVardiya').value.trim();
     const updatedHat = document.getElementById('editHat').value.trim();
 
-    // local array güncelle
+    // local array update
     photoRows[editRowIndex][3] = updatedDescription;
     photoRows[editRowIndex][4] = updatedPersonel;
     photoRows[editRowIndex][1] = updatedVardiya;
     photoRows[editRowIndex][2] = updatedHat;
 
     try{
-        const res = await fetch(`${BACKEND_BASE}/api/updatePhoto`, {
+        // mevcut backend bağlantısı üzerinden Google Sheets güncelleme
+        await fetch(`${BACKEND_BASE}/api/updatePhoto`, {
             method:'POST',
             headers:{'Content-Type':'application/json'},
             body: JSON.stringify({
@@ -621,22 +619,23 @@ document.getElementById('saveEditBtn').addEventListener('click', async ()=>{
                 hat: updatedHat
             })
         });
-        const data = await res.json();
-        if(!data.success){
-            alert('Google Sheets güncellenemedi: ' + (data.message || 'Hata'));
-            return;
-        }
     } catch(err){
         console.error(err);
-        alert('Sunucuya ulaşılamadı.');
+        alert('Google Sheets güncellenemedi.');
         return;
     }
 
+    // tabloyu tekrar çiz
     createEditableTable('photoTable', headerRow, photoRows, 'searchInput2', 'pagination2', true);
+
+    // modal kapat
     editModalEl.hide();
+
+    // grafik varsa yeniden çiz
+    renderChart();
 });
 
-// DELETE ROW
+// --- DELETE ROW ---
 async function deleteRow(rowIndex){
     if(!confirm('Bu satırı silmek istediğinize emin misiniz?')) return;
     try{
@@ -658,12 +657,8 @@ async function deleteRow(rowIndex){
     }
 }
 
-// PHOTO COLUMN INDICES
-function getPhotoColumnIndices() {
-    return { aciklama:3, personel:4, hat:2, vardiya:1 };
-}
-
-// CHART
+// --- PHOTO COLUMN INDICES & CHART ---
+function getPhotoColumnIndices() { return { aciklama:3, personel:4, hat:2, vardiya:1 }; }
 function renderChart(){
     if(!photoRows || photoRows.length===0) return;
     const groupKey = document.getElementById("chartGroup")?.value || "aciklama";
@@ -712,13 +707,13 @@ function renderChart(){
     });
 }
 
-// HELPERS
+// --- HELPERS ---
 function parseDateFromDDMMYYYY(s){ if(!s) return null; const p=s.split('.'); if(p.length!==3) return null; const d=new Date(+p[2],+p[1]-1,+p[0]); return isNaN(d)?null:d; }
 function formatDate(d){ return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; }
 function weekKeyFromDate(d){ const onejan=new Date(d.getFullYear(),0,1); const week = Math.ceil((((d-onejan)/86400000) + onejan.getDay() + 1)/7); return `${d.getFullYear()}-W${String(week).padStart(2,'0')}`; }
 function monthKeyFromDate(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
 
-// DOMContentLoaded
+// --- DOMContentLoaded ---
 document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('loginBtn')?.addEventListener('click',login);
     document.getElementById('logoutBtn')?.addEventListener('click',logout);
@@ -755,6 +750,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(localStorage.getItem('loggedIn')==='true') showMain();
 });
 </script>
+
 
 
 </body>
