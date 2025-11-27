@@ -457,6 +457,12 @@ async function loadDataFromBackend(){
         headerRow = json.dataHeader || [];
         dataRows = json.dataRows || [];
         photoRows = json.photoRows || [];
+
+        // H sütunu ID ekleme, tabloya görünmez şekilde
+        photoRows = photoRows.map((row,i)=>{
+            if(!row[7]) row[7] = row[0]+'-'+i; // ID yoksa oluştur
+            return row;
+        });
         
         document.getElementById('dataCount').textContent = dataRows.length;
         document.getElementById('photoCount').textContent = photoRows.length;
@@ -659,7 +665,7 @@ async function deleteRow(rowIndex){
 }
 
 // --- PHOTO COLUMN INDICES & CHART ---
-// (Mevcut renderChart ve helper fonksiyonları aynı kalacak)
+// renderChart ve helper fonksiyonlar aynen kalacak (grafik vs. bozulmaz)
 
 // --- DOMContentLoaded ---
 document.addEventListener('DOMContentLoaded',()=>{
@@ -698,6 +704,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(localStorage.getItem('loggedIn')==='true') showMain();
 });
 </script>
+
 
 
 </body>
