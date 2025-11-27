@@ -565,23 +565,41 @@ function getPhotoColumnIndices() {
 }
 
 // =========================
-//    GRAFİK FONKSİYONU
+//    GRAFİK FONKSİYONU (PERİYOT DAHİL)
 // =========================
 function renderChart() {
     try {
         if (!photoRows || photoRows.length === 0) return;
 
         const groupKey = document.getElementById("chartGroup")?.value || "aciklama";
+        const period = document.getElementById("chartPeriod")?.value || "daily"; // daily, weekly, monthly
         const indices = getPhotoColumnIndices();
         const col = indices[groupKey];
         if (col === undefined) { console.error("Geçersiz grup kolon:", groupKey); return; }
 
+        const dateCol = 0; // Tarih kolon
+
         const grouped = {};
+
         photoRows.forEach(r => {
             let key = r[col];
             if (!key) key = "Boş";
             key = key.toString().trim();
-            grouped[key] = (grouped[key] || 0) + 1;
+
+            // Tarih kolonuna göre periodKey
+            let dateStr = r[dateCol];
+            let periodKey = "";
+            if (dateStr) {
+                const d = parseDateFromDDMMYYYY(dateStr);
+                if (d) {
+                    if (period === "daily") periodKey = formatDate(d);
+                    else if (period === "weekly") periodKey = weekKeyFromDate(d);
+                    else if (period === "monthly") periodKey = monthKeyFromDate(d);
+                }
+            }
+
+            const finalKey = periodKey ? `${key} (${periodKey})` : key;
+            grouped[finalKey] = (grouped[finalKey] || 0) + 1;
         });
 
         const sortedKeys = Object.keys(grouped).sort((a,b)=>grouped[b]-grouped[a]);
@@ -609,7 +627,7 @@ function renderChart() {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { display: true },
-                    title: { display: true, text: `Fotoğraf Tablosu - Grup: ${groupKey.toUpperCase()}` }
+                    title: { display: true, text: `Fotoğraf Tablosu - Grup: ${groupKey.toUpperCase()} - Periyot: ${period.toUpperCase()}` }
                 },
                 scales: {
                     x: { ticks: { color: "#222", font: { size: 12 } } },
@@ -620,6 +638,22 @@ function renderChart() {
 
     } catch (err) { console.error("renderChart HATA:", err); }
 }
+
+// Yardımcı fonksiyonlar
+function parseDateFromDDMMYYYY(s){
+    if(!s) return null;
+    const parts = s.toString().trim().split('.');
+    if(parts.length!==3) return null;
+    const d = new Date(+parts[2], +parts[1]-1, +parts[0]);
+    return isNaN(d)?null:d;
+}
+function formatDate(d){ return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; }
+function weekKeyFromDate(d){
+    const onejan = new Date(d.getFullYear(),0,1);
+    const week = Math.ceil((((d-onejan)/86400000) + onejan.getDay() + 1)/7);
+    return `${d.getFullYear()}-W${String(week).padStart(2,'0')}`;
+}
+function monthKeyFromDate(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
 
 document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('loginBtn')?.addEventListener('click',login);
@@ -657,6 +691,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(localStorage.getItem('loggedIn')==='true') showMain();
 });
 </script>
+
 
 
 </body>
