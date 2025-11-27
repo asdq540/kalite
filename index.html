@@ -376,7 +376,6 @@ img.thumb{
 
 <!-- Offline badge -->
 <div id="offlineBadge" class="d-none"><div class="badge bg-warning text-dark">Demo / Offline Mod</div></div>
-<!-- EDIT MODAL -->
 <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
@@ -565,7 +564,7 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
             });
         }
     } else {
-        if(search){ search.oninput = ()=>{
+        if(search){ search.oninput = ()=>{ 
             const term=(search.value||'').toLowerCase();
             filteredRows = rows.filter(row=>row.some(cell => (cell||'').toString().toLowerCase().includes(term)));
             currentPage = 1;
@@ -592,8 +591,8 @@ function openEditModal(rowIndex){
 }
 
 // --- SAVE EDIT (Google Sheets update via /api/duzenle) ---
-document.getElementById('saveEditBtn').addEventListener('click', async ()=>{
-    if(editRowIndex === null) return;
+document.getElementById('saveEditBtn').addEventListener('click', async () => {
+    if (editRowIndex === null) return;
 
     const updatedDescription = document.getElementById('editDescription').value.trim();
     const updatedPersonel = document.getElementById('editPersonel').value.trim();
@@ -606,19 +605,24 @@ document.getElementById('saveEditBtn').addEventListener('click', async ()=>{
     photoRows[editRowIndex][1] = updatedVardiya;
     photoRows[editRowIndex][2] = updatedHat;
 
-    try{
-        await fetch(`${BACKEND_BASE}/api/duzenle`, {
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
+    try {
+        const res = await fetch(`${BACKEND_BASE}/api/duzenle`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                rowIndex: editRowIndex,
+                row: editRowIndex,
                 aciklama: updatedDescription,
                 personel: updatedPersonel,
                 vardiya: updatedVardiya,
                 hat: updatedHat
             })
         });
-    } catch(err){
+        const data = await res.json();
+        if (!data.success) {
+            alert('Google Sheets güncellenemedi: ' + (data.message || 'Hata'));
+            return;
+        }
+    } catch (err) {
         console.error(err);
         alert('Google Sheets güncellenemedi.');
         return;
@@ -629,23 +633,23 @@ document.getElementById('saveEditBtn').addEventListener('click', async ()=>{
     renderChart();
 });
 
-// --- DELETE ROW (via /api/sil) ---
-async function deleteRow(rowIndex){
-    if(!confirm('Bu satırı silmek istediğinize emin misiniz?')) return;
-    try{
-        const res = await fetch(`${BACKEND_BASE}/api/sil`,{
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({rowIndex})
+// --- DELETE ROW (Google Sheets üzerinden /api/sil) ---
+async function deleteRow(rowIndex) {
+    if (!confirm('Bu satırı silmek istediğinize emin misiniz?')) return;
+    try {
+        const res = await fetch(`${BACKEND_BASE}/api/sil`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ row: rowIndex })
         });
         const data = await res.json();
-        if(!data.success){
-            alert('Silme işlemi başarısız: '+(data.message||'Hata'));
+        if (!data.success) {
+            alert('Silme işlemi başarısız: ' + (data.message || 'Hata'));
             return;
         }
-        photoRows.splice(rowIndex,1);
+        photoRows.splice(rowIndex, 1);
         createEditableTable('photoTable', headerRow, photoRows, 'searchInput2', 'pagination2', true);
-    } catch(err){
+    } catch (err) {
         console.error(err);
         alert('Sunucuya ulaşılamadı.');
     }
