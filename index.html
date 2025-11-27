@@ -419,10 +419,8 @@ const BACKEND_BASE = 'https://vardiya-backend.onrender.com';
 const PAGE_SIZE = 20;
 let headerRow = [], dataRows = [], photoRows = [], errorChart = null;
 let currentPhotoPage = 1;
-let editRowIndex = null;
-const editModalEl = new bootstrap.Modal(document.getElementById('editModal'));
 
-// LOGIN
+// login
 async function login() {
     const u = document.getElementById('username').value.trim();
     const p = document.getElementById('password').value.trim();
@@ -445,7 +443,6 @@ async function login() {
     } catch(e){ err.textContent='Sunucuya ulaşılamadı.'; }
 }
 
-// LOGOUT
 function logout(){ localStorage.removeItem('loggedIn'); location.reload(); }
 function showMain(){ 
     document.getElementById('loginPage').style.display='none'; 
@@ -453,7 +450,6 @@ function showMain(){
     loadDataFromBackend(); 
 }
 
-// DATA LOAD
 async function loadDataFromBackend(){
     try{
         const res = await fetch(BACKEND_BASE + '/api/get');
@@ -585,142 +581,58 @@ function openImage(src){
     new bootstrap.Modal(document.getElementById('imageModal')).show();
 }
 
-// EDIT MODAL
+// EDIT & DELETE
 function openEditModal(rowIndex){
-    editRowIndex = rowIndex;
     const row = photoRows[rowIndex];
-    document.getElementById('editDescription').value = row[3] || '';
-    document.getElementById('editPersonel').value = row[4] || '';
-    document.getElementById('editVardiya').value = row[1] || '';
-    document.getElementById('editHat').value = row[2] || '';
-    editModalEl.show();
-}
+    const modalHtml = `
+    <div class="modal fade" id="editModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content p-3">
+          <label>Vardiya</label><input id="editVardiya" class="form-control mb-2" value="${row[1]}"/>
+          <label>Hat</label><input id="editHat" class="form-control mb-2" value="${row[2]}"/>
+          <label>Açıklama</label><input id="editAciklama" class="form-control mb-2" value="${row[3]}"/>
+          <label>Personel</label><input id="editPersonel" class="form-control mb-2" value="${row[4]}"/>
+          <div class="d-flex justify-content-end">
+            <button id="saveEditBtn" class="btn btn-primary">Kaydet</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+    
+    document.getElementById('editModalContainer').innerHTML = modalHtml;
+    const modalEl = new bootstrap.Modal(document.getElementById('editModal'));
+    modalEl.show();
 
-// SAVE EDIT
-document.getElementById('saveEditBtn').addEventListener('click', async ()=>{
-    if(editRowIndex === null) return;
+    document.getElementById('saveEditBtn').addEventListener('click', ()=>{
+        // photoRows güncelle
+        photoRows[rowIndex][1] = document.getElementById('editVardiya').value;
+        photoRows[rowIndex][2] = document.getElementById('editHat').value;
+        photoRows[rowIndex][3] = document.getElementById('editAciklama').value;
+        photoRows[rowIndex][4] = document.getElementById('editPersonel').value;
 
-    const updatedDescription = document.getElementById('editDescription').value.trim();
-    const updatedPersonel = document.getElementById('editPersonel').value.trim();
-    const updatedVardiya = document.getElementById('editVardiya').value.trim();
-    const updatedHat = document.getElementById('editHat').value.trim();
-
-    // local array güncelle
-    photoRows[editRowIndex][3] = updatedDescription;
-    photoRows[editRowIndex][4] = updatedPersonel;
-    photoRows[editRowIndex][1] = updatedVardiya;
-    photoRows[editRowIndex][2] = updatedHat;
-
-    try{
-        const res = await fetch(`${BACKEND_BASE}/api/updatePhoto`, {
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({
-                rowIndex: editRowIndex,
-                aciklama: updatedDescription,
-                personel: updatedPersonel,
-                vardiya: updatedVardiya,
-                hat: updatedHat
-            })
-        });
-        const data = await res.json();
-        if(!data.success){
-            alert('Google Sheets güncellenemedi: ' + (data.message || 'Hata'));
-            return;
-        }
-    } catch(err){
-        console.error(err);
-        alert('Sunucuya ulaşılamadı.');
-        return;
-    }
-
-    createEditableTable('photoTable', headerRow, photoRows, 'searchInput2', 'pagination2', true);
-    editModalEl.hide();
-});
-
-// DELETE ROW
-async function deleteRow(rowIndex){
-    if(!confirm('Bu satırı silmek istediğinize emin misiniz?')) return;
-    try{
-        const res = await fetch(`${BACKEND_BASE}/api/deletePhoto`,{
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({rowIndex})
-        });
-        const data = await res.json();
-        if(!data.success){
-            alert('Silme işlemi başarısız: '+(data.message||'Hata'));
-            return;
-        }
-        photoRows.splice(rowIndex,1);
         createEditableTable('photoTable', headerRow, photoRows, 'searchInput2', 'pagination2', true);
-    } catch(err){
-        console.error(err);
-        alert('Sunucuya ulaşılamadı.');
-    }
-}
-
-// PHOTO COLUMN INDICES
-function getPhotoColumnIndices() {
-    return { aciklama:3, personel:4, hat:2, vardiya:1 };
-}
-
-// CHART
-function renderChart(){
-    if(!photoRows || photoRows.length===0) return;
-    const groupKey = document.getElementById("chartGroup")?.value || "aciklama";
-    const period = document.getElementById("chartPeriod")?.value || "daily";
-    const selectedDateStr = document.getElementById("chartDate")?.value || null;
-    const indices = getPhotoColumnIndices();
-    const col = indices[groupKey];
-    if(col===undefined) return;
-    const dateCol = 0;
-    const grouped = {};
-    let targetDate = null;
-    if(selectedDateStr){
-        const parts = selectedDateStr.split('-');
-        targetDate = new Date(+parts[0], +parts[1]-1, +parts[2]);
-    }
-    photoRows.forEach(r=>{
-        let key = (r[col]||"Boş").toString().trim();
-        const d = parseDateFromDDMMYYYY(r[dateCol]);
-        if(!d) return;
-        if(targetDate){
-            if(period==="daily" && d.getTime()!==targetDate.getTime()) return;
-            else if(period==="weekly" && weekKeyFromDate(d)!==weekKeyFromDate(targetDate)) return;
-            else if(period==="monthly" && monthKeyFromDate(d)!==monthKeyFromDate(targetDate)) return;
-        }
-        grouped[key] = (grouped[key]||0)+1;
-    });
-    const labels = Object.keys(grouped).sort((a,b)=>grouped[b]-grouped[a]);
-    const values = labels.map(k=>grouped[k]);
-    if(errorChart) errorChart.destroy();
-    const ctx = document.getElementById("errorChart").getContext("2d");
-    let titleText = "";
-    if(targetDate){
-        if(period==="daily") titleText=formatDate(targetDate);
-        else if(period==="weekly"){
-            const d = targetDate;
-            const startOfWeek = new Date(d); startOfWeek.setDate(d.getDate()-d.getDay()+1);
-            const endOfWeek = new Date(startOfWeek); endOfWeek.setDate(startOfWeek.getDate()+6);
-            titleText = `${formatDate(startOfWeek)} - ${formatDate(endOfWeek)}`;
-        } else if(period==="monthly") titleText = `${targetDate.getFullYear()}-${String(targetDate.getMonth()+1).padStart(2,'0')}`;
-    } else titleText = "Tarih seçilmedi";
-
-    errorChart = new Chart(ctx,{
-        type:"bar",
-        data:{labels,datasets:[{label:"Adet",data:values,backgroundColor:"rgba(46,204,113,0.45)",borderColor:"rgba(46,204,113,1)",borderWidth:2,borderRadius:6}]},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true},title:{display:true,text:`${titleText} - Grup: ${groupKey.toUpperCase()}`}},scales:{x:{ticks:{color:"#222",font:{size:12}}},y:{beginAtZero:true}}}
+        modalEl.hide();
     });
 }
 
-// HELPERS
-function parseDateFromDDMMYYYY(s){ if(!s) return null; const p=s.split('.'); if(p.length!==3) return null; const d=new Date(+p[2],+p[1]-1,+p[0]); return isNaN(d)?null:d; }
+function deleteRow(rowIndex){
+    if(!confirm("Bu satırı silmek istediğinize emin misiniz?")) return;
+    photoRows.splice(rowIndex, 1);
+    createEditableTable('photoTable', headerRow, photoRows, 'searchInput2', 'pagination2', true);
+}
+
+// Yardımcı fonksiyonlar
+function parseDateFromDDMMYYYY(s){
+    if(!s) return null;
+    const parts = s.toString().trim().split('.');
+    if(parts.length!==3) return null;
+    const d = new Date(+parts[2], +parts[1]-1, +parts[0]);
+    return isNaN(d)?null:d;
+}
 function formatDate(d){ return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; }
-function weekKeyFromDate(d){ const onejan=new Date(d.getFullYear(),0,1); const week = Math.ceil((((d-onejan)/86400000) + onejan.getDay() + 1)/7); return `${d.getFullYear()}-W${String(week).padStart(2,'0')}`; }
+function weekKeyFromDate(d){ const onejan = new Date(d.getFullYear(),0,1); return `${d.getFullYear()}-W${String(Math.ceil((((d-onejan)/86400000) + onejan.getDay() + 1)/7)).padStart(2,'0')}`; }
 function monthKeyFromDate(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
 
-// DOMContentLoaded
 document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('loginBtn')?.addEventListener('click',login);
     document.getElementById('logoutBtn')?.addEventListener('click',logout);
