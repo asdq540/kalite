@@ -344,12 +344,13 @@ img.thumb{
                 </div>
                 <div class="col-md-4">
     <label class="form-label">Gruplama Kriteri</label>
-    <select id="chartGroupBy" class="form-select">
-        <option value="3">Açıklama</option>
-        <option value="4">Sorumlu Personel</option>
-        <option value="1">Vardiya</option>
-        <option value="2">Hat</option>
-    </select>
+    <select id="chartGroup" class="form-select" onchange="renderChart()">
+    <option value="aciklama">Açıklama</option>
+    <option value="personel">Personel</option>
+    <option value="hat">Hat</option>
+    <option value="vardiya">Vardiya</option>
+</select>
+
 </div>
 
                 <div class="col-md-4 d-flex align-items-end"><button id="refreshChart" class="btn btn-outline-primary">Yenile</button></div>
@@ -553,115 +554,100 @@ function openEditModal(rowIndex){ /* aynı kod */ }
 async function deleteRow(rowIndex){ /* aynı kod */ }
 
 // GRAFİK
-function renderChart() {
+async function renderChart() {
     try {
-        const chartGroup = document.getElementById('chartGroup')?.value || 'aciklama';
-        const period = document.getElementById('chartPeriod')?.value || 'daily';
-        const dateInput = document.getElementById('chartDate')?.value;
-
-        // Tarih seçildiyse
-        let selectedDate = dateInput ? new Date(dateInput) : null;
-
-        const counts = {};
-        const labelsSet = new Set();
-
-        photoRows.forEach(row => {
-            if (!row) return;
-
-            // 🔥 DOĞRU KOLONLAR
-            const dateStr = row[0] || "";
-            const vardiya = row[1] || "Bilinmiyor";
-            const hat = row[2] || "Bilinmiyor";
-            const aciklama = row[3] || "Bilinmiyor";
-            const personel = row[4] || "Bilinmiyor";
-
-            const d = parseDateFromDDMMYYYY(dateStr);
-            if (!d) return;
-
-            // 🔥 Filtreleme
-            if (selectedDate) {
-                if (period === "daily" && formatDate(d) !== formatDate(selectedDate)) return;
-                if (period === "weekly" && weekKeyFromDate(d) !== weekKeyFromDate(selectedDate)) return;
-                if (period === "monthly" && monthKeyFromDate(d) !== monthKeyFromDate(selectedDate)) return;
-            }
-
-            // 🔥 Etiket: Gün / Hafta / Ay
-            let key = "";
-            if (period === "daily") key = formatDate(d);
-            else if (period === "weekly") key = weekKeyFromDate(d);
-            else if (period === "monthly") key = monthKeyFromDate(d);
-
-            labelsSet.add(key);
-
-            // 🔥 Gruplama kriteri
-            let groupKey = "";
-            switch (chartGroup) {
-                case "aciklama": groupKey = aciklama; break;
-                case "personel": groupKey = personel; break;
-                case "hat": groupKey = hat; break;
-                case "vardiya": groupKey = vardiya; break;
-            }
-
-            const countKey = `${groupKey}|${key}`;
-            counts[countKey] = (counts[countKey] || 0) + 1;
-        });
-
-        const labels = Array.from(labelsSet).sort();
-        const groups = {};
-
-        for (const key in counts) {
-            const [g, label] = key.split("|");
-            if (!groups[g]) groups[g] = {};
-            groups[g][label] = counts[key];
+        if (!dataRows || dataRows.length === 0) {
+            console.warn("Data rows empty.");
+            return;
         }
 
-        const palette = ["#32ff7e", "#0ff3ff", "#fffa3c", "#ff5733", "#33ff57", "#ff33a6", "#a633ff", "#ff9933"];
+        const groupSelect = document.getElementById("chartGroup");
+        const dateInput = document.getElementById("chartDate");
+        const groupKey = groupSelect ? groupSelect.value : "aciklama";
+        const selectedDate = dateInput ? dateInput.value : "";
 
-        const datasets = [];
+        const COLS = {
+            tarih: 0,
+            vardiya: 1,
+            hat: 2,
+            aciklama: 3,
+            personel: 4,
+            kalitePersoneli: 6
+        };
 
-        // 🔥 Büyükten küçüğe sırala
-        Object.keys(groups)
-            .sort((a, b) => {
-                const sumA = Object.values(groups[a]).reduce((s, v) => s + v, 0);
-                const sumB = Object.values(groups[b]).reduce((s, v) => s + v, 0);
-                return sumB - sumA;
-            })
-            .forEach((group, index) => {
-                const dataArr = labels.map(l => groups[group][l] || 0);
-                datasets.push({
-                    label: group,
-                    data: dataArr,
-                    backgroundColor: palette[index % palette.length],
-                    borderColor: palette[index % palette.length],
-                    borderWidth: 1,
-                    type: "bar",
-                });
-            });
+        // Tarih filtresi
+        let chartRows = [...dataRows];
+        if (selectedDate) {
+            const p = selectedDate.split("-");
+            const formatted = `${p[2]}.${p[1]}.${p[0]}`; // gg.aa.yyyy
+            chartRows = chartRows.filter(r => r[COLS.tarih] === formatted);
+        }
 
-        const ctx = document.getElementById("errorChart").getContext("2d");
-        if (errorChart) errorChart.destroy();
+        // Grup alanını seç
+        const colIndex = COLS[groupKey] ?? COLS.aciklama;
 
+        // Grup işlemi
+        const grouped = {};
+        chartRows.forEach(r => {
+            const key = r[colIndex] || "Bilinmiyor";
+            grouped[key] = (grouped[key] || 0) + 1;
+        });
+
+        // Objeyi diziye çevir
+        const dataArr = Object.entries(grouped).map(([k, v]) => ({
+            label: k,
+            value: v
+        }));
+
+        // Büyükten küçüğe sırala
+        dataArr.sort((a, b) => b.value - a.value);
+
+        // Eğer önceki chart varsa sil
+        if (errorChart) {
+            errorChart.destroy();
+        }
+
+        // Chart çiz
+        const ctx = document.getElementById("errorChart");
         errorChart = new Chart(ctx, {
-            data: { labels, datasets },
+            type: "bar",
+            data: {
+                labels: dataArr.map(i => i.label),
+                datasets: [{
+                    label: "Adet",
+                    data: dataArr.map(i => i.value),
+                    backgroundColor: "rgba(0, 255, 150, 0.35)",
+                    borderColor: "rgb(0, 255, 150)",
+                    borderWidth: 2
+                }]
+            },
             options: {
                 responsive: true,
-                maintainAspectRatio: false,
                 plugins: {
-                    legend: { labels: { color: "#fff" } },
-                    datalabels: { color: "#fff", anchor: "end", align: "top" }
+                    legend: { display: true },
+                    tooltip: {
+                        callbacks: {
+                            label: (item) => `${item.label}: ${item.raw} adet`
+                        }
+                    }
                 },
                 scales: {
-                    x: { ticks: { color: "#fff" } },
-                    y: { ticks: { color: "#fff" }, beginAtZero: true }
+                    x: {
+                        ticks: { color: "#0f0", font: { size: 12 } }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: "#0f0" }
+                    }
                 }
-            },
-            plugins: [ChartDataLabels]
+            }
         });
 
     } catch (err) {
-        console.error("CHART ERROR:", err);
+        console.error("renderChart error:", err);
     }
 }
+
 
 
 function parseDateFromDDMMYYYY(s){ if(!s) return null; const p=s.split('.'); if(p.length!==3) return null; const d=new Date(+p[2],+p[1]-1,+p[0]); return isNaN(d)?null:d; }
