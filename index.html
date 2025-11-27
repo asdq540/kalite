@@ -565,7 +565,7 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
             });
         }
     } else {
-        if(search){ search.oninput = ()=>{ 
+        if(search){ search.oninput = ()=>{
             const term=(search.value||'').toLowerCase();
             filteredRows = rows.filter(row=>row.some(cell => (cell||'').toString().toLowerCase().includes(term)));
             currentPage = 1;
@@ -591,7 +591,7 @@ function openEditModal(rowIndex){
     editModalEl.show();
 }
 
-// --- SAVE EDIT (Google Sheets update via existing backend) ---
+// --- SAVE EDIT (Google Sheets update via /api/duzenle) ---
 document.getElementById('saveEditBtn').addEventListener('click', async ()=>{
     if(editRowIndex === null) return;
 
@@ -607,8 +607,7 @@ document.getElementById('saveEditBtn').addEventListener('click', async ()=>{
     photoRows[editRowIndex][2] = updatedHat;
 
     try{
-        // mevcut backend bağlantısı üzerinden Google Sheets güncelleme
-        await fetch(`${BACKEND_BASE}/api/updatePhoto`, {
+        await fetch(`${BACKEND_BASE}/api/duzenle`, {
             method:'POST',
             headers:{'Content-Type':'application/json'},
             body: JSON.stringify({
@@ -625,21 +624,16 @@ document.getElementById('saveEditBtn').addEventListener('click', async ()=>{
         return;
     }
 
-    // tabloyu tekrar çiz
     createEditableTable('photoTable', headerRow, photoRows, 'searchInput2', 'pagination2', true);
-
-    // modal kapat
     editModalEl.hide();
-
-    // grafik varsa yeniden çiz
     renderChart();
 });
 
-// --- DELETE ROW ---
+// --- DELETE ROW (via /api/sil) ---
 async function deleteRow(rowIndex){
     if(!confirm('Bu satırı silmek istediğinize emin misiniz?')) return;
     try{
-        const res = await fetch(`${BACKEND_BASE}/api/deletePhoto`,{
+        const res = await fetch(`${BACKEND_BASE}/api/sil`,{
             method:'POST',
             headers:{'Content-Type':'application/json'},
             body: JSON.stringify({rowIndex})
@@ -750,8 +744,6 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(localStorage.getItem('loggedIn')==='true') showMain();
 });
 </script>
-
-
 
 </body>
 </html>
