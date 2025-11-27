@@ -478,14 +478,18 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
     thead.innerHTML = '';
     const tr = document.createElement('tr');
 
-    // Başlıklara ID'yi ekle (H sütunu)
     if(isPhoto){
-        const newHeaders = ['ID', ...headers];
-        newHeaders.forEach(h => {
+        // PhotoTable: ID sütunu ekle
+        const thId = document.createElement('th');
+        thId.textContent = 'ID';
+        tr.appendChild(thId);
+
+        headers.forEach(h => {
             const th = document.createElement('th');
             th.textContent = h || '';
             tr.appendChild(th);
         });
+
         const actionTh = document.createElement('th');
         actionTh.textContent = 'İşlemler';
         tr.appendChild(actionTh);
@@ -496,13 +500,14 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
             tr.appendChild(th);
         });
     }
+
     thead.appendChild(tr);
 
     let filteredRows = [...rows];
     let currentPage = isPhoto ? currentPhotoPage : 1;
 
     function renderPage(){
-        tbody.innerHTML = '';
+        tbody.innerHTML='';
         const start = (currentPage-1)*PAGE_SIZE;
         const end = Math.min(start+PAGE_SIZE, filteredRows.length);
 
@@ -511,17 +516,19 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
             const tr = document.createElement('tr');
 
             if(isPhoto){
-                // H sütunundaki ID'yi başa ekle
-                const idTd = document.createElement('td');
-                idTd.textContent = row[7] || ''; // H sütunu ID
-                tr.appendChild(idTd);
+                // Görüntüleme için ID hücresi
+                const tdId = document.createElement('td');
+                tdId.textContent = row[7]; // Google Sheets H sütunundaki ID
+                tr.appendChild(tdId);
             }
 
-            row.forEach((cell,colIndex)=>{
+            row.forEach((cell, colIndex) => {
                 const td = document.createElement('td');
                 if(isPhoto && colIndex===5 && cell){
                     const img = document.createElement('img');
-                    img.src = cell; img.className = 'thumb'; img.alt = 'foto';
+                    img.src = cell;
+                    img.className = 'thumb';
+                    img.alt = 'foto';
                     img.addEventListener('click',()=>openImage(cell));
                     td.appendChild(img);
                 } else td.textContent = cell || '';
@@ -530,7 +537,6 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
 
             if(isPhoto){
                 const actionTd = document.createElement('td');
-
                 const editBtn = document.createElement('button');
                 editBtn.className = 'btn btn-sm btn-outline-primary me-2';
                 editBtn.textContent = 'Düzenle';
@@ -572,18 +578,16 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
 
     renderPage();
 
-    // Arama filtreleme
-    if(isPhoto){
+    // --- FILTER ---
+    if(search){
         const searchDate = document.getElementById('searchDate');
         function applyFilter(){
             const term = (search.value||'').toLowerCase();
-            filteredRows = rows.filter(row=>{
-                return row.some(cell => (cell||'').toString().toLowerCase().includes(term));
-            });
+            filteredRows = rows.filter(row=>row.some(cell => (cell||'').toString().toLowerCase().includes(term)));
             currentPage = 1;
             renderPage();
         }
-        search.addEventListener('input', applyFilter);
+        search.addEventListener('input',applyFilter);
         if(searchDate){
             searchDate.addEventListener('change',()=>{
                 const dateValue = searchDate.value;
@@ -594,13 +598,6 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
                 applyFilter();
             });
         }
-    } else {
-        if(search){ search.oninput = ()=>{ 
-            const term=(search.value||'').toLowerCase();
-            filteredRows = rows.filter(row=>row.some(cell => (cell||'').toString().toLowerCase().includes(term)));
-            currentPage = 1;
-            renderPage();
-        }; }
     }
 }
 
@@ -618,7 +615,7 @@ function openEditModal(rowIndex){
     document.getElementById('editPersonel').value = row[4] || '';
     document.getElementById('editVardiya').value = row[1] || '';
     document.getElementById('editHat').value = row[2] || '';
-    editRowId = row[7] || null; // H sütunundaki ID
+    editRowId = row[7] || null; // H sütunu ID
     editModalEl.show();
 }
 
@@ -667,7 +664,7 @@ document.getElementById('saveEditBtn').addEventListener('click', async ()=>{
 async function deleteRow(rowIndex){
     if(!confirm('Bu satırı silmek istediğinize emin misiniz?')) return;
 
-    const rowId = photoRows[rowIndex][7]; // H sütunundaki ID
+    const rowId = photoRows[rowIndex][7]; // H sütunu ID
 
     try{
         const res = await fetch(`${BACKEND_BASE}/api/sil`,{
@@ -688,8 +685,61 @@ async function deleteRow(rowIndex){
     }
 }
 
-// --- PHOTO COLUMN INDICES & CHART ---
-// (Mevcut renderChart ve helper fonksiyonları aynı kalacak)
+// --- CHART & HELPER FUNCTIONS (Orijinal grafik kodları korunacak) ---
+function getPhotoColumnIndices() { return { aciklama:3, personel:4, hat:2, vardiya:1 }; }
+function renderChart(){
+    if(!photoRows || photoRows.length===0) return;
+    const groupKey = document.getElementById("chartGroup")?.value || "aciklama";
+    const period = document.getElementById("chartPeriod")?.value || "daily";
+    const selectedDateStr = document.getElementById("chartDate")?.value || null;
+    const indices = getPhotoColumnIndices();
+    const col = indices[groupKey];
+    if(col===undefined) return;
+    const dateCol = 0;
+    const grouped = {};
+    let targetDate = null;
+    if(selectedDateStr){
+        const parts = selectedDateStr.split('-');
+        targetDate = new Date(+parts[0], +parts[1]-1, +parts[2]);
+    }
+    photoRows.forEach(r=>{
+        let key = (r[col]||"Boş").toString().trim();
+        const d = parseDateFromDDMMYYYY(r[dateCol]);
+        if(!d) return;
+        if(targetDate){
+            if(period==="daily" && d.getTime()!==targetDate.getTime()) return;
+            else if(period==="weekly" && weekKeyFromDate(d)!==weekKeyFromDate(targetDate)) return;
+            else if(period==="monthly" && monthKeyFromDate(d)!==monthKeyFromDate(targetDate)) return;
+        }
+        grouped[key] = (grouped[key]||0)+1;
+    });
+    const labels = Object.keys(grouped).sort((a,b)=>grouped[b]-grouped[a]);
+    const values = labels.map(k=>grouped[k]);
+    if(errorChart) errorChart.destroy();
+    const ctx = document.getElementById("errorChart").getContext("2d");
+    let titleText = "";
+    if(targetDate){
+        if(period==="daily") titleText=formatDate(targetDate);
+        else if(period==="weekly"){
+            const d = targetDate;
+            const startOfWeek = new Date(d); startOfWeek.setDate(d.getDate()-d.getDay()+1);
+            const endOfWeek = new Date(startOfWeek); endOfWeek.setDate(startOfWeek.getDate()+6);
+            titleText = `${formatDate(startOfWeek)} - ${formatDate(endOfWeek)}`;
+        } else if(period==="monthly") titleText = `${targetDate.getFullYear()}-${String(targetDate.getMonth()+1).padStart(2,'0')}`;
+    } else titleText = "Tarih seçilmedi";
+
+    errorChart = new Chart(ctx,{
+        type:"bar",
+        data:{labels,datasets:[{label:"Adet",data:values,backgroundColor:"rgba(46,204,113,0.45)",borderColor:"rgba(46,204,113,1)",borderWidth:2,borderRadius:6}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true},title:{display:true,text:`${titleText} - Grup: ${groupKey.toUpperCase()}`}},scales:{x:{ticks:{color:"#222",font:{size:12}}},y:{beginAtZero:true}}}
+    });
+}
+
+// --- HELPERS ---
+function parseDateFromDDMMYYYY(s){ if(!s) return null; const p=s.split('.'); if(p.length!==3) return null; const d=new Date(+p[2],+p[1]-1,+p[0]); return isNaN(d)?null:d; }
+function formatDate(d){ return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; }
+function weekKeyFromDate(d){ const onejan=new Date(d.getFullYear(),0,1); const week = Math.ceil((((d-onejan)/86400000) + onejan.getDay() + 1)/7); return `${d.getFullYear()}-W${String(week).padStart(2,'0')}`; }
+function monthKeyFromDate(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
 
 // --- DOMContentLoaded ---
 document.addEventListener('DOMContentLoaded',()=>{
