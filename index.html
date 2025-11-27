@@ -457,12 +457,6 @@ async function loadDataFromBackend(){
         headerRow = json.dataHeader || [];
         dataRows = json.dataRows || [];
         photoRows = json.photoRows || [];
-
-        // H sütunu ID ekleme, tabloya görünmez şekilde
-        photoRows = photoRows.map((row,i)=>{
-            if(!row[7]) row[7] = row[0]+'-'+i; // ID yoksa oluştur
-            return row;
-        });
         
         document.getElementById('dataCount').textContent = dataRows.length;
         document.getElementById('photoCount').textContent = photoRows.length;
@@ -532,7 +526,7 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
                     td.appendChild(img);
                 } else td.textContent = cell || '';
                 tr.appendChild(td);
-            }));
+            });
 
             if(isPhoto){
                 const actionTd = document.createElement('td');
@@ -555,7 +549,7 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
             tbody.appendChild(tr);
         }
 
-        // Pagination kodu aynı kalacak
+        // Pagination
         const paginationUl = document.getElementById(paginationId);
         paginationUl.innerHTML='';
         const totalPages = Math.ceil(filteredRows.length / PAGE_SIZE);
@@ -578,7 +572,7 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
 
     renderPage();
 
-    // Arama filtreleme aynı kalacak
+    // Arama filtreleme
     if(isPhoto){
         const searchDate = document.getElementById('searchDate');
         function applyFilter(){
@@ -609,7 +603,6 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
         }; }
     }
 }
-
 
 // --- IMAGE MODAL ---
 function openImage(src){
@@ -696,7 +689,7 @@ async function deleteRow(rowIndex){
 }
 
 // --- PHOTO COLUMN INDICES & CHART ---
-// renderChart ve helper fonksiyonlar aynen kalacak (grafik vs. bozulmaz)
+// (Mevcut renderChart ve helper fonksiyonları aynı kalacak)
 
 // --- DOMContentLoaded ---
 document.addEventListener('DOMContentLoaded',()=>{
@@ -735,8 +728,6 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(localStorage.getItem('loggedIn')==='true') showMain();
 });
 </script>
-
-
 
 </body>
 </html>
