@@ -557,12 +557,10 @@ async function deleteRow(rowIndex){ /* aynı kod */ }
 // ========================
 function getColumnIndices() {
     return {
-        tarih: 0,
-        vardiya: 1,
-        hat: 2,
         aciklama: 3,
         personel: 4,
-        foto: 5
+        hat: 2,
+        vardiya: 1
     };
 }
 
@@ -574,14 +572,9 @@ function renderChart() {
         if (!dataRows || dataRows.length === 0) return;
 
         const groupKey = document.getElementById("chartGroup")?.value || "aciklama";
-
         const indices = getColumnIndices();
         const col = indices[groupKey];
-
-        if (col === undefined) {
-            console.error("Geçersiz kolon:", groupKey);
-            return;
-        }
+        if (col === undefined) { console.error("Geçersiz grup kolon:", groupKey); return; }
 
         const grouped = {};
         dataRows.forEach(r => {
@@ -591,9 +584,7 @@ function renderChart() {
             grouped[key] = (grouped[key] || 0) + 1;
         });
 
-        const sortedKeys = Object.keys(grouped)
-            .sort((a, b) => grouped[b] - grouped[a]);
-
+        const sortedKeys = Object.keys(grouped).sort((a, b) => grouped[b] - grouped[a]);
         const labels = sortedKeys;
         const values = sortedKeys.map(k => grouped[k]);
 
@@ -607,21 +598,30 @@ function renderChart() {
                 datasets: [{
                     label: "Adet",
                     data: values,
-                    backgroundColor: "rgba(0, 200, 120, 0.35)",
-                    borderColor: "rgba(0, 200, 120, 1)",
+                    backgroundColor: "rgba(46,204,113,0.45)",
+                    borderColor: "rgba(46,204,113,1)",
                     borderWidth: 2,
                     borderRadius: 6
                 }]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true },
+                    title: {
+                        display: true,
+                        text: `Grup Kriteri: ${groupKey.toUpperCase()}`
+                    }
+                },
+                scales: {
+                    x: { ticks: { color: "#222", font: { size: 12 } } },
+                    y: { ticks: { beginAtZero: true } }
+                }
             }
         });
 
-    } catch (err) {
-        console.error("renderChart HATA:", err);
-    }
+    } catch (err) { console.error("renderChart HATA:", err); }
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
@@ -660,8 +660,6 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(localStorage.getItem('loggedIn')==='true') showMain();
 });
 </script>
-
-
 
 </body>
 </html>
