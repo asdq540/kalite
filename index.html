@@ -592,87 +592,70 @@ function openEditModal(rowIndex){
 
 
 // --- SAVE EDIT (Google Sheets update via backend) ---
-document.getElementById('saveEditBtn').addEventListener('click', async () => {
-    if (editRowIndex === null) return;
+document.getElementById('saveEditBtn').addEventListener('click', async ()=>{
+    if(editRowIndex === null) return;
 
     const updatedDescription = document.getElementById('editDescription').value.trim();
     const updatedPersonel = document.getElementById('editPersonel').value.trim();
     const updatedVardiya = document.getElementById('editVardiya').value.trim();
     const updatedHat = document.getElementById('editHat').value.trim();
+    const rowId = photoRows[editRowIndex][7]; // H sütunu ID
 
-    // local array update
+    // local update
     photoRows[editRowIndex][3] = updatedDescription;
     photoRows[editRowIndex][4] = updatedPersonel;
     photoRows[editRowIndex][1] = updatedVardiya;
     photoRows[editRowIndex][2] = updatedHat;
 
-    try {
-        const res = await fetch(`${BACKEND_BASE}/api/duzenle`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+    try{
+        await fetch(`${BACKEND_BASE}/api/duzenle`, {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
             body: JSON.stringify({
-                rowIndex: editRowIndex,  // backend ile birebir uyumlu
+                id: rowId,
                 aciklama: updatedDescription,
                 personel: updatedPersonel,
                 vardiya: updatedVardiya,
                 hat: updatedHat
             })
         });
-
-        const data = await res.json();
-        if (!data.success) {
-            alert('Google Sheets güncellenemedi: ' + (data.message || 'Bilinmeyen hata'));
-            return;
-        }
-    } catch (err) {
+    } catch(err){
         console.error(err);
-        alert('Sunucuya ulaşılamadı.');
+        alert('Google Sheets güncellenemedi.');
         return;
     }
 
-    // tabloyu tekrar çiz
     createEditableTable('photoTable', headerRow, photoRows, 'searchInput2', 'pagination2', true);
-
-    // modal kapat
     editModalEl.hide();
-
-    // grafik varsa yeniden çiz
     renderChart();
 });
 
 
 // --- DELETE ROW (Google Sheets üzerinden /api/sil) ---
-// --- DELETE ROW ---
-async function deleteRow(rowIndex) {
-    if (!confirm('Bu satırı silmek istediğinize emin misiniz?')) return;
+async function deleteRow(rowIndex){
+    if(!confirm('Bu satırı silmek istediğinize emin misiniz?')) return;
 
-    try {
-        const res = await fetch(`${BACKEND_BASE}/api/sil`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ rowIndex })  // backend ile uyumlu key
+    const rowId = photoRows[rowIndex][7]; // H sütunu ID
+
+    try{
+        const res = await fetch(`${BACKEND_BASE}/api/sil`,{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({id: rowId})
         });
-
         const data = await res.json();
-        if (!data.success) {
-            alert('Silme işlemi başarısız: ' + (data.message || 'Hata'));
+        if(!data.success){
+            alert('Silme işlemi başarısız: '+(data.message||'Hata'));
             return;
         }
-
-        // local array güncelle
-        photoRows.splice(rowIndex, 1);
-
-        // tabloyu tekrar çiz
+        photoRows.splice(rowIndex,1);
         createEditableTable('photoTable', headerRow, photoRows, 'searchInput2', 'pagination2', true);
-
-        // grafik varsa yeniden çiz
-        renderChart();
-
-    } catch (err) {
+    } catch(err){
         console.error(err);
         alert('Sunucuya ulaşılamadı.');
     }
 }
+
 
 
 // --- PHOTO COLUMN INDICES & CHART ---
