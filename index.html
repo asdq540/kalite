@@ -456,13 +456,21 @@ async function loadDataFromBackend(){
 
         headerRow = json.dataHeader || [];
         dataRows = json.dataRows || [];
+
+        // photoRows: [ID, Tarih, Vardiya, Hat, Personel, Açıklama, Fotoğraf, ...]
         photoRows = json.photoRows || [];
-        
+
+        // ID sütunu her zaman ilk sütun
+        if(headerRow[0] !== "ID") headerRow.unshift("ID"); 
+        photoRows.forEach((r,i)=>{
+            if(!r[0]) r.unshift(i+1); // ID boşsa 1'den başlat
+        });
+
         document.getElementById('dataCount').textContent = dataRows.length;
         document.getElementById('photoCount').textContent = photoRows.length;
 
         createEditableTable('dataTable', headerRow, dataRows, 'searchInput1', 'pagination1', false);
-        createEditableTable('photoTable', json.photoHeader, photoRows, 'searchInput2', 'pagination2', true);
+        createEditableTable('photoTable', headerRow, photoRows, 'searchInput2', 'pagination2', true);
 
         renderChart();
     } catch(e){ console.error('loadDataFromBackend error', e); }
@@ -477,30 +485,8 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
 
     thead.innerHTML = '';
     const tr = document.createElement('tr');
-
-    if(isPhoto){
-        // PhotoTable: ID sütunu ekle
-        const thId = document.createElement('th');
-        thId.textContent = 'ID';
-        tr.appendChild(thId);
-
-        headers.forEach(h => {
-            const th = document.createElement('th');
-            th.textContent = h || '';
-            tr.appendChild(th);
-        });
-
-        const actionTh = document.createElement('th');
-        actionTh.textContent = 'İşlemler';
-        tr.appendChild(actionTh);
-    } else {
-        headers.forEach(h => {
-            const th = document.createElement('th');
-            th.textContent = h || '';
-            tr.appendChild(th);
-        });
-    }
-
+    headers.forEach(h=>{ const th=document.createElement('th'); th.textContent=h||''; tr.appendChild(th); });
+    if(isPhoto){ const actionTh=document.createElement('th'); actionTh.textContent='İşlemler'; tr.appendChild(actionTh); }
     thead.appendChild(tr);
 
     let filteredRows = [...rows];
@@ -510,48 +496,35 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
         tbody.innerHTML='';
         const start = (currentPage-1)*PAGE_SIZE;
         const end = Math.min(start+PAGE_SIZE, filteredRows.length);
-
         for(let i=start;i<end;i++){
             const row = filteredRows[i];
-            const tr = document.createElement('tr');
-
-            if(isPhoto){
-                // Görüntüleme için ID hücresi
-                const tdId = document.createElement('td');
-                tdId.textContent = row[7]; // Google Sheets H sütunundaki ID
-                tr.appendChild(tdId);
-            }
-
-            row.forEach((cell, colIndex) => {
-                const td = document.createElement('td');
-                if(isPhoto && colIndex===5 && cell){
-                    const img = document.createElement('img');
-                    img.src = cell;
-                    img.className = 'thumb';
-                    img.alt = 'foto';
+            const tr=document.createElement('tr');
+            row.forEach((cell,colIndex)=>{
+                const td=document.createElement('td');
+                if(isPhoto && colIndex===6 && cell){
+                    const img=document.createElement('img');
+                    img.src=cell; img.className='thumb'; img.alt='foto';
                     img.addEventListener('click',()=>openImage(cell));
                     td.appendChild(img);
-                } else td.textContent = cell || '';
+                } else td.textContent=cell||'';
                 tr.appendChild(td);
             });
-
             if(isPhoto){
-                const actionTd = document.createElement('td');
-                const editBtn = document.createElement('button');
-                editBtn.className = 'btn btn-sm btn-outline-primary me-2';
-                editBtn.textContent = 'Düzenle';
+                const actionTd=document.createElement('td');
+                const editBtn=document.createElement('button');
+                editBtn.className='btn btn-sm btn-outline-primary me-2';
+                editBtn.textContent='Düzenle';
                 editBtn.addEventListener('click',()=>openEditModal(i));
                 actionTd.appendChild(editBtn);
 
-                const delBtn = document.createElement('button');
-                delBtn.className = 'btn btn-sm btn-outline-danger';
-                delBtn.textContent = 'Sil';
+                const delBtn=document.createElement('button');
+                delBtn.className='btn btn-sm btn-outline-danger';
+                delBtn.textContent='Sil';
                 delBtn.addEventListener('click',()=>deleteRow(i));
                 actionTd.appendChild(delBtn);
 
                 tr.appendChild(actionTd);
             }
-
             tbody.appendChild(tr);
         }
 
@@ -578,16 +551,17 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
 
     renderPage();
 
-    // --- FILTER ---
-    if(search){
+    if(isPhoto){
         const searchDate = document.getElementById('searchDate');
         function applyFilter(){
             const term = (search.value||'').toLowerCase();
-            filteredRows = rows.filter(row=>row.some(cell => (cell||'').toString().toLowerCase().includes(term)));
+            filteredRows = rows.filter(row=>{
+                return row.some(cell => (cell||'').toString().toLowerCase().includes(term));
+            });
             currentPage = 1;
             renderPage();
         }
-        search.addEventListener('input',applyFilter);
+        search.addEventListener('input', applyFilter);
         if(searchDate){
             searchDate.addEventListener('change',()=>{
                 const dateValue = searchDate.value;
@@ -598,6 +572,13 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
                 applyFilter();
             });
         }
+    } else {
+        if(search){ search.oninput = ()=>{ 
+            const term=(search.value||'').toLowerCase();
+            filteredRows = rows.filter(row=>row.some(cell => (cell||'').toString().toLowerCase().includes(term)));
+            currentPage = 1;
+            renderPage();
+        }; }
     }
 }
 
@@ -611,11 +592,11 @@ function openImage(src){
 function openEditModal(rowIndex){
     editRowIndex = rowIndex;
     const row = photoRows[rowIndex];
-    document.getElementById('editDescription').value = row[3] || '';
+    editRowId = row[0]; // ID artık her zaman ilk sütun
+    document.getElementById('editDescription').value = row[5] || '';
     document.getElementById('editPersonel').value = row[4] || '';
-    document.getElementById('editVardiya').value = row[1] || '';
-    document.getElementById('editHat').value = row[2] || '';
-    editRowId = row[7] || null; // H sütunu ID
+    document.getElementById('editVardiya').value = row[2] || '';
+    document.getElementById('editHat').value = row[3] || '';
     editModalEl.show();
 }
 
@@ -632,10 +613,10 @@ document.getElementById('saveEditBtn').addEventListener('click', async ()=>{
     const updatedHat = document.getElementById('editHat').value.trim();
 
     // local update
-    photoRows[editRowIndex][3] = updatedDescription;
+    photoRows[editRowIndex][5] = updatedDescription;
     photoRows[editRowIndex][4] = updatedPersonel;
-    photoRows[editRowIndex][1] = updatedVardiya;
-    photoRows[editRowIndex][2] = updatedHat;
+    photoRows[editRowIndex][2] = updatedVardiya;
+    photoRows[editRowIndex][3] = updatedHat;
 
     try{
         await fetch(`${BACKEND_BASE}/api/duzenle`, {
@@ -664,7 +645,7 @@ document.getElementById('saveEditBtn').addEventListener('click', async ()=>{
 async function deleteRow(rowIndex){
     if(!confirm('Bu satırı silmek istediğinize emin misiniz?')) return;
 
-    const rowId = photoRows[rowIndex][7]; // H sütunu ID
+    const rowId = photoRows[rowIndex][0]; // ID artık her zaman ilk sütun
 
     try{
         const res = await fetch(`${BACKEND_BASE}/api/sil`,{
@@ -685,8 +666,8 @@ async function deleteRow(rowIndex){
     }
 }
 
-// --- CHART & HELPER FUNCTIONS (Orijinal grafik kodları korunacak) ---
-function getPhotoColumnIndices() { return { aciklama:3, personel:4, hat:2, vardiya:1 }; }
+// --- FOTOĞRAF GRAFİĞİ ---
+function getPhotoColumnIndices() { return { aciklama:5, personel:4, hat:3, vardiya:2, tarih:1 }; }
 function renderChart(){
     if(!photoRows || photoRows.length===0) return;
     const groupKey = document.getElementById("chartGroup")?.value || "aciklama";
@@ -695,7 +676,7 @@ function renderChart(){
     const indices = getPhotoColumnIndices();
     const col = indices[groupKey];
     if(col===undefined) return;
-    const dateCol = 0;
+    const dateCol = indices['tarih'];
     const grouped = {};
     let targetDate = null;
     if(selectedDateStr){
