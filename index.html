@@ -9,7 +9,7 @@
 
 <style>
 :root{
-    --primary:#2ecc71; /* Soft Neon Yeşil */
+    --primary:#2ecc71;
     --primary-dark:#27ae60;
     --primary-glow:rgba(46,204,113,0.55);
     --bg:#f6fff7;
@@ -20,251 +20,41 @@
     --border:#b9e9c8;
     --shadow:0 4px 18px rgba(0, 80, 30, 0.12);
 }
-
-/* BODY */
-body{
-    background:var(--bg);
-    font-family:"Segoe UI",sans-serif;
-    padding:20px;
-}
-
-/* LOGIN CONTAINER */
-.login-container{
-    max-width:420px;
-    margin:90px auto;
-    padding:30px;
-    background:var(--card);
-    border-radius:14px;
-    box-shadow:0 0 12px rgba(46,204,113,0.35);
-    border:1px solid var(--border);
-}
-
-/* PAGE */
+body{background:var(--bg);font-family:"Segoe UI",sans-serif;padding:20px;}
+.login-container{max-width:420px;margin:90px auto;padding:30px;background:var(--card);border-radius:14px;box-shadow:0 0 12px rgba(46,204,113,0.35);border:1px solid var(--border);}
 #mainPage{display:none}
-
-.section-title{
-    color:var(--primary-dark);
-    font-weight:700;
-    font-size:22px;
-    margin-bottom:12px;
-}
-
-/* TABLE CARD — NEON BORDER */
-.table-card{
-    background:var(--card);
-    padding:18px;
-    border-radius:14px;
-    border:1px solid var(--primary);
-    box-shadow:
-        0 0 10px rgba(46,204,113,0.45),
-        0 0 22px rgba(46,204,113,0.25);
-    margin-bottom:20px;
-}
-
-/* THEAD — NEON GLOW */
-.table thead th{
-    background: linear-gradient(135deg, #2ecc71, #2ecc71, #27ae60) !important;
-    color:#fff !important;
-    padding:14px!important;
-    font-size:15px;
-    letter-spacing:0.4px;
-    text-transform:uppercase;
-    border:none!important;
-    position:sticky;
-    top:0;
-    z-index:3;
-    text-align:center;
-    box-shadow:0 0 12px rgba(46,204,113,0.75);
-}
-
-/* TBODY — SOFT GLOW */
-.table tbody tr{
-    background:#fff;
-    transition:0.25s ease;
-    border-radius:12px;
-    box-shadow:0 0 6px rgba(46,204,113,0.15);
-}
-
-.table tbody tr:hover{
-    background:#eafff0 !important;
-    transform:scale(1.01);
-    box-shadow:
-        0 0 10px rgba(46,204,113,0.45),
-        0 0 16px rgba(46,204,113,0.35);
-}
-
-.table tbody td{
-    padding:12px!important;
-    vertical-align:middle;
-    text-align:center;
-    border-top:1px solid var(--border);
-    border-bottom:1px solid var(--border);
-}
-
-/* ROUNDING */
-.table tbody tr td:first-child{
-    border-left:1px solid var(--border);
-    border-top-left-radius:12px;
-    border-bottom-left-radius:12px;
-}
-.table tbody tr td:last-child{
-    border-right:1px solid var(--border);
-    border-top-right-radius:12px;
-    border-bottom-right-radius:12px;
-}
-
-/* IMAGE */
-img.thumb{
-    width:88px;height:72px;object-fit:cover;
-    border-radius:10px;
-    border:1px solid #9eedb7;
-    box-shadow:0 0 6px rgba(46,204,113,0.35);
-    cursor:pointer;
-}
-
-/* SEARCH */
-.search-input{
-    border-radius:12px;
-    padding:10px;
-    border:1px solid #abeec5;
-    box-shadow:0 0 6px rgba(46,204,113,0.20);
-}
-
-/* PAGINATION */
-.pagination .page-link{
-    border-radius:8px;
-    border-color: var(--primary);
-    color: var(--primary);
-}
-.pagination .page-link:hover{
-    background:var(--primary);
-    color:#fff;
-    box-shadow:0 0 10px rgba(46,204,113,0.55);
-}
-
-/* CHART */
-#chartContainer{
-    height:520px!important;
-    padding:12px;
-}
-
-/* TAB BUTTON */
-.tab-btn{
-    padding:8px 14px;
-    border-radius:30px;
-    font-weight:600;
-    border:1px solid var(--primary);
-    background:#fff;
-    cursor:pointer;
-    transition:0.25s;
-}
-.tab-btn.active{
-    background:var(--primary);
-    color:#fff;
-    box-shadow:0 0 14px rgba(46,204,113,0.75);
-}
-
-/* PERIOD BUTTON */
-.period-btn{
-    padding:6px 10px;
-    border-radius:8px;
-    border:1px solid #b9eecf;
-    background:#fff;
-    cursor:pointer;
-    transition:0.25s;
-}
-.period-btn.active{
-    background:var(--primary);
-    color:#fff;
-    border-color:var(--primary);
-    box-shadow:0 0 14px rgba(46,204,113,0.65);
-}
-
-/* RESPONSIVE */
-@media (max-width:768px){
-    .table thead th{font-size:12px!important;padding:10px!important;}
-    .table tbody td{font-size:13px;padding:8px!important;white-space:nowrap;}
-    img.thumb{width:60px;height:50px;}
-}
-@media (max-width:480px){
-    .table tbody td{font-size:12px;padding:6px!important;}
-    img.thumb{width:50px;height:40px;}
-}
-
-/* BADGE */
-#offlineBadge{
-    position:fixed;
-    right:12px;
-    bottom:12px;
-    z-index:2000;
-}
-
-/* LOGIN — NEON EFFECT */
-.advanced-login{
-    background: linear-gradient(145deg, #ffffff, #eaffea);
-    padding:40px;
-    border-radius:18px;
-    box-shadow:0 0 18px rgba(46,204,113,0.45);
-    border:none;
-    position:relative;
-    overflow:hidden;
-}
-.advanced-login:before{
-    content:"";
-    position:absolute;
-    width:160%;
-    height:160%;
-    top:-30%;
-    left:-30%;
-    background:radial-gradient(circle at center, rgba(46,204,113,0.18), transparent 70%);
-    z-index:0;
-    pointer-events:none;
-}
-
+.section-title{color:var(--primary-dark);font-weight:700;font-size:22px;margin-bottom:12px;}
+.table-card{background:var(--card);padding:18px;border-radius:14px;border:1px solid var(--primary);box-shadow:0 0 10px rgba(46,204,113,0.45),0 0 22px rgba(46,204,113,0.25);margin-bottom:20px;}
+.table thead th{background: linear-gradient(135deg, #2ecc71, #27ae60)!important;color:#fff !important;padding:14px!important;font-size:15px;letter-spacing:0.4px;text-transform:uppercase;border:none!important;position:sticky;top:0;z-index:3;text-align:center;box-shadow:0 0 12px rgba(46,204,113,0.75);}
+.table tbody tr{background:#fff;transition:0.25s ease;border-radius:12px;box-shadow:0 0 6px rgba(46,204,113,0.15);}
+.table tbody tr:hover{background:#eafff0 !important;transform:scale(1.01);box-shadow:0 0 10px rgba(46,204,113,0.45),0 0 16px rgba(46,204,113,0.35);}
+.table tbody td{padding:12px!important;vertical-align:middle;text-align:center;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.table tbody tr td:first-child{border-left:1px solid var(--border);border-top-left-radius:12px;border-bottom-left-radius:12px;}
+.table tbody tr td:last-child{border-right:1px solid var(--border);border-top-right-radius:12px;border-bottom-right-radius:12px;}
+img.thumb{width:88px;height:72px;object-fit:cover;border-radius:10px;border:1px solid #9eedb7;box-shadow:0 0 6px rgba(46,204,113,0.35);cursor:pointer;}
+.search-input{border-radius:12px;padding:10px;border:1px solid #abeec5;box-shadow:0 0 6px rgba(46,204,113,0.20);}
+.pagination .page-link{border-radius:8px;border-color: var(--primary);color: var(--primary);}
+.pagination .page-link:hover{background:var(--primary);color:#fff;box-shadow:0 0 10px rgba(46,204,113,0.55);}
+#chartContainer{height:520px!important;padding:12px;}
+.tab-btn{padding:8px 14px;border-radius:30px;font-weight:600;border:1px solid var(--primary);background:#fff;cursor:pointer;transition:0.25s;}
+.tab-btn.active{background:var(--primary);color:#fff;box-shadow:0 0 14px rgba(46,204,113,0.75);}
+.period-btn{padding:6px 10px;border-radius:8px;border:1px solid #b9eecf;background:#fff;cursor:pointer;transition:0.25s;}
+.period-btn.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 0 14px rgba(46,204,113,0.65);}
+@media (max-width:768px){.table thead th{font-size:12px!important;padding:10px!important;}.table tbody td{font-size:13px;padding:8px!important;white-space:nowrap;}img.thumb{width:60px;height:50px;}}
+@media (max-width:480px){.table tbody td{font-size:12px;padding:6px!important;}img.thumb{width:50px;height:40px;}}
+#offlineBadge{position:fixed;right:12px;bottom:12px;z-index:2000;}
+.advanced-login{background: linear-gradient(145deg, #ffffff, #eaffea);padding:40px;border-radius:18px;box-shadow:0 0 18px rgba(46,204,113,0.45);border:none;position:relative;overflow:hidden;}
+.advanced-login:before{content:"";position:absolute;width:160%;height:160%;top:-30%;left:-30%;background:radial-gradient(circle at center, rgba(46,204,113,0.18), transparent 70%);z-index:0;pointer-events:none;}
 .login-header{position:relative;z-index:2;}
 .login-title{color:#1b6034;font-size:26px;font-weight:700;margin-bottom:6px;}
 .login-subtitle{color:#6c7a86;font-size:14px;}
-
-.login-input{
-    border-radius:12px;
-    padding:12px;
-    border:1px solid #b8eacb;
-    transition:0.25s;
-    box-shadow:0 0 6px rgba(46,204,113,0.20);
-}
-.login-input:focus{
-    border-color:var(--primary);
-    box-shadow:0 0 12px rgba(46,204,113,0.45);
-}
-
-.login-btn{
-    background:var(--primary);
-    border:none;
-    padding:12px;
-    font-size:16px;
-    border-radius:14px;
-    font-weight:600;
-    transition:0.25s;
-}
-.login-btn:hover{
-    background:var(--primary-dark);
-    transform:translateY(-2px);
-    box-shadow:0 0 14px rgba(46,204,113,0.60);
-}
-
-/* PAGINATION WRAPPER */
-.pagination-wrapper{
-    display:flex;
-    justify-content:center;
-    overflow-x:auto;
-    padding:0.5rem 0;
-}
-.pagination-wrapper ul{
-    flex-wrap:nowrap;
-}
+.login-input{border-radius:12px;padding:12px;border:1px solid #b8eacb;transition:0.25s;box-shadow:0 0 6px rgba(46,204,113,0.20);}
+.login-input:focus{border-color:var(--primary);box-shadow:0 0 12px rgba(46,204,113,0.45);}
+.login-btn{background:var(--primary);border:none;padding:12px;font-size:16px;border-radius:14px;font-weight:600;transition:0.25s;}
+.login-btn:hover{background:var(--primary-dark);transform:translateY(-2px);box-shadow:0 0 14px rgba(46,204,113,0.60);}
+.pagination-wrapper{display:flex;justify-content:center;overflow-x:auto;padding:0.5rem 0;}
+.pagination-wrapper ul{flex-wrap:nowrap;}
 </style>
-
-
 </head>
 <body>
 
@@ -288,7 +78,7 @@ img.thumb{
     <div id="errorMsg" class="text-danger text-center mt-3"></div>
 </div>
 
-<!-- MAIN -->
+<!-- MAIN PAGE -->
 <div id="mainPage" class="container-fluid" style="display:none">
     <div class="d-flex gap-2 mb-3 align-items-center">
         <button id="btnData" class="tab-btn active">Veri Tablosu</button>
@@ -297,7 +87,7 @@ img.thumb{
         <button id="logoutBtn" class="btn btn-outline-secondary ms-auto">Çıkış</button>
     </div>
 
-    <!-- DATA -->
+    <!-- DATA TABLE -->
     <div id="dataTableWrapper">
         <div class="table-card">
             <div class="d-flex align-items-center justify-content-between mb-3">
@@ -310,7 +100,7 @@ img.thumb{
         </div>
     </div>
 
-    <!-- PHOTO -->
+    <!-- PHOTO TABLE -->
     <div id="photoTableWrapper" style="display:none">
         <div class="table-card">
             <div class="d-flex align-items-center justify-content-between mb-3">
@@ -318,10 +108,9 @@ img.thumb{
                 <div class="text-muted small">Satır: <span id="photoCount">0</span></div>
             </div>
             <div class="d-flex gap-2 mb-3">
-    <input id="searchInput2" class="search-input" placeholder="Fotoğraf tablosunda ara...">
-    <input type="date" id="searchDate" class="form-control" style="max-width:150px;">
-    </div>
-
+                <input id="searchInput2" class="search-input" placeholder="Fotoğraf tablosunda ara...">
+                <input type="date" id="searchDate" class="form-control" style="max-width:150px;">
+            </div>
             <div class="table-responsive"><table id="photoTable" class="table"><thead></thead><tbody></tbody></table></div>
             <div class="pagination-wrapper"><ul id="pagination2" class="pagination"></ul></div>
         </div>
@@ -343,16 +132,14 @@ img.thumb{
                     </select>
                 </div>
                 <div class="col-md-4">
-    <label class="form-label">Gruplama Kriteri</label>
-    <select id="chartGroup" class="form-select" onchange="renderChart()">
-    <option value="aciklama">Açıklama</option>
-    <option value="personel">Personel</option>
-    <option value="hat">Hat</option>
-    <option value="vardiya">Vardiya</option>
-</select>
-
-</div>
-
+                    <label class="form-label">Gruplama Kriteri</label>
+                    <select id="chartGroup" class="form-select" onchange="renderChart()">
+                        <option value="aciklama">Açıklama</option>
+                        <option value="personel">Personel</option>
+                        <option value="hat">Hat</option>
+                        <option value="vardiya">Vardiya</option>
+                    </select>
+                </div>
                 <div class="col-md-4 d-flex align-items-end"><button id="refreshChart" class="btn btn-outline-primary">Yenile</button></div>
             </div>
             <div id="chartContainer"><canvas id="errorChart"></canvas></div>
@@ -373,9 +160,7 @@ img.thumb{
     </div>
 </div>
 
-
-<!-- Offline badge -->
-<div id="offlineBadge" class="d-none"><div class="badge bg-warning text-dark">Demo / Offline Mod</div></div>
+<!-- EDIT MODAL -->
 <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
@@ -384,22 +169,10 @@ img.thumb{
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <div class="mb-3">
-          <label class="form-label">Açıklama</label>
-          <input id="editDescription" class="form-control">
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Personel</label>
-          <input id="editPersonel" class="form-control">
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Vardiya</label>
-          <input id="editVardiya" class="form-control">
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Hat</label>
-          <input id="editHat" class="form-control">
-        </div>
+        <div class="mb-3"><label class="form-label">Açıklama</label><input id="editDescription" class="form-control"></div>
+        <div class="mb-3"><label class="form-label">Personel</label><input id="editPersonel" class="form-control"></div>
+        <div class="mb-3"><label class="form-label">Vardiya</label><input id="editVardiya" class="form-control"></div>
+        <div class="mb-3"><label class="form-label">Hat</label><input id="editHat" class="form-control"></div>
       </div>
       <div class="modal-footer">
         <button id="saveEditBtn" class="btn btn-success">Kaydet</button>
@@ -409,6 +182,9 @@ img.thumb{
   </div>
 </div>
 
+<!-- Offline badge -->
+<div id="offlineBadge" class="d-none"><div class="badge bg-warning text-dark">Demo / Offline Mod</div></div>
+
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
@@ -416,7 +192,7 @@ const BACKEND_BASE = 'https://vardiya-backend.onrender.com';
 const PAGE_SIZE = 20;
 let headerRow = [], dataRows = [], photoRows = [], errorChart = null;
 let currentPhotoPage = 1;
-let editRowId = null; // H sütunundaki ID
+let editRowId = null;
 let editModalEl = null;
 
 // --- LOGIN ---
@@ -462,7 +238,7 @@ async function loadDataFromBackend(){
         headerRow = json.dataHeader || [];
         dataRows = json.dataRows || [];
         photoRows = json.photoRows || [];
-        const photoHeader = json.photoHeader || headerRow;
+        const photoHeader = json.photoHeader || [];
 
         document.getElementById('dataCount').textContent = dataRows.length;
         document.getElementById('photoCount').textContent = photoRows.length;
@@ -485,9 +261,21 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
 
     thead.innerHTML = '';
     const trHead = document.createElement('tr');
-    headers.forEach(h => { const th = document.createElement('th'); th.textContent = h || ''; trHead.appendChild(th); });
+
+    // Photo table için ID sütunu görünür olacak
     if(isPhoto){
-        const thOp = document.createElement('th'); thOp.textContent = 'İşlemler'; trHead.appendChild(thOp);
+        headers.forEach((h,i)=>{
+            if(i<=7){ 
+                const th = document.createElement('th');
+                th.textContent = i===7?'ID':(h||''); 
+                trHead.appendChild(th);
+            }
+        });
+        const thOp = document.createElement('th');
+        thOp.textContent = 'İşlemler';
+        trHead.appendChild(thOp);
+    } else {
+        headers.forEach(h => { const th = document.createElement('th'); th.textContent = h||''; trHead.appendChild(th); });
     }
     thead.appendChild(trHead);
 
@@ -496,24 +284,23 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
 
     function renderPage(){
         tbody.innerHTML = '';
-        const start = (currentPage-1) * PAGE_SIZE;
+        const start = (currentPage-1)*PAGE_SIZE;
         const end = Math.min(start + PAGE_SIZE, filteredRows.length);
-        for(let i = start; i < end; i++){
+        for(let i=start;i<end;i++){
             const row = filteredRows[i];
             const tr = document.createElement('tr');
 
             if(isPhoto){
-                for(let c=0; c<8; c++){
+                for(let c=0;c<8;c++){
                     const td = document.createElement('td');
-                    const cell = row[c];
-                    if(c===5 && cell){
+                    if(c===5 && row[c]){
                         const img = document.createElement('img');
-                        img.src = cell;
+                        img.src = row[c];
                         img.className='thumb';
                         img.alt='foto';
-                        img.addEventListener('click', ()=> openImage(cell));
+                        img.addEventListener('click', ()=> openImage(row[c]));
                         td.appendChild(img);
-                    } else td.textContent = cell ?? '';
+                    } else td.textContent = row[c]??'';
                     tr.appendChild(td);
                 }
 
@@ -521,18 +308,18 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
                 const editBtn = document.createElement('button');
                 editBtn.className='btn btn-sm btn-outline-primary me-2';
                 editBtn.textContent='Düzenle';
-                editBtn.addEventListener('click', ()=> openEditModalById(row[7])); // ID bazlı
+                editBtn.addEventListener('click', ()=> openEditModalById(row[7]));
                 actionTd.appendChild(editBtn);
 
                 const delBtn = document.createElement('button');
                 delBtn.className='btn btn-sm btn-outline-danger';
                 delBtn.textContent='Sil';
-                delBtn.addEventListener('click', ()=> deleteRowById(row[7])); // ID bazlı
+                delBtn.addEventListener('click', ()=> deleteRowById(row[7]));
                 actionTd.appendChild(delBtn);
 
                 tr.appendChild(actionTd);
             } else {
-                row.forEach(cell => { const td = document.createElement('td'); td.textContent = cell ?? ''; tr.appendChild(td); });
+                row.forEach(cell => { const td=document.createElement('td'); td.textContent=cell??''; tr.appendChild(td); });
             }
 
             tbody.appendChild(tr);
@@ -540,38 +327,34 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
 
         // Pagination
         const paginationUl = document.getElementById(paginationId);
-        paginationUl.innerHTML = '';
-        const totalPages = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE));
+        paginationUl.innerHTML='';
+        const totalPages = Math.max(1,Math.ceil(filteredRows.length/PAGE_SIZE));
         const maxPagesToShow = 5;
-        let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow/2));
-        let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
-        if(endPage - startPage < maxPagesToShow-1) startPage = Math.max(1, endPage - maxPagesToShow +1);
+        let startPage = Math.max(1,currentPage-Math.floor(maxPagesToShow/2));
+        let endPage = Math.min(totalPages,startPage+maxPagesToShow-1);
+        if(endPage-startPage<maxPagesToShow-1) startPage=Math.max(1,endPage-maxPagesToShow+1);
 
-        const createLi = (p, text, disabled=false, active=false) => {
+        const createLi = (p,text,disabled=false,active=false)=>{
             const li = document.createElement('li');
-            li.className = 'page-item'+(disabled?' disabled':'')+(active?' active':'');
-            const a = document.createElement('a');
-            a.className='page-link';
-            a.href='#';
-            a.textContent=text;
+            li.className='page-item'+(disabled?' disabled':'')+(active?' active':'');
+            const a=document.createElement('a'); a.className='page-link'; a.href='#'; a.textContent=text;
             a.addEventListener('click', e=>{ e.preventDefault(); if(disabled) return; currentPage=p; if(isPhoto) currentPhotoPage=p; renderPage(); });
             li.appendChild(a);
             return li;
         };
 
-        paginationUl.appendChild(createLi(currentPage-1,'«', currentPage===1));
+        paginationUl.appendChild(createLi(currentPage-1,'«',currentPage===1));
         for(let p=startPage;p<=endPage;p++) paginationUl.appendChild(createLi(p,p,false,p===currentPage));
-        paginationUl.appendChild(createLi(currentPage+1,'»', currentPage===totalPages));
+        paginationUl.appendChild(createLi(currentPage+1,'»',currentPage===totalPages));
     }
 
     renderPage();
 
-    // Arama/filtre
     if(search){
         search.addEventListener('input', ()=>{
             const term = (search.value||'').toLowerCase();
             filteredRows = rows.filter(r => isPhoto ? r.slice(0,8).some(c=> (c||'').toString().toLowerCase().includes(term)) : r.some(c=> (c||'').toString().toLowerCase().includes(term)));
-            currentPage = 1;
+            currentPage=1;
             renderPage();
         });
     }
@@ -579,67 +362,62 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
 
 // --- IMAGE MODAL ---
 function openImage(src){
-    const imgEl = document.getElementById('modalImage');
-    imgEl.src = src;
+    document.getElementById('modalImage').src=src;
     new bootstrap.Modal(document.getElementById('imageModal')).show();
 }
 
-// --- EDIT MODAL BY ID ---
+// --- EDIT MODAL ---
 function openEditModalById(id){
-    const row = photoRows.find(r => r[7]==id);
+    const row = photoRows.find(r=>r[7]==id);
     if(!row){ alert('ID bulunamadı'); return; }
-    document.getElementById('editVardiya').value = row[1]||'';
-    document.getElementById('editHat').value = row[2]||'';
-    document.getElementById('editDescription').value = row[3]||'';
-    document.getElementById('editPersonel').value = row[4]||'';
-    editRowId = id;
-    if(!editModalEl) editModalEl = new bootstrap.Modal(document.getElementById('editModal'));
+    document.getElementById('editVardiya').value=row[1]||'';
+    document.getElementById('editHat').value=row[2]||'';
+    document.getElementById('editDescription').value=row[3]||'';
+    document.getElementById('editPersonel').value=row[4]||'';
+    editRowId=id;
+    if(!editModalEl) editModalEl=new bootstrap.Modal(document.getElementById('editModal'));
     editModalEl.show();
 }
 
 // --- SAVE EDIT ---
 document.getElementById('saveEditBtn').addEventListener('click', async ()=>{
     if(!editRowId){ alert('ID bulunamadı.'); return; }
-    const updatedVardiya = document.getElementById('editVardiya').value.trim();
-    const updatedHat = document.getElementById('editHat').value.trim();
-    const updatedDescription = document.getElementById('editDescription').value.trim();
-    const updatedPersonel = document.getElementById('editPersonel').value.trim();
+    const updatedVardiya=document.getElementById('editVardiya').value.trim();
+    const updatedHat=document.getElementById('editHat').value.trim();
+    const updatedDescription=document.getElementById('editDescription').value.trim();
+    const updatedPersonel=document.getElementById('editPersonel').value.trim();
 
     try{
-        const res = await fetch(`${BACKEND_BASE}/api/duzenle`, {
+        const res=await fetch(`${BACKEND_BASE}/api/duzenle`,{
             method:'POST',
             headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({id:editRowId, vardiya:updatedVardiya, hat:updatedHat, aciklama:updatedDescription, personel:updatedPersonel})
+            body:JSON.stringify({id:editRowId,vardiya:updatedVardiya,hat:updatedHat,aciklama:updatedDescription,personel:updatedPersonel})
         });
         if(!res.ok) throw new Error('Sunucu hatası');
-        const data = await res.json().catch(()=>({success:true}));
+        const data=await res.json().catch(()=>({success:true}));
         if(data && data.success===false){ alert('Güncelleme başarısız: '+(data.message||'')); return; }
 
-        // local array update
         const row = photoRows.find(r=>r[7]==editRowId);
-        if(row){
-            row[1]=updatedVardiya; row[2]=updatedHat; row[3]=updatedDescription; row[4]=updatedPersonel;
-        }
+        if(row){ row[1]=updatedVardiya; row[2]=updatedHat; row[3]=updatedDescription; row[4]=updatedPersonel; }
 
         createEditableTable('photoTable', headerRow, photoRows, 'searchInput2', 'pagination2', true);
         if(editModalEl) editModalEl.hide();
     } catch(err){ console.error(err); alert('Güncelleme yapılamadı.'); }
 });
 
-// --- DELETE ROW BY ID ---
+// --- DELETE ---
 async function deleteRowById(id){
     if(!confirm('Bu satırı silmek istediğinize emin misiniz?')) return;
     try{
-        const res = await fetch(`${BACKEND_BASE}/api/sil`, {
+        const res=await fetch(`${BACKEND_BASE}/api/sil`,{
             method:'POST',
             headers:{'Content-Type':'application/json'},
             body:JSON.stringify({id})
         });
         if(!res.ok) throw new Error('Sunucu hatası');
-        const data = await res.json().catch(()=>({success:true}));
+        const data=await res.json().catch(()=>({success:true}));
         if(data && data.success===false){ alert('Silme başarısız: '+(data.message||'')); return; }
 
-        // local array update
         const idx = photoRows.findIndex(r=>r[7]==id);
         if(idx!==-1) photoRows.splice(idx,1);
 
@@ -649,22 +427,22 @@ async function deleteRowById(id){
 
 // --- DOMContentLoaded ---
 document.addEventListener('DOMContentLoaded', ()=>{
-    editModalEl = new bootstrap.Modal(document.getElementById('editModal'));
+    editModalEl=new bootstrap.Modal(document.getElementById('editModal'));
 
     document.getElementById('loginBtn')?.addEventListener('click', login);
     document.getElementById('logoutBtn')?.addEventListener('click', logout);
 
-    document.getElementById('btnData')?.addEventListener('click', ()=> {
+    document.getElementById('btnData')?.addEventListener('click', ()=>{
         document.getElementById('dataTableWrapper').style.display='block';
         document.getElementById('photoTableWrapper').style.display='none';
         document.getElementById('chartWrapper').style.display='none';
     });
-    document.getElementById('btnPhoto')?.addEventListener('click', ()=> {
+    document.getElementById('btnPhoto')?.addEventListener('click', ()=>{
         document.getElementById('dataTableWrapper').style.display='none';
         document.getElementById('photoTableWrapper').style.display='block';
         document.getElementById('chartWrapper').style.display='none';
     });
-    document.getElementById('btnChart')?.addEventListener('click', ()=> {
+    document.getElementById('btnChart')?.addEventListener('click', ()=>{
         document.getElementById('dataTableWrapper').style.display='none';
         document.getElementById('photoTableWrapper').style.display='none';
         document.getElementById('chartWrapper').style.display='block';
@@ -673,8 +451,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
     if(localStorage.getItem('loggedIn')==='true') showMain();
 });
-</script>
 
+// --- PLACEHOLDER FOR renderChart ---
+function renderChart(){ console.log('Chart render placeholder'); }
+</script>
 
 </body>
 </html>
