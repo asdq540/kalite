@@ -453,7 +453,52 @@ document.addEventListener('DOMContentLoaded', ()=>{
 });
 
 // --- PLACEHOLDER FOR renderChart ---
-function renderChart(){ console.log('Chart render placeholder'); }
+function renderChart(){
+    if(!photoRows || photoRows.length===0) return;
+
+    const groupBy = document.getElementById('chartGroup').value; // aciklama, personel, hat, vardiya
+    const countMap = {};
+
+    photoRows.forEach(r=>{
+        let key = '';
+        switch(groupBy){
+            case 'aciklama': key = r[3]||'Boş'; break;
+            case 'personel': key = r[4]||'Boş'; break;
+            case 'hat': key = r[2]||'Boş'; break;
+            case 'vardiya': key = r[1]||'Boş'; break;
+        }
+        countMap[key] = (countMap[key]||0)+1;
+    });
+
+    const labels = Object.keys(countMap);
+    const data = Object.values(countMap);
+
+    const ctx = document.getElementById('errorChart').getContext('2d');
+
+    if(errorChart) errorChart.destroy();
+
+    errorChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Tekrar Sayısı',
+                data: data,
+                backgroundColor: 'rgba(46,204,113,0.7)',
+                borderColor: 'rgba(46,204,113,1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1 } }
+            }
+        }
+    });
+}
+
 </script>
 
 </body>
