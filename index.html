@@ -590,7 +590,8 @@ function openEditModal(rowIndex){
     editModalEl.show();
 }
 
-// --- SAVE EDIT (Google Sheets update via /api/duzenle) ---
+
+// --- SAVE EDIT (Google Sheets update via backend) ---
 document.getElementById('saveEditBtn').addEventListener('click', async () => {
     if (editRowIndex === null) return;
 
@@ -610,50 +611,69 @@ document.getElementById('saveEditBtn').addEventListener('click', async () => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                row: editRowIndex,
+                rowIndex: editRowIndex,  // backend ile birebir uyumlu
                 aciklama: updatedDescription,
                 personel: updatedPersonel,
                 vardiya: updatedVardiya,
                 hat: updatedHat
             })
         });
+
         const data = await res.json();
         if (!data.success) {
-            alert('Google Sheets güncellenemedi: ' + (data.message || 'Hata'));
+            alert('Google Sheets güncellenemedi: ' + (data.message || 'Bilinmeyen hata'));
             return;
         }
     } catch (err) {
         console.error(err);
-        alert('Google Sheets güncellenemedi.');
+        alert('Sunucuya ulaşılamadı.');
         return;
     }
 
+    // tabloyu tekrar çiz
     createEditableTable('photoTable', headerRow, photoRows, 'searchInput2', 'pagination2', true);
+
+    // modal kapat
     editModalEl.hide();
+
+    // grafik varsa yeniden çiz
     renderChart();
 });
 
+
 // --- DELETE ROW (Google Sheets üzerinden /api/sil) ---
+// --- DELETE ROW ---
 async function deleteRow(rowIndex) {
     if (!confirm('Bu satırı silmek istediğinize emin misiniz?')) return;
+
     try {
         const res = await fetch(`${BACKEND_BASE}/api/sil`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ row: rowIndex })
+            body: JSON.stringify({ rowIndex })  // backend ile uyumlu key
         });
+
         const data = await res.json();
         if (!data.success) {
             alert('Silme işlemi başarısız: ' + (data.message || 'Hata'));
             return;
         }
+
+        // local array güncelle
         photoRows.splice(rowIndex, 1);
+
+        // tabloyu tekrar çiz
         createEditableTable('photoTable', headerRow, photoRows, 'searchInput2', 'pagination2', true);
+
+        // grafik varsa yeniden çiz
+        renderChart();
+
     } catch (err) {
         console.error(err);
         alert('Sunucuya ulaşılamadı.');
     }
 }
+
 
 // --- PHOTO COLUMN INDICES & CHART ---
 function getPhotoColumnIndices() { return { aciklama:3, personel:4, hat:2, vardiya:1 }; }
