@@ -553,9 +553,9 @@ function openEditModal(rowIndex){ /* aynı kod */ }
 async function deleteRow(rowIndex){ /* aynı kod */ }
 
 // ========================
-//  SABİT KOLON İNDEKSLERİ
+//  SABİT KOLON İNDEKSLERİ (Fotoğraf Tablosu)
 // ========================
-function getColumnIndices() {
+function getPhotoColumnIndices() {
     return {
         aciklama: 3,
         personel: 4,
@@ -569,24 +569,24 @@ function getColumnIndices() {
 // =========================
 function renderChart() {
     try {
-        if (!dataRows || dataRows.length === 0) return;
+        if (!photoRows || photoRows.length === 0) return;
 
         const groupKey = document.getElementById("chartGroup")?.value || "aciklama";
-        const indices = getColumnIndices();
+        const indices = getPhotoColumnIndices();
         const col = indices[groupKey];
         if (col === undefined) { console.error("Geçersiz grup kolon:", groupKey); return; }
 
         const grouped = {};
-        dataRows.forEach(r => {
+        photoRows.forEach(r => {
             let key = r[col];
-            if (key === undefined || key === null || key === "") key = "Boş";
+            if (!key) key = "Boş";
             key = key.toString().trim();
             grouped[key] = (grouped[key] || 0) + 1;
         });
 
-        const sortedKeys = Object.keys(grouped).sort((a, b) => grouped[b] - grouped[a]);
+        const sortedKeys = Object.keys(grouped).sort((a,b)=>grouped[b]-grouped[a]);
         const labels = sortedKeys;
-        const values = sortedKeys.map(k => grouped[k]);
+        const values = sortedKeys.map(k=>grouped[k]);
 
         if (errorChart) errorChart.destroy();
 
@@ -609,10 +609,7 @@ function renderChart() {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { display: true },
-                    title: {
-                        display: true,
-                        text: `Grup Kriteri: ${groupKey.toUpperCase()}`
-                    }
+                    title: { display: true, text: `Fotoğraf Tablosu - Grup: ${groupKey.toUpperCase()}` }
                 },
                 scales: {
                     x: { ticks: { color: "#222", font: { size: 12 } } },
@@ -660,6 +657,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(localStorage.getItem('loggedIn')==='true') showMain();
 });
 </script>
+
 
 </body>
 </html>
