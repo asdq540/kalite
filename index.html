@@ -573,44 +573,47 @@ function renderChart() {
 
         const groupKey = document.getElementById("chartGroup")?.value || "aciklama";
         const period = document.getElementById("chartPeriod")?.value || "daily"; 
-        const selectedDateStr = document.getElementById("chartDate")?.value || null;
+        const selectedDateStr = document.getElementById("chartDate")?.value || null; // YYYY-MM-DD
         const indices = getPhotoColumnIndices();
         const col = indices[groupKey];
         if (col === undefined) { console.error("Geçersiz grup kolon:", groupKey); return; }
 
-        const dateCol = 0; 
+        const dateCol = 0; // Tarih sütunu indeksi
         const grouped = {};
 
-        photoRows.forEach(r => {
-            let key = r[col] || "Boş";
-            key = key.toString().trim();
+        let targetDate = null;
+        if (selectedDateStr) {
+            const parts = selectedDateStr.split('-');
+            targetDate = new Date(+parts[0], +parts[1]-1, +parts[2]);
+        }
 
+        photoRows.forEach(r => {
+            let key = (r[col] || "Boş").toString().trim();
             let dateStr = r[dateCol] || null;
             const d = dateStr ? parseDateFromDDMMYYYY(dateStr) : null;
+            if (!d) return;
 
-            // Tarih filtresi
-            if(selectedDateStr && d){
-                const selParts = selectedDateStr.split('-');
-                const selDate = new Date(+selParts[0], +selParts[1]-1, +selParts[2]);
-                if(d.getTime() !== selDate.getTime()) return; 
+            // Günlük/Haftalık/Aylık filtreleme
+            if (targetDate) {
+                if (period === "daily") {
+                    if (d.getTime() !== targetDate.getTime()) return;
+                } else if (period === "weekly") {
+                    const dWeek = weekKeyFromDate(d);
+                    const targetWeek = weekKeyFromDate(targetDate);
+                    if (dWeek !== targetWeek) return;
+                } else if (period === "monthly") {
+                    const dMonth = monthKeyFromDate(d);
+                    const targetMonth = monthKeyFromDate(targetDate);
+                    if (dMonth !== targetMonth) return;
+                }
             }
 
-            // Periyot bazlı toplama: yalnızca grup ve periyotu dikkate al, etiket değişmesin
-            let periyotKey = key; // Etiket sadece grup adı olacak
-            if(d){
-                if(period === "daily") { /* günlük: tüm günleri dahil et, tek çubuk */ }
-                else if(period === "weekly") { /* hafta bazlı: aynı hafta tek çubuk */ }
-                else if(period === "monthly") { /* ay bazlı: aynı ay tek çubuk */ }
-                // Önemli: burada periyotKey değişmeyecek, sadece toplama mantığı farklı
-            }
-
-            // Toplama
-            grouped[periyotKey] = (grouped[periyotKey] || 0) + 1;
+            // Gruplama sadece grup başlığına göre
+            grouped[key] = (grouped[key] || 0) + 1;
         });
 
-        const sortedKeys = Object.keys(grouped).sort((a,b)=>grouped[b]-grouped[a]);
-        const labels = sortedKeys;
-        const values = sortedKeys.map(k=>grouped[k]);
+        const labels = Object.keys(grouped).sort((a,b)=>grouped[b]-grouped[a]);
+        const values = labels.map(k=>grouped[k]);
 
         if (errorChart) errorChart.destroy();
 
@@ -633,7 +636,10 @@ function renderChart() {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { display: true },
-                    title: { display: true, text: `Fotoğraf Tablosu - Grup: ${groupKey.toUpperCase()} - Periyot: ${period.toUpperCase()}` }
+                    title: {
+                        display: true,
+                        text: `Fotoğraf Tablosu - Grup: ${groupKey.toUpperCase()} - Periyot: ${period.toUpperCase()}`
+                    }
                 },
                 scales: {
                     x: { ticks: { color: "#222", font: { size: 12 } } },
@@ -642,7 +648,9 @@ function renderChart() {
             }
         });
 
-    } catch (err) { console.error("renderChart HATA:", err); }
+    } catch (err) {
+        console.error("renderChart HATA:", err);
+    }
 }
 
 
