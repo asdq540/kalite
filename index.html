@@ -453,11 +453,12 @@ function showMain(){
     loadDataFromBackend();
 }
 
-// --- LOAD DATA ---
+// --- LOAD DATA FROM BACKEND ---
 async function loadDataFromBackend(){
     try{
         const res = await fetch(BACKEND_BASE + '/api/get');
         const json = await res.json();
+
         headerRow = json.dataHeader || [];
         dataRows = json.dataRows || [];
         photoRows = json.photoRows || [];
@@ -505,11 +506,11 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
                 for(let c=0; c<8; c++){
                     const td = document.createElement('td');
                     const cell = row[c];
-                    if(c === 5 && cell){
+                    if(c===5 && cell){
                         const img = document.createElement('img');
                         img.src = cell;
-                        img.className = 'thumb';
-                        img.alt = 'foto';
+                        img.className='thumb';
+                        img.alt='foto';
                         img.addEventListener('click', ()=> openImage(cell));
                         td.appendChild(img);
                     } else td.textContent = cell ?? '';
@@ -517,18 +518,16 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
                 }
 
                 const actionTd = document.createElement('td');
-                const rowId = row[7]; // H sütunu ID
-
                 const editBtn = document.createElement('button');
-                editBtn.className = 'btn btn-sm btn-outline-primary me-2';
-                editBtn.textContent = 'Düzenle';
-                editBtn.addEventListener('click', ()=> openEditModalById(rowId));
+                editBtn.className='btn btn-sm btn-outline-primary me-2';
+                editBtn.textContent='Düzenle';
+                editBtn.addEventListener('click', ()=> openEditModalById(row[7])); // ID bazlı
                 actionTd.appendChild(editBtn);
 
                 const delBtn = document.createElement('button');
-                delBtn.className = 'btn btn-sm btn-outline-danger';
-                delBtn.textContent = 'Sil';
-                delBtn.addEventListener('click', ()=> deleteRowById(rowId));
+                delBtn.className='btn btn-sm btn-outline-danger';
+                delBtn.textContent='Sil';
+                delBtn.addEventListener('click', ()=> deleteRowById(row[7])); // ID bazlı
                 actionTd.appendChild(delBtn);
 
                 tr.appendChild(actionTd);
@@ -546,37 +545,32 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
         const maxPagesToShow = 5;
         let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow/2));
         let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
-        if(endPage - startPage < maxPagesToShow - 1) startPage = Math.max(1, endPage - maxPagesToShow + 1);
+        if(endPage - startPage < maxPagesToShow-1) startPage = Math.max(1, endPage - maxPagesToShow +1);
 
         const createLi = (p, text, disabled=false, active=false) => {
             const li = document.createElement('li');
-            li.className = 'page-item' + (disabled ? ' disabled' : '') + (active ? ' active' : '');
+            li.className = 'page-item'+(disabled?' disabled':'')+(active?' active':'');
             const a = document.createElement('a');
-            a.className = 'page-link';
-            a.href = '#';
-            a.textContent = text;
-            a.addEventListener('click', (e)=>{
-                e.preventDefault();
-                if(disabled) return;
-                currentPage = p;
-                if(isPhoto) currentPhotoPage = p;
-                renderPage();
-            });
+            a.className='page-link';
+            a.href='#';
+            a.textContent=text;
+            a.addEventListener('click', e=>{ e.preventDefault(); if(disabled) return; currentPage=p; if(isPhoto) currentPhotoPage=p; renderPage(); });
             li.appendChild(a);
             return li;
         };
 
         paginationUl.appendChild(createLi(currentPage-1,'«', currentPage===1));
-        for(let p = startPage; p <= endPage; p++) paginationUl.appendChild(createLi(p, p, false, p===currentPage));
+        for(let p=startPage;p<=endPage;p++) paginationUl.appendChild(createLi(p,p,false,p===currentPage));
         paginationUl.appendChild(createLi(currentPage+1,'»', currentPage===totalPages));
     }
 
     renderPage();
 
+    // Arama/filtre
     if(search){
         search.addEventListener('input', ()=>{
-            const term = (search.value || '').toLowerCase();
-            filteredRows = rows.filter(row => (isPhoto ? row.slice(0,8) : row).some(cell => (cell||'').toString().toLowerCase().includes(term)));
+            const term = (search.value||'').toLowerCase();
+            filteredRows = rows.filter(r => isPhoto ? r.slice(0,8).some(c=> (c||'').toString().toLowerCase().includes(term)) : r.some(c=> (c||'').toString().toLowerCase().includes(term)));
             currentPage = 1;
             renderPage();
         });
@@ -590,15 +584,15 @@ function openImage(src){
     new bootstrap.Modal(document.getElementById('imageModal')).show();
 }
 
-// --- EDIT MODAL ID BAZLI ---
-function openEditModalById(rowId){
-    editRowId = rowId;
-    const row = photoRows.find(r => r[7] == rowId);
-    if(!row){ alert("ID bulunamadı."); return; }
-    document.getElementById('editVardiya').value = row[1] || '';
-    document.getElementById('editHat').value = row[2] || '';
-    document.getElementById('editDescription').value = row[3] || '';
-    document.getElementById('editPersonel').value = row[4] || '';
+// --- EDIT MODAL BY ID ---
+function openEditModalById(id){
+    const row = photoRows.find(r => r[7]==id);
+    if(!row){ alert('ID bulunamadı'); return; }
+    document.getElementById('editVardiya').value = row[1]||'';
+    document.getElementById('editHat').value = row[2]||'';
+    document.getElementById('editDescription').value = row[3]||'';
+    document.getElementById('editPersonel').value = row[4]||'';
+    editRowId = id;
     if(!editModalEl) editModalEl = new bootstrap.Modal(document.getElementById('editModal'));
     editModalEl.show();
 }
@@ -606,69 +600,78 @@ function openEditModalById(rowId){
 // --- SAVE EDIT ---
 document.getElementById('saveEditBtn').addEventListener('click', async ()=>{
     if(!editRowId){ alert('ID bulunamadı.'); return; }
-
     const updatedVardiya = document.getElementById('editVardiya').value.trim();
     const updatedHat = document.getElementById('editHat').value.trim();
     const updatedDescription = document.getElementById('editDescription').value.trim();
     const updatedPersonel = document.getElementById('editPersonel').value.trim();
 
-    const localRow = photoRows.find(r => r[7] == editRowId);
-    if(!localRow){ alert('Satır bulunamadı.'); return; }
-    localRow[1] = updatedVardiya;
-    localRow[2] = updatedHat;
-    localRow[3] = updatedDescription;
-    localRow[4] = updatedPersonel;
-
     try{
         const res = await fetch(`${BACKEND_BASE}/api/duzenle`, {
-            method: 'POST',
-            headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({
-                id: editRowId,
-                vardiya: updatedVardiya,
-                hat: updatedHat,
-                aciklama: updatedDescription,
-                personel: updatedPersonel
-            })
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({id:editRowId, vardiya:updatedVardiya, hat:updatedHat, aciklama:updatedDescription, personel:updatedPersonel})
         });
         if(!res.ok) throw new Error('Sunucu hatası');
         const data = await res.json().catch(()=>({success:true}));
-        if(data && data.success === false){ alert('Güncelleme başarısız: '+(data.message||'Hata')); return; }
-    } catch(err){
-        console.error('update error', err);
-        alert('Sunucuya ulaşılamadı.');
-        return;
-    }
+        if(data && data.success===false){ alert('Güncelleme başarısız: '+(data.message||'')); return; }
 
-    createEditableTable('photoTable', headerRow, photoRows, 'searchInput2', 'pagination2', true);
-    if(editModalEl) editModalEl.hide();
-    renderChart();
+        // local array update
+        const row = photoRows.find(r=>r[7]==editRowId);
+        if(row){
+            row[1]=updatedVardiya; row[2]=updatedHat; row[3]=updatedDescription; row[4]=updatedPersonel;
+        }
+
+        createEditableTable('photoTable', headerRow, photoRows, 'searchInput2', 'pagination2', true);
+        if(editModalEl) editModalEl.hide();
+    } catch(err){ console.error(err); alert('Güncelleme yapılamadı.'); }
 });
 
-// --- DELETE ID BAZLI ---
-function deleteRowById(rowId){
-    const rowIndex = photoRows.findIndex(r => r[7] == rowId);
-    if(rowIndex === -1){ alert("ID bulunamadı."); return; }
+// --- DELETE ROW BY ID ---
+async function deleteRowById(id){
     if(!confirm('Bu satırı silmek istediğinize emin misiniz?')) return;
+    try{
+        const res = await fetch(`${BACKEND_BASE}/api/sil`, {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({id})
+        });
+        if(!res.ok) throw new Error('Sunucu hatası');
+        const data = await res.json().catch(()=>({success:true}));
+        if(data && data.success===false){ alert('Silme başarısız: '+(data.message||'')); return; }
 
-    fetch(`${BACKEND_BASE}/api/sil`, {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ id: rowId })
-    }).then(r=>r.json()).then(data=>{
-        if(data.success){
-            photoRows.splice(rowIndex,1);
-            createEditableTable('photoTable', headerRow, photoRows, 'searchInput2', 'pagination2', true);
-        } else alert(data.message||'Silme başarısız');
-    }).catch(err=>{console.error(err); alert('Sunucuya ulaşılamadı'); });
+        // local array update
+        const idx = photoRows.findIndex(r=>r[7]==id);
+        if(idx!==-1) photoRows.splice(idx,1);
+
+        createEditableTable('photoTable', headerRow, photoRows, 'searchInput2', 'pagination2', true);
+    } catch(err){ console.error(err); alert('Silme yapılamadı.'); }
 }
 
 // --- DOMContentLoaded ---
 document.addEventListener('DOMContentLoaded', ()=>{
     editModalEl = new bootstrap.Modal(document.getElementById('editModal'));
+
     document.getElementById('loginBtn')?.addEventListener('click', login);
     document.getElementById('logoutBtn')?.addEventListener('click', logout);
-    if(localStorage.getItem('loggedIn') === 'true') showMain();
+
+    document.getElementById('btnData')?.addEventListener('click', ()=> {
+        document.getElementById('dataTableWrapper').style.display='block';
+        document.getElementById('photoTableWrapper').style.display='none';
+        document.getElementById('chartWrapper').style.display='none';
+    });
+    document.getElementById('btnPhoto')?.addEventListener('click', ()=> {
+        document.getElementById('dataTableWrapper').style.display='none';
+        document.getElementById('photoTableWrapper').style.display='block';
+        document.getElementById('chartWrapper').style.display='none';
+    });
+    document.getElementById('btnChart')?.addEventListener('click', ()=> {
+        document.getElementById('dataTableWrapper').style.display='none';
+        document.getElementById('photoTableWrapper').style.display='none';
+        document.getElementById('chartWrapper').style.display='block';
+        renderChart();
+    });
+
+    if(localStorage.getItem('loggedIn')==='true') showMain();
 });
 </script>
 
