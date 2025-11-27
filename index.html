@@ -592,7 +592,7 @@ function openImage(src){
 function openEditModal(rowIndex){
     editRowIndex = rowIndex;
     const row = photoRows[rowIndex];
-    editRowId = row[0]; // ID artık her zaman ilk sütun
+    editRowId = row[7]; // ID artık her zaman ilk sütun
     document.getElementById('editDescription').value = row[5] || '';
     document.getElementById('editPersonel').value = row[4] || '';
     document.getElementById('editVardiya').value = row[2] || '';
