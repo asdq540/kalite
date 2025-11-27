@@ -553,89 +553,109 @@ function openEditModal(rowIndex){ /* aynı kod */ }
 async function deleteRow(rowIndex){ /* aynı kod */ }
 
 // GRAFİK
-function renderChart(){
-    try{
-        const chartGroup = document.getElementById('chartGroup')?.value || 'aciklama';
-        const period = document.getElementById('chartPeriod')?.value || 'daily';
-        const dateInput = document.getElementById('chartDate')?.value;
-        let selectedDate = dateInput ? new Date(dateInput) : null;
+function renderChart() {
+    try {
+        const groupBy = document.getElementById("chartGroup")?.value || "aciklama";
+        const period = document.getElementById("chartPeriod")?.value || "daily";
+        const dateInput = document.getElementById("chartDate")?.value;
 
-        const counts = {};
+        // Tarihi doğru formata çevir
+        let selectedDate = null;
+        let selectedDateDDMMYYYY = null;
+        if (dateInput) {
+            const p = dateInput.split("-");
+            selectedDateDDMMYYYY = `${p[2]}.${p[1]}.${p[0]}`;
+            selectedDate = new Date(+p[0], +p[1] - 1, +p[2]);
+        }
+
         const labelsSet = new Set();
+        const counts = {};
 
-        photoRows.forEach(row=>{
-            if(!row) return;
-            const dateStr = row[0]||'';
-            const desc = row[3]||'Açıklama Yok';
-            const personel = row[4]||'Bilinmiyor';
-            const hat = row[2]||'Bilinmiyor';
-            const vardiya = row[1]||'Bilinmiyor';
-            if(!dateStr) return;
+        photoRows.forEach(row => {
+            if (!row) return;
+
+            const dateStr = row[0] || "";
+            if (!dateStr.includes(".")) return;
 
             const d = parseDateFromDDMMYYYY(dateStr);
-            if(!d) return;
+            if (!d) return;
 
-            if(selectedDate){
-                if(period==='daily' && formatDate(d)!==formatDate(selectedDate)) return;
-                if(period==='weekly' && weekKeyFromDate(d)!==weekKeyFromDate(selectedDate)) return;
-                if(period==='monthly' && monthKeyFromDate(d)!==monthKeyFromDate(selectedDate)) return;
+            // === DOĞRU TARİH FİLTRESİ ===
+            if (selectedDate) {
+                if (period === "daily" && dateStr !== selectedDateDDMMYYYY) return;
+
+                if (period === "weekly" &&
+                    weekKeyFromDate(d) !== weekKeyFromDate(selectedDate)) return;
+
+                if (period === "monthly" &&
+                    monthKeyFromDate(d) !== monthKeyFromDate(selectedDate)) return;
             }
 
-            let key='';
-            if(period==='daily') key=formatDate(d);
-            else if(period==='weekly') key=weekKeyFromDate(d);
-            else if(period==='monthly') key=monthKeyFromDate(d);
+            let timeLabel = "";
+            if (period === "daily") timeLabel = dateStr;
+            if (period === "weekly") timeLabel = weekKeyFromDate(d);
+            if (period === "monthly") timeLabel = monthKeyFromDate(d);
 
-            labelsSet.add(key);
-            let groupKey='';
-            switch(chartGroup){
-                case 'aciklama': groupKey=desc; break;
-                case 'personel': groupKey=personel; break;
-                case 'hat': groupKey=hat; break;
-                case 'vardiya': groupKey=vardiya; break;
-            }
-            const countKey = `${groupKey}|${key}`;
-            counts[countKey]=(counts[countKey]||0)+1;
+            labelsSet.add(timeLabel);
+
+            let groupKey = "";
+            if (groupBy === "aciklama") groupKey = row[3] || "Açıklama Yok";
+            if (groupBy === "personel") groupKey = row[4] || "Personel Yok";
+            if (groupBy === "hat") groupKey = row[2] || "Hat Yok";
+            if (groupBy === "vardiya") groupKey = row[1] || "Vardiya Yok";
+
+            const countKey = `${groupKey}|${timeLabel}`;
+            counts[countKey] = (counts[countKey] || 0) + 1;
         });
 
         const labels = Array.from(labelsSet).sort();
         const groups = {};
-        for(const k in counts){
-            const [gKey,label] = k.split('|');
-            if(!groups[gKey]) groups[gKey]={};
-            groups[gKey][label]=counts[k];
+
+        for (const key in counts) {
+            const [group, label] = key.split("|");
+            if (!groups[group]) groups[group] = {};
+            groups[group][label] = counts[key];
         }
 
-        const palette=["#32ff7e","#0ff3ff","#fffa3c","#ff5733","#33ff57","#ff33a6","#a633ff","#ff9933"];
-        const datasets=[];
-        Object.keys(groups).sort((a,b)=>{ // büyükten küçüğe toplam
-            const sumA = Object.values(groups[a]).reduce((s,v)=>s+v,0);
-            const sumB = Object.values(groups[b]).reduce((s,v)=>s+v,0);
-            return sumB-sumA;
-        }).forEach((g,i)=>{
-            const dataArr = labels.map(l=>groups[g][l]||0);
-            datasets.push({label:g, data:dataArr, backgroundColor:palette[i%palette.length], borderColor:palette[i%palette.length], borderWidth:1, type:'bar'});
-        });
+        const palette = ["#32ff7e", "#0ff3ff", "#fffa3c", "#ff9933", "#ff33a6", "#a633ff"];
+        const datasets = [];
 
-        const ctx = document.getElementById('errorChart')?.getContext('2d');
-        if(!ctx) return;
-        if(errorChart) errorChart.destroy();
-        errorChart = new Chart(ctx,{
-            data:{labels,datasets},
-            options:{
-                responsive:true,
-                maintainAspectRatio:false,
-                plugins:{
-                    legend:{position:'top',labels:{color:'#fff'}},
-                    tooltip:{mode:'index',intersect:false},
-                    datalabels:{ color:'#fff', anchor:'end', align:'top' }
+        Object.keys(groups)
+            .sort((a, b) =>
+                Object.values(groups[b]).reduce((s, v) => s + v, 0) -
+                Object.values(groups[a]).reduce((s, v) => s + v, 0)
+            )
+            .forEach((grp, i) => {
+                datasets.push({
+                    label: grp,
+                    data: labels.map(l => groups[grp][l] || 0),
+                    backgroundColor: palette[i % palette.length],
+                    borderColor: palette[i % palette.length],
+                    borderWidth: 1
+                });
+            });
+
+        const ctx = document.getElementById("errorChart").getContext("2d");
+        if (errorChart) errorChart.destroy();
+
+        errorChart = new Chart(ctx, {
+            type: "bar",
+            data: { labels, datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: "#fff" } }
                 },
-                scales:{y:{beginAtZero:true, ticks:{color:'#fff'}}, x:{ticks:{color:'#fff'}}}
-            },
-            plugins:[ChartDataLabels]
+                scales: {
+                    x: { ticks: { color: "#fff" } },
+                    y: { ticks: { color: "#fff" }, beginAtZero: true }
+                }
+            }
         });
-    } catch(e){ console.error(e); }
+    } catch (err) { console.log("Chart Error:", err); }
 }
+
 
 function parseDateFromDDMMYYYY(s){ if(!s) return null; const p=s.split('.'); if(p.length!==3) return null; const d=new Date(+p[2],+p[1]-1,+p[0]); return isNaN(d)?null:d; }
 function weekKeyFromDate(d){ const onejan=new Date(d.getFullYear(),0,1); return 'W'+Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7); }
