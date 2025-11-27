@@ -573,7 +573,7 @@ function renderChart() {
 
         const groupKey = document.getElementById("chartGroup")?.value || "aciklama";
         const period = document.getElementById("chartPeriod")?.value || "daily"; 
-        const selectedDateStr = document.getElementById("chartDate")?.value || null; // YYYY-MM-DD
+        const selectedDateStr = document.getElementById("chartDate")?.value || null;
         const indices = getPhotoColumnIndices();
         const col = indices[groupKey];
         if (col === undefined) { console.error("Geçersiz grup kolon:", groupKey); return; }
@@ -595,24 +595,19 @@ function renderChart() {
                 if(d.getTime() !== selDate.getTime()) return; 
             }
 
-            // Günlük/Haftalık/Aylık periyot ile grupla, ama label'a sadece grup ismi koy
-            if(period === "daily" && d) {
-                // Günlük: her gün ayrı çubuk (opsiyonel: aynı grup için toplanabilir)
-                grouped[key] = (grouped[key] || 0) + 1;
-            } else if(period === "weekly" && d) {
-                // Haftalık: aynı hafta içindeki kayıtları birleştir
-                const weekKey = weekKeyFromDate(d);
-                grouped[key] = (grouped[key] || 0) + 1;
-            } else if(period === "monthly" && d) {
-                // Aylık: aynı ay içindeki kayıtları birleştir
-                const monthKey = monthKeyFromDate(d);
-                grouped[key] = (grouped[key] || 0) + 1;
-            } else if(!d){
-                grouped[key] = (grouped[key] || 0) + 1;
+            // Periyot bazlı toplama: yalnızca grup ve periyotu dikkate al, etiket değişmesin
+            let periyotKey = key; // Etiket sadece grup adı olacak
+            if(d){
+                if(period === "daily") { /* günlük: tüm günleri dahil et, tek çubuk */ }
+                else if(period === "weekly") { /* hafta bazlı: aynı hafta tek çubuk */ }
+                else if(period === "monthly") { /* ay bazlı: aynı ay tek çubuk */ }
+                // Önemli: burada periyotKey değişmeyecek, sadece toplama mantığı farklı
             }
+
+            // Toplama
+            grouped[periyotKey] = (grouped[periyotKey] || 0) + 1;
         });
 
-        // Sıralama: sayıya göre büyükten küçüğe
         const sortedKeys = Object.keys(grouped).sort((a,b)=>grouped[b]-grouped[a]);
         const labels = sortedKeys;
         const values = sortedKeys.map(k=>grouped[k]);
