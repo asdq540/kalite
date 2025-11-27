@@ -553,22 +553,30 @@ function openEditModal(rowIndex){ /* aynı kod */ }
 async function deleteRow(rowIndex){ /* aynı kod */ }
 
 // ========================
-//  OTOMATİK KOLON BULMA
+//  OTOMATİK KOLON BULMA (TÜRKÇE KARAKTER DÜZELTME İLE)
 // ========================
 function getColumnIndices() {
     const defaults = { tarih:0, vardiya:1, hat:2, aciklama:3, personel:4, foto:5 };
-    if(!headerRow || headerRow.length===0) return defaults;
+    if (!headerRow || headerRow.length === 0) return defaults;
 
     const map = {};
-    headerRow.forEach((h,i)=>{
-        if(!h) return;
-        const key = h.toString().toLowerCase().trim();
-        if(key.includes('tarih')) map.tarih=i;
-        else if(key.includes('vardiya')) map.vardiya=i;
-        else if(key.includes('hat')) map.hat=i;
-        else if(key.includes('açıklama') || key.includes('aciklama')) map.aciklama=i;
-        else if(key.includes('personel')) map.personel=i;
-        else if(key.includes('foto')) map.foto=i;
+
+    headerRow.forEach((h, i) => {
+        if (!h) return;
+
+        const key = h
+            .toString()
+            .normalize("NFKD")              // Türkçe karakterleri çözer
+            .replace(/[\u0300-\u036f]/g, "") // diacritics temizle
+            .toLowerCase()
+            .trim();
+
+        if (key.includes("tarih")) map.tarih = i;
+        else if (key.includes("vardiya")) map.vardiya = i;
+        else if (key.includes("hat")) map.hat = i;
+        else if (key.includes("aciklama")) map.aciklama = i;
+        else if (key.includes("personel")) map.personel = i;
+        else if (key.includes("foto")) map.foto = i;
     });
 
     return Object.assign({}, defaults, map);
@@ -593,7 +601,9 @@ function renderChart() {
 
         const grouped = {};
         dataRows.forEach(r => {
-            const key = (r[col] || "Boş").toString().trim();
+            let key = r[col];
+            if (key === undefined || key === null || key === "") key = "Boş";
+            key = key.toString().trim();
             grouped[key] = (grouped[key] || 0) + 1;
         });
 
