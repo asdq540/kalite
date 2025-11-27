@@ -483,50 +483,79 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
 
     thead.innerHTML = '';
     const tr = document.createElement('tr');
-    headers.forEach(h=>{ const th=document.createElement('th'); th.textContent=h||''; tr.appendChild(th); });
-    if(isPhoto){ const actionTh=document.createElement('th'); actionTh.textContent='İşlemler'; tr.appendChild(actionTh); }
+
+    // Başlıklara ID'yi ekle (H sütunu)
+    if(isPhoto){
+        const newHeaders = ['ID', ...headers];
+        newHeaders.forEach(h => {
+            const th = document.createElement('th');
+            th.textContent = h || '';
+            tr.appendChild(th);
+        });
+        const actionTh = document.createElement('th');
+        actionTh.textContent = 'İşlemler';
+        tr.appendChild(actionTh);
+    } else {
+        headers.forEach(h => {
+            const th = document.createElement('th');
+            th.textContent = h || '';
+            tr.appendChild(th);
+        });
+    }
     thead.appendChild(tr);
 
     let filteredRows = [...rows];
     let currentPage = isPhoto ? currentPhotoPage : 1;
 
     function renderPage(){
-        tbody.innerHTML='';
+        tbody.innerHTML = '';
         const start = (currentPage-1)*PAGE_SIZE;
         const end = Math.min(start+PAGE_SIZE, filteredRows.length);
+
         for(let i=start;i<end;i++){
             const row = filteredRows[i];
-            const tr=document.createElement('tr');
+            const tr = document.createElement('tr');
+
+            if(isPhoto){
+                // H sütunundaki ID'yi başa ekle
+                const idTd = document.createElement('td');
+                idTd.textContent = row[7] || ''; // H sütunu ID
+                tr.appendChild(idTd);
+            }
+
             row.forEach((cell,colIndex)=>{
-                const td=document.createElement('td');
+                const td = document.createElement('td');
                 if(isPhoto && colIndex===5 && cell){
-                    const img=document.createElement('img');
-                    img.src=cell; img.className='thumb'; img.alt='foto';
+                    const img = document.createElement('img');
+                    img.src = cell; img.className = 'thumb'; img.alt = 'foto';
                     img.addEventListener('click',()=>openImage(cell));
                     td.appendChild(img);
-                } else td.textContent=cell||'';
+                } else td.textContent = cell || '';
                 tr.appendChild(td);
-            });
+            }));
+
             if(isPhoto){
-                const actionTd=document.createElement('td');
-                const editBtn=document.createElement('button');
-                editBtn.className='btn btn-sm btn-outline-primary me-2';
-                editBtn.textContent='Düzenle';
+                const actionTd = document.createElement('td');
+
+                const editBtn = document.createElement('button');
+                editBtn.className = 'btn btn-sm btn-outline-primary me-2';
+                editBtn.textContent = 'Düzenle';
                 editBtn.addEventListener('click',()=>openEditModal(i));
                 actionTd.appendChild(editBtn);
 
-                const delBtn=document.createElement('button');
-                delBtn.className='btn btn-sm btn-outline-danger';
-                delBtn.textContent='Sil';
+                const delBtn = document.createElement('button');
+                delBtn.className = 'btn btn-sm btn-outline-danger';
+                delBtn.textContent = 'Sil';
                 delBtn.addEventListener('click',()=>deleteRow(i));
                 actionTd.appendChild(delBtn);
 
                 tr.appendChild(actionTd);
             }
+
             tbody.appendChild(tr);
         }
 
-        // Pagination
+        // Pagination kodu aynı kalacak
         const paginationUl = document.getElementById(paginationId);
         paginationUl.innerHTML='';
         const totalPages = Math.ceil(filteredRows.length / PAGE_SIZE);
@@ -549,6 +578,7 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
 
     renderPage();
 
+    // Arama filtreleme aynı kalacak
     if(isPhoto){
         const searchDate = document.getElementById('searchDate');
         function applyFilter(){
@@ -579,6 +609,7 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
         }; }
     }
 }
+
 
 // --- IMAGE MODAL ---
 function openImage(src){
