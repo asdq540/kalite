@@ -594,7 +594,7 @@ function renderChart() {
             if (!d) return;
 
             // Günlük/Haftalık/Aylık filtreleme
-            if (targetDate) {
+            if(targetDate) {
                 if (period === "daily") {
                     if (d.getTime() !== targetDate.getTime()) return;
                 } else if (period === "weekly") {
@@ -618,6 +618,25 @@ function renderChart() {
         if (errorChart) errorChart.destroy();
 
         const ctx = document.getElementById("errorChart").getContext("2d");
+
+        // Başlık oluşturma
+        let titleText = "";
+        if (targetDate) {
+            if (period === "daily") titleText = formatDate(targetDate);
+            else if (period === "weekly") {
+                const d = targetDate;
+                const startOfWeek = new Date(d);
+                startOfWeek.setDate(d.getDate() - d.getDay() + 1); // Pazartesi başlangıç
+                const endOfWeek = new Date(startOfWeek);
+                endOfWeek.setDate(startOfWeek.getDate() + 6); // Pazar bitiş
+                titleText = `${formatDate(startOfWeek)} - ${formatDate(endOfWeek)}`;
+            } else if (period === "monthly") {
+                titleText = `${targetDate.getFullYear()}-${String(targetDate.getMonth()+1).padStart(2,'0')}`;
+            }
+        } else {
+            titleText = "Tarih seçilmedi";
+        }
+
         errorChart = new Chart(ctx, {
             type: "bar",
             data: {
@@ -638,7 +657,7 @@ function renderChart() {
                     legend: { display: true },
                     title: {
                         display: true,
-                        text: `Fotoğraf Tablosu - Grup: ${groupKey.toUpperCase()} - Periyot: ${period.toUpperCase()}`
+                        text: `${titleText} - Grup: ${groupKey.toUpperCase()}`
                     }
                 },
                 scales: {
@@ -652,6 +671,7 @@ function renderChart() {
         console.error("renderChart HATA:", err);
     }
 }
+
 
 
 // Yardımcı fonksiyonlar
