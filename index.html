@@ -525,7 +525,7 @@ function createEditableTable(tableId, headers, rows, searchId, paginationId, isP
         if(searchDate){
             searchDate.addEventListener('change',()=>{
                 const dateValue = searchDate.value;
-                if(!dateValue) return;
+                if(!dateValue) { renderPage(); return; }
                 const parts = dateValue.split('-');
                 const formatted = `${parts[2]}.${parts[1]}.${parts[0]}`;
                 search.value = formatted;
@@ -565,37 +565,39 @@ function getPhotoColumnIndices() {
 }
 
 // =========================
-//    GRAFİK FONKSİYONU (PERİYOT DAHİL)
+//    GRAFİK FONKSİYONU (PERİYOT + TARİH SEÇİMİ)
 // =========================
 function renderChart() {
     try {
         if (!photoRows || photoRows.length === 0) return;
 
         const groupKey = document.getElementById("chartGroup")?.value || "aciklama";
-        const period = document.getElementById("chartPeriod")?.value || "daily"; // daily, weekly, monthly
+        const period = document.getElementById("chartPeriod")?.value || "daily"; 
+        const selectedDateStr = document.getElementById("chartDate")?.value || null; // YYYY-MM-DD
         const indices = getPhotoColumnIndices();
         const col = indices[groupKey];
         if (col === undefined) { console.error("Geçersiz grup kolon:", groupKey); return; }
 
-        const dateCol = 0; // Tarih kolon
-
+        const dateCol = 0; 
         const grouped = {};
 
         photoRows.forEach(r => {
-            let key = r[col];
-            if (!key) key = "Boş";
+            let key = r[col] || "Boş";
             key = key.toString().trim();
 
-            // Tarih kolonuna göre periodKey
-            let dateStr = r[dateCol];
+            let dateStr = r[dateCol] || null;
+            const d = dateStr ? parseDateFromDDMMYYYY(dateStr) : null;
+            if(selectedDateStr && d){
+                const selParts = selectedDateStr.split('-');
+                const selDate = new Date(+selParts[0], +selParts[1]-1, +selParts[2]);
+                if(d.getTime() !== selDate.getTime()) return; // filtre
+            }
+
             let periodKey = "";
-            if (dateStr) {
-                const d = parseDateFromDDMMYYYY(dateStr);
-                if (d) {
-                    if (period === "daily") periodKey = formatDate(d);
-                    else if (period === "weekly") periodKey = weekKeyFromDate(d);
-                    else if (period === "monthly") periodKey = monthKeyFromDate(d);
-                }
+            if(d){
+                if(period === "daily") periodKey = formatDate(d);
+                else if(period === "weekly") periodKey = weekKeyFromDate(d);
+                else if(period === "monthly") periodKey = monthKeyFromDate(d);
             }
 
             const finalKey = periodKey ? `${key} (${periodKey})` : key;
@@ -691,8 +693,6 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(localStorage.getItem('loggedIn')==='true') showMain();
 });
 </script>
-
-
 
 </body>
 </html>
