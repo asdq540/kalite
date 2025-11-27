@@ -367,17 +367,24 @@ function openImage(src){
 }
 
 // --- EDIT MODAL ---
-function openEditModal(rowIndex){
-    editRowIndex=rowIndex;
-    const row=photoRows[rowIndex]||[];
-    document.getElementById('editVardiya').value=row[1]||'';
-    document.getElementById('editHat').value=row[2]||'';
-    document.getElementById('editDescription').value=row[3]||'';
-    document.getElementById('editPersonel').value=row[4]||'';
-    editRowId=row[7]||null;
-    if(!editModalEl) editModalEl=new bootstrap.Modal(document.getElementById('editModal'));
+function openEditModal(filteredIndex){
+    const filteredRow = filteredRows[filteredIndex]; // filteredRows, renderPage içinde tanımlı olmalı
+    if(!filteredRow) return;
+    
+    // photoRows içindeki gerçek index
+    editRowIndex = photoRows.findIndex(r => r[7] === filteredRow[7]);
+    if(editRowIndex === -1) return;
+
+    const row = photoRows[editRowIndex];
+    document.getElementById('editVardiya').value = row[1] || '';
+    document.getElementById('editHat').value = row[2] || '';
+    document.getElementById('editDescription').value = row[3] || '';
+    document.getElementById('editPersonel').value = row[4] || '';
+    editRowId = row[7] || null;
+
     editModalEl.show();
 }
+
 
 // --- SAVE EDIT ---
 document.getElementById('saveEditBtn').addEventListener('click', async ()=>{
