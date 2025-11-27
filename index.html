@@ -554,97 +554,166 @@ function openEditModal(rowIndex){ /* aynı kod */ }
 async function deleteRow(rowIndex){ /* aynı kod */ }
 
 // GRAFİK
-async function renderChart() {
-    try {
-        if (!dataRows || dataRows.length === 0) {
-            console.warn("Data rows empty.");
+function getColumnIndices() {
+    // varsayılan indeksler (senin verine göre)
+    const defaults = {tarih:0, vardiya:1, hat:2, aciklama:3, personel:4, foto:5};
+    if(!headerRow || headerRow.length===0) return defaults;
+    // Normalize header text ve eşleştirme
+    const map = {};
+    headerRow.forEach((h,i)=>{
+        if(!h) return;
+        const key = h.toString().toLowerCase().trim();
+        if(key.includes('tarih') || key.includes('date')) map.tarih = i;
+        else if(key.includes('vardiya') || key.includes('shift')) map.vardiya = i;
+        else if(key.includes('hat') || key.includes('line')) map.hat = i;
+        else if(key.includes('açıklama') || key.includes('aciklama') || key.includes('description')) map.aciklama = i;
+        else if(key.includes('personel') || key.includes('sorumlu') || key.includes('person')) map.personel = i;
+        else if(key.includes('foto') || key.includes('image') || key.includes('resim')) map.foto = i;
+    });
+    return Object.assign({}, defaults, map);
+}
+
+// --- tarih/parite yardımcıları ---
+function parseDateFromDDMMYYYY(s){
+    if(!s) return null;
+    const parts = s.toString().trim().split('.');
+    if(parts.length!==3) return null;
+    const d = new Date(+parts[2], +parts[1]-1, +parts[0]);
+    return isNaN(d)?null:d;
+}
+function formatDate(d){
+    return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
+}
+function weekKeyFromDate(d){
+    const onejan = new Date(d.getFullYear(),0,1);
+    const week = Math.ceil((((d-onejan)/86400000) + onejan.getDay() + 1)/7);
+    return `${d.getFullYear()}-W${String(week).padStart(2,'0')}`;
+}
+function monthKeyFromDate(d){
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+
+// --- asıl renderChart (yeni, sağlam) ---
+function renderChart(){
+    try{
+        if(!photoRows || !Array.isArray(photoRows)) return;
+        const indices = getColumnIndices();
+        const chartGroup = (document.getElementById('chartGroup')?.value || document.getElementById('chartGroupBy')?.value || 'aciklama').toString().toLowerCase();
+        const period = document.getElementById('chartPeriod')?.value || 'daily';
+        const dateInput = document.getElementById('chartDate')?.value || null;
+        const selectedDate = dateInput ? new Date(dateInput) : null;
+
+        // sayım: key -> count
+        const countsMap = {}; // {groupKey: totalCount}
+        const detailByDate = {}; // eğer tarih periyotunda detay istenirse (gerekirse genişlet)
+
+        for(const row of photoRows){
+            if(!row) continue;
+            const rawDate = row[indices.tarih];
+            if(!rawDate) continue;
+            const rowDate = parseDateFromDDMMYYYY(rawDate);
+            if(!rowDate) continue;
+
+            // period filtre (selectedDate varsa)
+            if(selectedDate){
+                if(period === 'daily' && rowDate.toDateString() !== selectedDate.toDateString()) continue;
+                if(period === 'weekly' && weekKeyFromDate(rowDate) !== weekKeyFromDate(selectedDate)) continue;
+                if(period === 'monthly' && monthKeyFromDate(rowDate) !== monthKeyFromDate(selectedDate)) continue;
+            }
+
+            // groupKey seçimine göre al
+            let groupKey = 'Bilinmiyor';
+            switch(chartGroup){
+                case 'aciklama':
+                case 'açıklama':
+                    groupKey = (row[indices.aciklama] || 'Açıklama Yok').toString();
+                    break;
+                case 'personel':
+                case 'sorumlu':
+                    groupKey = (row[indices.personel] || 'Bilinmiyor').toString();
+                    break;
+                case 'hat':
+                    groupKey = (row[indices.hat] || 'Bilinmiyor').toString();
+                    break;
+                case 'vardiya':
+                    groupKey = (row[indices.vardiya] || 'Bilinmiyor').toString();
+                    break;
+                case 'tarih':
+                    groupKey = formatDate(rowDate);
+                    break;
+                default:
+                    groupKey = (row[indices.aciklama] || row[indices.personel] || 'Bilinmiyor').toString();
+            }
+
+            countsMap[groupKey] = (countsMap[groupKey]||0) + 1;
+        }
+
+        // Eğer hiç veri yoksa grafik temizle ve çık
+        const keys = Object.keys(countsMap);
+        if(keys.length === 0){
+            if(errorChart){ errorChart.destroy(); errorChart = null; }
+            // isteğe bağlı: canvas altına "Veri yok" yazdırılabilir
             return;
         }
 
-        const groupSelect = document.getElementById("chartGroup");
-        const dateInput = document.getElementById("chartDate");
-        const groupKey = groupSelect ? groupSelect.value : "aciklama";
-        const selectedDate = dateInput ? dateInput.value : "";
+        // Sırala: toplam adede göre büyükten küçüğe
+        const sorted = keys.sort((a,b) => countsMap[b] - countsMap[a]);
 
-        const COLS = {
-            tarih: 0,
-            vardiya: 1,
-            hat: 2,
-            aciklama: 3,
-            personel: 4,
-            kalitePersoneli: 6
-        };
+        // label ve data dizileri
+        const labels = sorted;
+        const data = sorted.map(k => countsMap[k]);
 
-        // Tarih filtresi
-        let chartRows = [...dataRows];
-        if (selectedDate) {
-            const p = selectedDate.split("-");
-            const formatted = `${p[2]}.${p[1]}.${p[0]}`; // gg.aa.yyyy
-            chartRows = chartRows.filter(r => r[COLS.tarih] === formatted);
-        }
+        // renk paleti bar başına
+        const palette = ["#32ff7e","#7efff5","#0ff3ff","#3af1a0","#2ed573","#1dd1a1","#10ac84","#54a0ff","#fffa65","#ff6b6b","#b388ff","#ff9f43"];
+        const bgColors = labels.map((_,i) => palette[i % palette.length]);
 
-        // Grup alanını seç
-        const colIndex = COLS[groupKey] ?? COLS.aciklama;
+        // tek dataset (her bar kendi label'ı taşıyacak)
+        const datasets = [{
+            label: 'Tekrar Sayısı',
+            data: data,
+            backgroundColor: bgColors,
+            borderColor: bgColors,
+            borderWidth: 1,
+            maxBarThickness: 48
+        }];
 
-        // Grup işlemi
-        const grouped = {};
-        chartRows.forEach(r => {
-            const key = r[colIndex] || "Bilinmiyor";
-            grouped[key] = (grouped[key] || 0) + 1;
-        });
+        // chart çizimi (ChartDataLabels plugin varsa kullan)
+        const ctx = document.getElementById('errorChart')?.getContext('2d');
+        if(!ctx) return;
+        if(errorChart) errorChart.destroy();
 
-        // Objeyi diziye çevir
-        const dataArr = Object.entries(grouped).map(([k, v]) => ({
-            label: k,
-            value: v
-        }));
+        const pluginsArr = [];
+        if(typeof ChartDataLabels !== 'undefined') pluginsArr.push(ChartDataLabels);
 
-        // Büyükten küçüğe sırala
-        dataArr.sort((a, b) => b.value - a.value);
-
-        // Eğer önceki chart varsa sil
-        if (errorChart) {
-            errorChart.destroy();
-        }
-
-        // Chart çiz
-        const ctx = document.getElementById("errorChart");
         errorChart = new Chart(ctx, {
-            type: "bar",
-            data: {
-                labels: dataArr.map(i => i.label),
-                datasets: [{
-                    label: "Adet",
-                    data: dataArr.map(i => i.value),
-                    backgroundColor: "rgba(0, 255, 150, 0.35)",
-                    borderColor: "rgb(0, 255, 150)",
-                    borderWidth: 2
-                }]
-            },
+            type: 'bar',
+            data: { labels, datasets },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
                 plugins: {
-                    legend: { display: true },
-                    tooltip: {
-                        callbacks: {
-                            label: (item) => `${item.label}: ${item.raw} adet`
-                        }
+                    legend: { display: false },
+                    tooltip: { enabled: true, mode: 'index', intersect: false },
+                    datalabels: {
+                        display: typeof ChartDataLabels !== 'undefined',
+                        color: '#000',
+                        anchor: 'end',
+                        align: 'end',
+                        font: { weight: '600', size: 11 },
+                        formatter: v => (v === 0 ? '' : v)
                     }
                 },
                 scales: {
-                    x: {
-                        ticks: { color: "#0f0", font: { size: 12 } }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        ticks: { color: "#0f0" }
-                    }
+                    x: { ticks: { color: '#fff' }, grid: { display: false } },
+                    y: { beginAtZero: true, ticks: { color: '#fff', precision: 0 } }
                 }
-            }
+            },
+            plugins: pluginsArr
         });
 
-    } catch (err) {
-        console.error("renderChart error:", err);
+    }catch(err){
+        console.error('renderChart hata', err);
     }
 }
 
